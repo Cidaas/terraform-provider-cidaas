@@ -47,7 +47,7 @@
 
   
 
-- Add Cidaas Provider configuration to terraform configuration file inside Example directory
+- Add Cidaas Provider configuration to terraform configuration file inside the Example directory
 
   ```hcl
   provider "cidaas" {
