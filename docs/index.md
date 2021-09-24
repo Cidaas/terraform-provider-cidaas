@@ -5,7 +5,7 @@ description: |-
   The cidaas provider is used to interract with the cidaas instances and make changes inside the cidaas instances.
 ---
 
-# Auth0 Provider
+# Cidaas Provider
 
 The cidaas provider is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields  as part of a Terraform deployment.
 
