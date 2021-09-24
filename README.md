@@ -62,7 +62,7 @@
 
 
 
-- Setup Environment variables: Username and Password must be set as environment variable in order to allow Cidaas terraform provider to complete Password flow and generate an access_token 
+- Setup Environment variables: Username and Password must be set as environment variable in order to allow the Cidaas terraform provider to complete Password flow and generate an access_token 
 
   ```bash
   export CIDAAS_USERNAME="ENTER CIDAAS USERNAME"
