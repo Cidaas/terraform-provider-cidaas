@@ -22,7 +22,7 @@
 - Clone the GoLang repository 
 
   ```bash
-  git clone -v git@gitlab.widas.de:cidaas-management/terraform.git
+  git clone -v git@github.com:Cidaas/terraform-provider-cidaas.git
 
 - Install Cidaas Terraform Provider plugin
 
