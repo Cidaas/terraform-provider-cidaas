@@ -65,3 +65,9 @@ resource "cidaas_registration_page_field" "terrxaform_registration_page_field_43
 
 
 
+
+## TODO ###
+# - Integrate custom templates
+# - Integrate Registration field keys
+# - Read and Update System templates(SDK) - TODAY
+
