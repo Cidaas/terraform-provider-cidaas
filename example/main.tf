@@ -2,7 +2,7 @@ terraform {
   required_providers {
 
     cidaas = {
-      version = "0.0.3"
+      version = "1.0.7"
       source  = "hashicorp.com/cidaas-public/cidaas"
     }
   }
@@ -19,8 +19,8 @@ provider "cidaas" {
   default_app_base_url      = "https://terraform-cidaas-test-free.cidaas.de"
 }
 
-
-resource "cidaas_app" "terraform_test_10" {
+/*
+resource "cidaas_app" "terraform_test_42" {
 
   client_type                     = "IOS"
   allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"]
@@ -28,8 +28,8 @@ resource "cidaas_app" "terraform_test_10" {
   enable_passwordless_auth        = false
   register_with_login_information = true
   hosted_page_group               = "default"
-  client_name                     = "terraform-test-4"
-  client_display_name             = "terraform-test-4"
+  client_name                     = "terraform-test-42"
+  client_display_name             = "terraform-test-42"
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
   company_website                 = "https://cidaas.com"
@@ -42,11 +42,11 @@ resource "cidaas_app" "terraform_test_10" {
 }
 
 
-resource "cidaas_registration_field" "terrxaform_test_field_10" {
+resource "cidaas_registration_page_field" "terrxaform_registration_page_field_43" {
   parent_group_id      = "DEFAULT"
   is_group             = false
   data_type            = "TEXT"
-  field_key            = "terraform-test-field-5"
+  field_key            = "terraform-test-field-43"
   required             = false
   enabled              = false
   read_only            = false
@@ -60,44 +60,8 @@ resource "cidaas_registration_field" "terrxaform_test_field_10" {
   locale_text_language = "en"
 }
 
-
-resource "cidaas_registration_field" "terrxaform_test_field_12" {
-  parent_group_id      = "DEFAULT"
-  is_group             = false
-  data_type            = "TEXT"
-  field_key            = "terraform-test-field-6"
-  required             = false
-  enabled              = false
-  read_only            = false
-  internal             = false
-  scopes               = []
-  claimable            = true
-  order                = 25
-  field_type           = "CUSTOM"
-  locale_text_locale   = "en-GB"
-  locale_text_name     = "erraform-test-field"
-  locale_text_language = "en"
-}
+*/
 
 
 
 
-# output "terraform_test_output" {
-#   value = cidaas_app.terraform_test_3
-# }
-
-
-# data "cidaas_app"  "terraform_test_data"{
-#   client_id = "d4d55298-f14c-4686-bf5d-2118a66d26b8"
-# }
-
-# output "nightlybuild" {
-#   value = data.cidaas_app.nightlybuild
-# }
-
-
-
-## TODO ###
-# - Integrate custom templates
-# - Integrate Registration field keys
-# - Read and Update System templates(SDK) - TODAY

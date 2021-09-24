@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -60,8 +61,8 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			// "hashicups_order": resourceOrder(),
-			"cidaas_app":                resourceApp(),
-			"cidaas_registration_field": resourceRegistrationField(),
+			"cidaas_app":                     resourceApp(),
+			"cidaas_registration_page_field": resourceRegistrationField(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"cidaas_app": dataSourceApp(),

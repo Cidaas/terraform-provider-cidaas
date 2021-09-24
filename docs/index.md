@@ -1,51 +1,31 @@
-**Install Terraform in your local machine**
+---
+layout: "cidaas"
+page_title: "Provider: cidaas"
+description: |-
+  The cidaas provider is used to interract with the cidaas instances and make changes inside the cidaas instances.
+---
 
-[Steps to install Terraform for different Operating System](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+# Auth0 Provider
 
-
-
-**Install Go in your local machine**
-
-[Steps to install go for different Operating System](https://golang.org/doc/install)
-
-
-
-
-### Cidaas Terraform Provider
+The cidaas provider is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields  as part of a Terraform deployment.
 
 
 
-#### Installation Steps
+## Example Usage
 
-- [Setup golang private repo import](https://gitlab.widas.de/cidaas-v2/cidaas-documentation/development-guidelines/-/wikis/how-to/How-to-import-private-GO-projects)
-
-- Clone the GoLang repository 
-
-  ```bash
-  git clone -v git@gitlab.widas.de:cidaas-management/terraform.git
-
-- Install Cidaas Terraform Provider plugin
-
-  ```bash
-  ubuntu@~/root/.../cidaas-terraform-provider-sandbox make
-  ```
-
-#### Documentation of Usage
-
-- Cidaas as a required provider to terraform configuration file
-
-  ```hcl
-  terraform {
+```hcl
+terraform {
     required_providers {
       cidaas = {
-        version = "0.0.3"
+        version = "1.0.7"
         source  = "hashicorp.com/cidaas-public/cidaas"
       }
     }
   }
-  ```
+```
 
-  
+~> Hard-coding credentials into any Terraform configuration is not recommended, and risks secret leakage should this file ever be committed to a public version control system. See [Environment Variables](#environment-variables) for a better alternative .
+
 
 - Add Cidaas Provider configuration to terraform configuration file inside Example directory
 
@@ -82,7 +62,7 @@
 Example App resource configuration
 
 ```hcl
-resource "cidaas_app" "Enter resource name of type app" {
+resource "cidaas_App" "Enter resource name for resource type App" {
   client_type                     = "NON_INTERACTIVE"
   allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"]
   auto_login_after_register       = true
@@ -102,7 +82,7 @@ resource "cidaas_app" "Enter resource name of type app" {
 ```
 
 ```hcl
-resource "cidaas_registration_page_field" "Enter resource name of type registration_page_fields" {
+resource "cidaas_registration_page_field" "Enter resource name for resource type registration_page_fields" {
   parent_group_id      = "DEFAULT"
   is_group             = false
   data_type            = "TEXT"
@@ -121,14 +101,9 @@ resource "cidaas_registration_page_field" "Enter resource name of type registrat
 }             
 ```
 
-- Run Terraform commands going inside Example directory where Terraform config file main.tf is located. 
+
+- Run Terraform commands going inside Example directory where Terraform config file main.tf is located . 
 
   1. terraform init : It will build the Terraform Cidaas Plugin/Provider.
   2. terraform Plan : It will show the plan that Terraform has to execute from the current config file(main.tf) configurations.
   3. terraform apply : The Terraform will execute the changes and the infrastructure will get provisioned.
-
-### Notes and Guidelines
-
-- If an app/client attribute is modified for an Cidaas App which which is managed by terraform, the App with former attribute configuration is destroyed and a new App with updated attribute configuration is generated (with newly generated client-id and client-secret).
-
-- Only password based auth flow is supported for automated login and usage of Cidaas terraform provider.
