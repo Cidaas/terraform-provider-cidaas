@@ -1,3 +1,4 @@
+ls
 **Install Terraform in your local machine**
 
 [Steps to install Terraform for different Operating System](https://learn.hashicorp.com/tutorials/terraform/install-cli)
@@ -38,7 +39,7 @@
   terraform {
     required_providers {
       cidaas = {
-        version = "1.0.8"
+        version = "1.0.9"
         source  = "hashicorp.com/cidaas-public/cidaas"
       }
     }

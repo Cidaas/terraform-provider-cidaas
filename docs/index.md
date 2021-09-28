@@ -17,7 +17,7 @@ The cidaas provider is used to interact with cidaas instances. It provides resou
 terraform {
     required_providers {
       cidaas = {
-        version = "1.0.7"
+        version = "1.0.9"
         source  = "hashicorp.com/cidaas-public/cidaas"
       }
     }

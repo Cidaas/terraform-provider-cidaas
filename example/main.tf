@@ -2,7 +2,7 @@ terraform {
   required_providers {
 
     cidaas = {
-      version = "1.0.8"
+      version = "1.0.9"
       source  = "hashicorp.com/cidaas-public/cidaas"
     }
   }
@@ -19,8 +19,8 @@ provider "cidaas" {
   default_app_base_url      = "https://terraform-cidaas-test-free.cidaas.de"
 }
 
-/*
-resource "cidaas_app" "terraform_test_42" {
+
+resource "cidaas_app" "terraform_test_53" {
 
   client_type                     = "IOS"
   allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"]
@@ -28,8 +28,8 @@ resource "cidaas_app" "terraform_test_42" {
   enable_passwordless_auth        = false
   register_with_login_information = true
   hosted_page_group               = "default"
-  client_name                     = "terraform-test-42"
-  client_display_name             = "terraform-test-42"
+  client_name                     = "terraform-test-53"
+  client_display_name             = "terraform-test-53"
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
   company_website                 = "https://cidaas.com"
@@ -41,12 +41,11 @@ resource "cidaas_app" "terraform_test_42" {
   allowed_logout_urls             = ["https://cidaas.com"]
 }
 
-
-resource "cidaas_registration_page_field" "terrxaform_registration_page_field_43" {
+resource "cidaas_registration_page_field" "terrxaform_test_field_11" {
   parent_group_id      = "DEFAULT"
   is_group             = false
   data_type            = "TEXT"
-  field_key            = "terraform-test-field-43"
+  field_key            = "terraform-test-field-11"
   required             = false
   enabled              = false
   read_only            = false
@@ -59,15 +58,4 @@ resource "cidaas_registration_page_field" "terrxaform_registration_page_field_43
   locale_text_name     = "erraform-test-field"
   locale_text_language = "en"
 }
-
-*/
-
-
-
-
-
-## TODO ###
-# - Integrate custom templates
-# - Integrate Registration field keys
-# - Read and Update System templates(SDK) - TODAY
 
