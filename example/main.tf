@@ -8,8 +8,6 @@ terraform {
 }
 
 provider "cidaas" {
-  username                  = "mihail"
-  password                  = "nontestato75"
   default_app_client_id     = "efa47d1c-6ad0-4112-b2c0-7b937ac22972"
   default_app_client_secret = "19c9924a-932c-424c-ac6d-91473edb613f"
   default_app_redirect_uri  = "https://example.com"

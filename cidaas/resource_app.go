@@ -211,7 +211,6 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 	var appConfig cidaas_sdk.AppConfig
-
 	appConfig.ClientType = d.Get("client_type").(string)
 	appConfig.AllowLoginWith = interfaceArray2StringArray(d.Get("allow_login_with").([]interface{}))
 	appConfig.AutoLoginAfterRegister = d.Get("auto_login_after_register").(bool)
@@ -229,6 +228,8 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	appConfig.AllowedLogoutUrls = interfaceArray2StringArray(d.Get("allowed_logout_urls").([]interface{}))
 	appConfig.RedirectURIS = interfaceArray2StringArray(d.Get("redirect_uris").([]interface{}))
 	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
+	appConfig.CustomFields = map[string]string{"foo": "bar"}
+	appConfig.AdditionalAccessTokenPayload = []string{"foo"}
 
 	appcreationresponse := cidaas_sdk.CreateApp(cidaas_client, appConfig)
 
