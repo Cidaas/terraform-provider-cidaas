@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -72,11 +73,16 @@ func InitializeAuth(cidaas_client *CidaasClient) {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
+	log.Println("BODY  ", string(body))
 
 	var loginresponse LoginResponsePayload
 
-	json.Unmarshal([]byte(body), &loginresponse)
+	if err := json.Unmarshal([]byte(body), &loginresponse); err != nil {
+		log.Printf("JSON UNMARSHAL")
+		log.Printf("Error: %s", err.Error())
+		return
+	 }
+	
 
 	cidaas_client.TokenData.AccessToken = loginresponse.AccessToken
 	cidaas_client.TokenData.TokenType = loginresponse.TokenType
@@ -86,4 +92,10 @@ func InitializeAuth(cidaas_client *CidaasClient) {
 	cidaas_client.TokenData.IdToken = loginresponse.IdToken
 	cidaas_client.TokenData.RefreshToken = loginresponse.RefreshToken
 	cidaas_client.TokenData.IdentityId = loginresponse.IdentityId
+
+	log.Println("CLIENT_SDK TOKEN TYPE ", cidaas_client.TokenData.TokenType)
+	log.Println("CLIENT_SDK SUB ", cidaas_client.TokenData.Sub)
+	log.Println("CLIENT_SDK  access token", cidaas_client.TokenData.AccessToken)
+
+
 }

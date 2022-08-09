@@ -1,0 +1,8 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/genchevm/terraform-provider-cidaas'
+go build -o terraform-provider-cidaas
+mkdir -p ~/.terraform.d/plugins/hashicorp.com/cidaas-public/cidaas/1.0.9/linux_amd64
+ 
+mv terraform-provider-cidaas ~/.terraform.d/plugins/hashicorp.com/cidaas-public/cidaas/1.0.9/linux_amd64
+make: Leaving directory `/Users/genchevm/terraform-provider-cidaas'
+ 

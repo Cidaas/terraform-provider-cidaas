@@ -2,6 +2,7 @@ package cidaas
 
 import (
 	"context"
+	"log"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -83,6 +84,16 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	auth_url := d.Get("default_app_auth_url").(string)
 	app_url := d.Get("default_app_app_url").(string)
 	base_url := d.Get("default_app_base_url").(string)
+
+	log.Println("USERNAME ", username)
+	log.Println("PASSWORD ", password)
+	log.Println("CLIENT ID ", client_id)
+	log.Println("SECRET ", client_secret)
+	log.Println("GRANT_TYPE ", grant_type)
+
+
+
+
 
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
