@@ -3,7 +3,7 @@ HOSTNAME=hashicorp.com
 NAMESPACE=cidaas-public
 NAME=cidaas
 BINARY=terraform-provider-${NAME}
-VERSION=1.0.13
+VERSION=1.0.14
 OS_ARCH=linux_amd64
 
 default: install
@@ -23,7 +23,7 @@ release:
 	GOOS=openbsd GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_openbsd_amd64
 	GOOS=solaris GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_solaris_amd64
 	GOOS=windows GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_windows_386
-	GOOS=windows GOARCH=arm go build -o ./bin/${BINARY}_${VERSION}_windows_arm
+	GOOS=windows GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_windows_amd64
 
 install: build
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}

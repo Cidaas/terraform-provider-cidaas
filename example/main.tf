@@ -2,7 +2,7 @@ terraform {
   required_providers {
 
     cidaas = {
-      version = "1.0.13"
+      version = "1.0.14"
       source  = "Cidaas/cidaas"
     }
   }
