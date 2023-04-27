@@ -46,16 +46,6 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"auth_url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"app_url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"allow_login_with": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -138,6 +128,529 @@ func resourceApp() *schema.Resource {
 				Required: true,
 			},
 
+			"application_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"logo_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"policy_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"tos_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"default_max_age": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"id_token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"refresh_token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
+			"initiate_login_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"contacts": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"client_secret_expires_at": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"client_id_issued_at": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"registration_client_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"registration_access_token": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"client_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"jwks_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"jwks": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"sector_identifier_uri": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"subject_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"id_token_signed_response_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"id_token_encrypted_response_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"id_token_encrypted_response_enc": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"userinfo_signed_response_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"userinfo_encrypted_response_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"userinfo_encrypted_response_enc": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"request_object_signing_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"request_object_encryption_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"request_object_encryption_enc": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"request_uris": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"token_endpoint_auth_method": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"token_endpoint_auth_signing_alg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"require_auth_time": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"default_acr_values": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"allowed_web_origins": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"allowed_origins": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"login_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"default_scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"pending_scopes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"app_owner": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"jwe_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"user_consent": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"deleted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"allowed_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"required_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"consent_page_group": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"additional_access_token_payload": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"always_ask_mfa": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"fds_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"enable_deduplication": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"allow_disposable_email": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"validate_phone_number": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"allowed_mfa": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"password_policy_ref": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"captcha_ref": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"captcha_refs": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"consent_refs": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"email_verification_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"mobile_number_verification_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"accept_roles_in_the_registration": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"allowed_roles": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"default_roles": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"enable_classical_provider": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"sub": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"role": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"is_hybrid_app": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"is_remember_me_selected": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"mfa_configuration": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"suggest_mfa": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"application_meta_data": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"custom_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"provider_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"social_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"social_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"provider_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"logo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"saml_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"provider_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"logo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"ad_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"provider_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"logo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"allowed_groups": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"group_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"roles": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"default_roles": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+			"operations_allowed_groups": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"group_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"roles": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"default_roles": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+			"mobile_settings": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"team_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"bundle_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"package_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"key_hash": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"app_key": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"push_config": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"app_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
