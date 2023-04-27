@@ -1,12 +1,16 @@
 include:
+  - project: 'widas/software-quality/gitlab-template-projects/widas-ci-templates'
+    file: 'golang/go-lib.yml'
   - template: Terraform/Base.gitlab-ci.yml
   - template: Jobs/SAST-IaC.gitlab-ci.yml
 
 stages:
   - validate
   - test
+  - update-version
   - build
   - deploy
+  - release
   - cleanup
 
 fmt:
@@ -17,13 +21,13 @@ validate:
   extends: .terraform:validate
   needs: []
 
-build:
-  extends: .terraform:build
+# build:
+#   extends: .terraform:build
 
-deploy:
-  extends: .terraform:deploy
-  dependencies:
-    - build
-  environment:
-    name: dev
+# deploy:
+#   extends: .terraform:deploy
+#   dependencies:
+#     - build
+#   environment:
+#     name: dev
 
