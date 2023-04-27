@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"gitlab.widas.de/customer-specific-projects/rehau/cidaas-go-sdk/pkg/cidaas_sdk"
 )
 
 func resourceApp() *schema.Resource {
@@ -20,43 +20,43 @@ func resourceApp() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			"client_type": &schema.Schema{
+			"client_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"client_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"redirect_uris": &schema.Schema{
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"allowed_logout_urls": &schema.Schema{
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"auth_url": &schema.Schema{
+			"client_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"app_url": &schema.Schema{
+			"redirect_uris": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"allowed_logout_urls": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"auth_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"allow_login_with": &schema.Schema{
+			"app_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"allow_login_with": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -64,52 +64,52 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"auto_login_after_register": &schema.Schema{
+			"auto_login_after_register": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"enable_passwordless_auth": &schema.Schema{
+			"enable_passwordless_auth": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"register_with_login_information": &schema.Schema{
+			"register_with_login_information": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"hosted_page_group": &schema.Schema{
+			"hosted_page_group": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"client_name": &schema.Schema{
+			"client_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"client_display_name": &schema.Schema{
+			"client_display_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"company_name": &schema.Schema{
+			"company_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"company_address": &schema.Schema{
+			"company_address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"company_website": &schema.Schema{
+			"company_website": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"allowed_scopes": &schema.Schema{
+			"allowed_scopes": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -117,7 +117,7 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"response_types": &schema.Schema{
+			"response_types": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -125,7 +125,7 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"grant_types": &schema.Schema{
+			"grant_types": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -133,56 +133,56 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"template_group_id": &schema.Schema{
+			"template_group_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"app_attributes": &schema.Schema{
+			"app_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": &schema.Schema{
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": &schema.Schema{
+						"value": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"datatype": &schema.Schema{
+						"datatype": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"app_retrieval_status": &schema.Schema{
+			"app_retrieval_status": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"app_retrieval_success": &schema.Schema{
+			"app_retrieval_success": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"app_creation_status": &schema.Schema{
+			"app_creation_status": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"app_creation_success": &schema.Schema{
+			"app_creation_success": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"app_creation_error": &schema.Schema{
+			"app_creation_error": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"app_creation_error_code": &schema.Schema{
+			"app_creation_error_code": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"app_creation_error_type": &schema.Schema{
+			"app_creation_error_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -253,9 +253,9 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		return diags
 	}
 
-	error_string := appcreationresponse.Error.Error
-	error_code := int(appcreationresponse.Error.Code)
-	error_type := appcreationresponse.Error.Type
+	error_string := ""
+	error_code := int(appcreationresponse.Errors.Code)
+	error_type := appcreationresponse.Errors.Type
 
 	if err := d.Set("app_creation_error", error_string); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -284,11 +284,11 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		return diags
 	}
 
-	if appcreationresponse.Success == false {
+	if !appcreationresponse.Success {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Unable to create app",
-			Detail:   error_string,
+			Detail:   appcreationresponse.Error,
 		})
 		return diags
 	}
@@ -381,7 +381,7 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		Detail:   strconv.Itoa(appupdateresponse.Status),
 	})
 
-	if appupdateresponse.Success == false {
+	if !appupdateresponse.Success {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "App Update Failed",
@@ -483,7 +483,7 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 		Detail:   strconv.Itoa(appdeleteresponse.Status),
 	})
 
-	if appdeleteresponse.Success == false {
+	if !appdeleteresponse.Success {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "App Deletion Failed",

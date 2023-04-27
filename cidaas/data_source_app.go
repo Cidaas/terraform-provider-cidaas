@@ -3,16 +3,17 @@ package cidaas
 import (
 	"context"
 	"encoding/json"
+
 	// "fmt"
 	"net/http"
 	"reflect"
 	"strconv"
 	"time"
 
+	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"gitlab.widas.de/customer-specific-projects/rehau/cidaas-go-sdk/pkg/cidaas_sdk"
 )
 
 func dataSourceApp() *schema.Resource {
