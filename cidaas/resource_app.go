@@ -19,15 +19,36 @@ func resourceApp() *schema.Resource {
 		DeleteContext: resourceAppDelete,
 
 		Schema: map[string]*schema.Schema{
-
 			"client_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
+			"accent_color": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"primary_color": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"media_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"client_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"content_align": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"allow_login_with": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"redirect_uris": {
@@ -45,15 +66,10 @@ func resourceApp() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-
-			"allow_login_with": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"enable_deduplication": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
-
 			"auto_login_after_register": {
 				Type:     schema.TypeBool,
 				Required: true,
@@ -69,6 +85,18 @@ func resourceApp() *schema.Resource {
 				Required: true,
 			},
 
+			"allow_disposable_email": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"validate_phone_number": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"fds_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"hosted_page_group": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -123,13 +151,82 @@ func resourceApp() *schema.Resource {
 				},
 			},
 
-			"template_group_id": {
-				Type:     schema.TypeString,
-				Required: true,
+			"login_providers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
-
+			"additional_access_token_payload": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"application_type": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"required_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"application_meta_data": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"is_hybrid_app": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"allowed_web_origins": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"allowed_origins": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"mobile_settings": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"team_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"bundle_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"package_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"key_hash": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+			"refresh_token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
 
@@ -149,15 +246,15 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+			"template_group_id": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"token_lifetime_in_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"id_token_lifetime_in_seconds": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"refresh_token_lifetime_in_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
@@ -276,27 +373,7 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"allowed_web_origins": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"allowed_origins": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"login_providers": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+
 			"default_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -338,44 +415,17 @@ func resourceApp() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"required_fields": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+
 			"consent_page_group": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"additional_access_token_payload": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+
 			"always_ask_mfa": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"fds_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"enable_deduplication": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"allow_disposable_email": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-			"validate_phone_number": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+
 			"allowed_mfa": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -443,10 +493,7 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"is_hybrid_app": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
+
 			"is_remember_me_selected": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -457,13 +504,6 @@ func resourceApp() *schema.Resource {
 			},
 			"suggest_mfa": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"application_meta_data": {
-				Type:     schema.TypeMap,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -613,30 +653,7 @@ func resourceApp() *schema.Resource {
 					},
 				},
 			},
-			"mobile_settings": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"team_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"bundle_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"package_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"key_hash": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+
 			"app_key": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -743,6 +760,18 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	appConfig.AllowedLogoutUrls = interfaceArray2StringArray(d.Get("allowed_logout_urls").([]interface{}))
 	appConfig.RedirectURIS = interfaceArray2StringArray(d.Get("redirect_uris").([]interface{}))
 	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
+	// appConfig.EnableDeduplication = d.Get("enable_deduplication").(bool)
+	// appConfig.AllowDisposableEmail = d.Get("allow_disposable_email").(bool)
+	// appConfig.ValidatePhoneNumber = d.Get("validate_phone_number").(bool)
+	// appConfig.FdsEnabled = d.Get("fds_enabled").(bool)
+	// appConfig.LoginProviders = interfaceArray2StringArray(d.Get("login_providers").([]interface{}))
+	// appConfig.AdditionalAccessTokenPayload = d.Get("additional_access_token_payload").(string)
+	// appConfig.RequiredFields = interfaceArray2StringArray(d.Get("required_fields").([]interface{}))
+	// appConfig.ApplicationMetaData = d.Get("template_group_id").(string)
+	// appConfig.IsHybridApp = d.Get("is_hybrid_app").(bool)
+	// appConfig.AllowedWebOrigins = interfaceArray2StringArray(d.Get("allowed_web_origins").([]interface{}))
+	// appConfig.AllowedOrigins = interfaceArray2StringArray(d.Get("allowed_origins").([]interface{}))
+	// appConfig.MobileSettings = d.Get("mobile_settings").(string)
 
 	appcreationresponse := cidaas_sdk.CreateApp(cidaas_client, appConfig)
 
@@ -801,7 +830,7 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "Unable to create app",
-			Detail:   appcreationresponse.Error,
+			Detail:   appcreationresponse.Errors.Error,
 		})
 		return diags
 	}

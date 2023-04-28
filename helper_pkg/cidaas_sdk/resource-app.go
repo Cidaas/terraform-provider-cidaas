@@ -25,9 +25,9 @@ type baseResponse struct {
 	Success bool      `json:"success,omitempty"`
 	Status  int       `json:"status,omitempty"`
 	Data    AppConfig `json:"data,omitempty"`
-	Errors  Error     `json:"errors,omitempty"`
-	Error   string    `json:"error,omitempty"`
-	RefNum  string    `json:"renum,omitempty"`
+	Errors  Error     `json:"error,omitempty"`
+	// Error   string    `json:"error,omitempty"`
+	// RefNum  string    `json:"renum,omitempty"`
 }
 
 type AppConfig struct {
@@ -53,14 +53,21 @@ type AppConfig struct {
 	LoginProviders               []string    `json:"login_providers,omitempty"`
 	AdditionalAccessTokenPayload string      `json:"additional_access_token_payload,omitempty"`
 	GrantTypes                   []string    `json:"grant_types,omitempty"`
-	RequiredFields               string      `json:"required_fields,omitempty"`
-	ApplicationMetadata          string      `json:"application_metadata,omitempty"`
+	RequiredFields               []string    `json:"required_fields,omitempty"`
 	IsHybridApp                  bool        `json:"is_hybrid_app,omitempty"`
 	RedirectURIS                 []string    `json:"redirect_uris,omitempty"`
 	AllowedLogoutUrls            []string    `json:"allowed_logout_urls,omitempty"`
 	AllowedWebOrigins            []string    `json:"allowed_web_origins,omitempty"`
 	AllowedOrigins               []string    `json:"allowed_origins,omitempty"`
 	MobileSettings               interface{} `json:"mobile_settings,omitempty"`
+
+	AccentColor                   string      `json:"accent_color,omitempty"`
+	PrimaryColor                  string      `json:"primary_color,omitempty"`
+	MediaType                     string      `json:"media_type,omitempty"`
+	ContentAlign                  string      `json:"contentAlign,omitempty"`
+	ApplicationType               string      `json:"application_type,omitempty"`
+	ApplicationMetaData           interface{} `json:"application_meta_data,omitempty"`
+	RefreshTokenLifetimeInSeconds int         `json:"refresh_token_lifetime_in_seconds,omitempty"`
 }
 
 func CreateApp(cidaas_client CidaasClient, app_config AppConfig) (base_response baseResponse) {

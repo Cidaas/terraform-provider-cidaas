@@ -13,45 +13,48 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"default_app_client_id": &schema.Schema{
+			"default_app_client_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_client_secret": &schema.Schema{
+			"default_app_client_secret": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_redirect_uri": &schema.Schema{
+			"default_app_redirect_uri": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_auth_url": &schema.Schema{
+			"default_app_auth_url": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_app_url": &schema.Schema{
+			"default_app_app_url": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_base_url": &schema.Schema{
+			"default_app_base_url": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"default_app_provider_url": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// "hashicups_order": resourceOrder(),
 			"cidaas_app":                     resourceApp(),
 			"cidaas_registration_page_field": resourceRegistrationField(),
+			"cidaas_custom_provider":         resourceCustomProvider(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"cidaas_app": dataSourceApp(),
-			// "hashicups_coffees": dataSourceCoffees(),
-			// "hashicups_order":   dataSourceOrder(),
+			"cidaas_app":             dataSourceApp(),
+			"cidaas_custom_provider": dataSourceApp(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
@@ -65,6 +68,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	auth_url := d.Get("default_app_auth_url").(string)
 	app_url := d.Get("default_app_app_url").(string)
 	base_url := d.Get("default_app_base_url").(string)
+	provide_url := d.Get("default_app_provider_url").(string)
 
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
@@ -78,7 +82,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		grant_type,
 		auth_url,
 		app_url,
-		base_url)
+		base_url,
+		provide_url)
 
 	cidaas_sdk.InitializeAuth(&cidaas_client)
 
