@@ -14,18 +14,18 @@ type Scopes struct {
 }
 
 type CustomProvider struct {
-	ID                    string   `json:"_id,omitempty"`
-	ClientId              string   `json:"client_id,omitempty"`
-	ClientSecret          string   `json:"client_secret,omitempty"`
-	DisplayName           string   `json:"display_name,omitempty"`
-	StandardType          string   `json:"standard_type,omitempty"`
-	AuthorizationEndpoint string   `json:"authorization_endpoint,omitempty"`
-	TokenEndpoint         string   `json:"token_endpoint,omitempty"`
-	ProviderName          string   `json:"provider_name,omitempty"`
-	LogoUrl               string   `json:"logo_url,omitempty"`
-	UserinfoEndpoint      string   `json:"userinfo_endpoint,omitempty"`
-	UserinfoFields        UserInfo `json:"userinfo_fields,omitempty"`
-	Scopes                Scopes   `json:"scopes,omitempty"`
+	ID                    string      `json:"_id,omitempty"`
+	ClientId              string      `json:"client_id,omitempty"`
+	ClientSecret          string      `json:"client_secret,omitempty"`
+	DisplayName           string      `json:"display_name,omitempty"`
+	StandardType          string      `json:"standard_type,omitempty"`
+	AuthorizationEndpoint string      `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint         string      `json:"token_endpoint,omitempty"`
+	ProviderName          string      `json:"provider_name,omitempty"`
+	LogoUrl               string      `json:"logo_url,omitempty"`
+	UserinfoEndpoint      string      `json:"userinfo_endpoint,omitempty"`
+	UserinfoFields        interface{} `json:"userinfo_fields,omitempty"`
+	Scopes                Scopes      `json:"scopes,omitempty"`
 }
 
 type UserInfo struct {
@@ -94,7 +94,6 @@ func CreateCustomProvider(cidaas_client CidaasClient, cp CustomProvider) (base_r
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
 
 	json.Unmarshal([]byte(body), &base_response)
 
@@ -173,7 +172,7 @@ func GetCustomProvider(cidaas_client CidaasClient, provider_name string) (base_r
 }
 
 func DeleteCustomProvider(cidaas_client CidaasClient, provider string) (base_response CpBaseResponse) {
-	url := cidaas_client.BaseUrl + "/providers-srv/custom/" + provider
+	url := cidaas_client.BaseUrl + "/providers-srv/custom/" + strings.ToLower(provider)
 	method := "DELETE"
 
 	client := &http.Client{}

@@ -18,7 +18,7 @@ resource "cidaas_app" "terraform_app" {
   allowed_logout_urls             = ["https://cidaas.com"]
   fds_enabled                     = false
   login_providers                 = ["login_provider1", "login_provider2"]
-  custom_provider_name            = cidaas_custom_provider.customer_provider.provider_name
+  custom_provider_name            = cidaas_custom_provider.cp.provider_name
 }
 
 
@@ -26,8 +26,8 @@ output "app" {
   value = {
     client_id                 = cidaas_app.terraform_app.client_id
     app_name                  = cidaas_app.terraform_app.client_name
-    custom_provider_name      = cidaas_custom_provider.customer_provider.provider_name
-    custom_provider_id        = cidaas_custom_provider.customer_provider._id
-    custom_provider_client_id = cidaas_custom_provider.customer_provider.client_id
+    custom_provider_name      = cidaas_custom_provider.cp.provider_name
+    custom_provider_id        = cidaas_custom_provider.cp._id
+    custom_provider_client_id = cidaas_custom_provider.cp.client_id
   }
 }

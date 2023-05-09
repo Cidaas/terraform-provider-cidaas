@@ -3,7 +3,7 @@ HOSTNAME=hashicorp.com
 NAMESPACE=cidaas-public
 NAME=cidaas
 BINARY=terraform-provider-${NAME}
-VERSION=1.0.17
+VERSION=1.0.0
 OS_ARCH=linux_amd64
 
 default: install
