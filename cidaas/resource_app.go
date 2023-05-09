@@ -2,6 +2,8 @@ package cidaas
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -38,6 +40,10 @@ func resourceApp() *schema.Resource {
 			"client_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"custom_provider_name": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"content_align": {
 				Type:     schema.TypeString,
@@ -735,6 +741,18 @@ func interfaceArray2StringArray(interfaceArray []interface{}) (stringArray []str
 	return stringArray
 }
 
+func arrayOfInterface(interfaceArray []interface{}) (stringArray []map[string]string) {
+
+	for _, txt := range interfaceArray {
+		elements := map[string]string{
+			"scope_name": txt.(string),
+		}
+		stringArray = append(stringArray, elements)
+	}
+
+	return stringArray
+}
+
 func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
@@ -840,6 +858,25 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 			Severity: diag.Error,
 			Summary:  "Error Occured while setting app_creation_error to resourceData",
 			Detail:   err.Error(),
+		})
+		return diags
+	}
+
+	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+
+	linkCpPayload.ClientId = appcreationresponse.Data.ClientId
+	linkCpPayload.Test = bool(false)
+	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+
+	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+
+	if !response.Success {
+		str := fmt.Sprintf("Unable to link custom provide to the client %+v", linkCpPayload.ClientId)
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  str,
+			Detail:   appcreationresponse.Errors.Error,
 		})
 		return diags
 	}
@@ -1004,12 +1041,37 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 }
 
 func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
 	client_id := d.Get("client_id").(string)
+
+	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+
+	t, _ := strconv.ParseBool("true")
+	linkCpPayload.ClientId = client_id
+	linkCpPayload.Test = t
+	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+
+	json_payload, _ := json.Marshal(linkCpPayload)
+
+	payload_string := string(json_payload)
+
+	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+
+	if !response.Success {
+		str := fmt.Sprintf("Unable to unlink custom provider to the client %+v", payload_string)
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  str,
+			Detail:   response.Error.Error,
+		})
+		return diags
+	}
 
 	appdeleteresponse := cidaas_sdk.DeleteApp(cidaas_client, client_id)
 
@@ -1026,10 +1088,11 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 	})
 
 	if !appdeleteresponse.Success {
+		str := fmt.Sprintf("App deletion failed %+v", client_id)
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "App Deletion Failed",
-			Detail:   "App Deletion Failed",
+			Summary:  str,
+			Detail:   str,
 		})
 	}
 

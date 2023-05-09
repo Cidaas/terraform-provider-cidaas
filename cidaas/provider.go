@@ -2,6 +2,7 @@ package cidaas
 
 import (
 	"context"
+	"os"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -13,38 +14,14 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"default_app_client_id": {
+			"redirect_uri": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_client_secret": {
+			"base_url": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"default_app_redirect_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_auth_url": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_app_url": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_base_url": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"default_app_provider_url": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -61,14 +38,17 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	client_id := d.Get("default_app_client_id").(string)
-	client_secret := d.Get("default_app_client_secret").(string)
-	redirect_uri := d.Get("default_app_redirect_uri").(string)
+
+	redirect_uri := d.Get("redirect_uri").(string)
+	base_url := d.Get("base_url").(string)
+
 	grant_type := "client_credentials"
-	auth_url := d.Get("default_app_auth_url").(string)
-	app_url := d.Get("default_app_app_url").(string)
-	base_url := d.Get("default_app_base_url").(string)
-	provide_url := d.Get("default_app_provider_url").(string)
+	auth_url := base_url + "/token-srv/token"
+	provide_url := base_url + "/providers-srv/custom"
+	app_url := base_url + "/apps-srv/clients"
+
+	client_id := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID")
+	client_secret := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET")
 
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics

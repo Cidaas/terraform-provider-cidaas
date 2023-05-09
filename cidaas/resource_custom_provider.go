@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/google/uuid"
 )
 
 func resourceCustomProvider() *schema.Resource {
@@ -41,11 +43,11 @@ func resourceCustomProvider() *schema.Resource {
 			},
 			"client_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"client_secret": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"authorization_endpoint": {
 				Type:     schema.TypeString,
@@ -59,23 +61,20 @@ func resourceCustomProvider() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"scope_names": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"username": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// "userinfo_fields": {
-			// 	Type:     schema.TypeMap,
-			// 	Optional: true,
-			// 	Elem: &schema.Schema{
-			// 		Type: schema.TypeString,
-			// 	},
-			// },
-			"scopes": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"scope_display_label": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"success_status": {
 				Type:     schema.TypeInt,
@@ -101,6 +100,11 @@ func resourceCustomProvider() *schema.Resource {
 	}
 }
 
+func generateUuid() string {
+	id := uuid.New()
+
+	return id.String()
+}
 func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
@@ -114,11 +118,31 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	customProvider.ProviderName = d.Get("provider_name").(string)
 	customProvider.DisplayName = d.Get("display_name").(string)
 	customProvider.LogoUrl = d.Get("logo_url").(string)
-	customProvider.ClientId = d.Get("client_id").(string)
-	customProvider.ClientSecret = d.Get("client_secret").(string)
 	customProvider.UserinfoEndpoint = d.Get("userinfo_endpoint").(string)
-	// customProvider.Scopes = interfaceArray2StringArray(d.Get("scopes").([]interface{}))
+	customProvider.Scopes.DisplayLabel = d.Get("scope_display_label").(string)
 	customProvider.UserinfoFields.Name = d.Get("username").(string)
+	customProvider.Scopes.Scopes = arrayOfInterface(d.Get("scope_names").([]interface{}))
+
+	customProvider.ClientId = generateUuid()
+	customProvider.ClientSecret = generateUuid()
+
+	if err := d.Set("client_id", customProvider.ClientId); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error Occured while setting _id to resourceData",
+			Detail:   err.Error(),
+		})
+		return diags
+	}
+
+	if err := d.Set("client_secret", customProvider.ClientSecret); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error Occured while setting _id to resourceData",
+			Detail:   err.Error(),
+		})
+		return diags
+	}
 
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
 

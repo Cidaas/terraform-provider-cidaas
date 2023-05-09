@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+type Scopes struct {
+	DisplayLabel string              `json:"display_label,omitempty"`
+	Scopes       []map[string]string `json:"scopes,omitempty"`
+}
+
 type CustomProvider struct {
 	ID                    string   `json:"_id,omitempty"`
 	ClientId              string   `json:"client_id,omitempty"`
@@ -20,7 +25,7 @@ type CustomProvider struct {
 	LogoUrl               string   `json:"logo_url,omitempty"`
 	UserinfoEndpoint      string   `json:"userinfo_endpoint,omitempty"`
 	UserinfoFields        UserInfo `json:"userinfo_fields,omitempty"`
-	// Scopes                interface{} `json:"scopes,omitempty"`
+	Scopes                Scopes   `json:"scopes,omitempty"`
 }
 
 type UserInfo struct {
@@ -34,6 +39,22 @@ type CpBaseResponse struct {
 	Errors  Error          `json:"error,omitempty"`
 	// Error   string    `json:"error,omitempty"`
 	// RefNum  string    `json:"renum,omitempty"`
+}
+
+type LinkCustomProviderStruct struct {
+	ClientId    string `json:"client_id,omitempty"`
+	Test        bool   `json:"deleted"`
+	Type        string `json:"type,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
+}
+
+type LinkCpResponse struct {
+	Success bool `json:"success,omitempty"`
+	Status  int  `json:"status,omitempty"`
+	Data    struct {
+		Updated bool `json:"updated,omitempty"`
+	} `json:"data,omitempty"`
+	Error Error `json:"error,omitempty"`
 }
 
 func CreateCustomProvider(cidaas_client CidaasClient, cp CustomProvider) (base_response CpBaseResponse) {
@@ -175,6 +196,48 @@ func DeleteCustomProvider(cidaas_client CidaasClient, provider string) (base_res
 		fmt.Println(err)
 		return
 	}
+	json.Unmarshal([]byte(body), &base_response)
+
+	return base_response
+}
+
+func LinkCustomProvider(cidaas_client CidaasClient, cp LinkCustomProviderStruct) (base_response LinkCpResponse) {
+
+	url := cidaas_client.BaseUrl + "/apps-srv/loginproviders/update/" + cp.DisplayName
+	method := "PUT"
+
+	json_payload, err := json.Marshal(cp)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	payload_string := string(json_payload)
+	payload := strings.NewReader(payload_string)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	req.Header.Add("Authorization", "Bearer "+cidaas_client.TokenData.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	json.Unmarshal([]byte(body), &base_response)
 
 	return base_response
