@@ -2,7 +2,10 @@ package cidaas
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
@@ -45,10 +48,6 @@ func resourceCustomProvider() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"client_secret": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"authorization_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -68,13 +67,93 @@ func resourceCustomProvider() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"username": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"scope_display_label": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+			"userinfo_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"family_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"given_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"middle_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"nickname": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"preferred_username": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"profile": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"picture": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"website": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"gender": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"birthdate": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"zoneinfo": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"locale": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"updated_at": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"email": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"email_verified": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"phone_number": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"mobile_number": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"address": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
 			},
 			"success_status": {
 				Type:     schema.TypeInt,
@@ -100,14 +179,7 @@ func resourceCustomProvider() *schema.Resource {
 	}
 }
 
-func generateUuid() string {
-	id := uuid.New()
-
-	return id.String()
-}
 func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-
-	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
 	var diags diag.Diagnostics
 	var customProvider cidaas_sdk.CustomProvider
@@ -120,30 +192,35 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	customProvider.LogoUrl = d.Get("logo_url").(string)
 	customProvider.UserinfoEndpoint = d.Get("userinfo_endpoint").(string)
 	customProvider.Scopes.DisplayLabel = d.Get("scope_display_label").(string)
-	customProvider.UserinfoFields.Name = d.Get("username").(string)
 	customProvider.Scopes.Scopes = arrayOfInterface(d.Get("scope_names").([]interface{}))
 
-	customProvider.ClientId = generateUuid()
-	customProvider.ClientSecret = generateUuid()
+	ufs, ok := d.GetOk("userinfo_fields")
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "error while parsing userinfo_fields",
+			Detail:   "error while parsing userinfo_fields",
+		})
+		return diags
+	}
+	fileds := ufs.([]interface{})
+	for _, templateConfigBlock := range fileds {
+		customProvider.UserinfoFields = templateConfigBlock.(map[string]interface{})
+	}
+
+	customProvider.ClientId = uuid.New().String()
+	customProvider.ClientSecret = uuid.New().String()
 
 	if err := d.Set("client_id", customProvider.ClientId); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting _id to resourceData",
+			Summary:  "error while updating client_id in custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
 	}
 
-	if err := d.Set("client_secret", customProvider.ClientSecret); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting _id to resourceData",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
+	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
 
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
@@ -151,7 +228,7 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err := d.Set("success", response.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting success to resourceData",
+			Summary:  "Error Occured while setting success to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -160,38 +237,34 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err := d.Set("success_status", int(response.Status)); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting success_status to resourceData",
+			Summary:  "Error Occured while setting success_status to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
 	}
 
-	error_string := ""
-	error_code := int(response.Errors.Code)
-	error_type := response.Errors.Type
-
-	if err := d.Set("error", error_string); err != nil {
+	if err := d.Set("error", response.Errors.Error); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting error to resourceData",
+			Summary:  "Error Occured while setting error to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
 	}
 
-	if err := d.Set("error_code", error_code); err != nil {
+	if err := d.Set("error_code", int(response.Errors.Code)); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting error_code to resourceData",
+			Summary:  "Error Occured while setting error_code to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
 	}
 
-	if err := d.Set("error_type", error_type); err != nil {
+	if err := d.Set("error_type", response.Errors.Type); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting error_type to resourceData",
+			Summary:  "Error Occured while setting error_type to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -200,8 +273,8 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if !response.Success {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Unable to create custom provider",
-			Detail:   cidaas_client.BaseUrl,
+			Summary:  fmt.Sprintf("Unable to create custom provider %+v", response.Errors.Error),
+			Detail:   response.Errors.Error,
 		})
 		return diags
 	}
@@ -209,7 +282,7 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err := d.Set("_id", response.Data.ID); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting _id to resourceData",
+			Summary:  "Error Occured while setting _id to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -223,12 +296,12 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	provider_name := d.Get("provider_name").(string)
-	response := cidaas_sdk.GetCustomProvider(cidaas_client, provider_name)
+	response := cidaas_sdk.GetCustomProvider(cidaas_client, strings.ToLower(provider_name))
 
 	if err := d.Set("success", response.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting success to resourceData",
+			Summary:  "Error Occured while setting success to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -237,7 +310,7 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	if err := d.Set("success_status", int(response.Status)); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting success_status to resourceData",
+			Summary:  "Error Occured while setting success_status to custom provider",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -256,16 +329,31 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 	customProvider.StandardType = d.Get("standard_type").(string)
 	customProvider.AuthorizationEndpoint = d.Get("authorization_endpoint").(string)
 	customProvider.TokenEndpoint = d.Get("token_endpoint").(string)
-	customProvider.ProviderName = d.Get("provider_name").(string)
 	customProvider.DisplayName = d.Get("display_name").(string)
 	customProvider.LogoUrl = d.Get("logo_url").(string)
-	customProvider.ClientId = d.Get("client_id").(string)
-	customProvider.ClientSecret = d.Get("client_secret").(string)
 	customProvider.UserinfoEndpoint = d.Get("userinfo_endpoint").(string)
-	// customProvider.Scopes = interfaceArray2StringArray(d.Get("scopes").([]interface{}))
-	customProvider.UserinfoFields.Name = d.Get("username").(string)
 	customProvider.ID = d.Get("_id").(string)
+	customProvider.ProviderName = strings.ToLower(d.Get("provider_name").(string))
+	customProvider.Scopes.DisplayLabel = d.Get("scope_display_label").(string)
+	customProvider.Scopes.Scopes = arrayOfInterface(d.Get("scope_names").([]interface{}))
 
+	ufs, ok := d.GetOk("userinfo_fields")
+	if !ok {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "error while parsing userinfo_fields",
+			Detail:   "error while parsing userinfo_fields",
+		})
+		return diags
+	}
+	fileds := ufs.([]interface{})
+	for _, templateConfigBlock := range fileds {
+		customProvider.UserinfoFields = templateConfigBlock.(map[string]interface{})
+	}
+
+	json_payload, _ := json.Marshal(customProvider)
+
+	payload_string := string(json_payload)
 	response := cidaas_sdk.UpdateCustomProvider(cidaas_client, customProvider)
 
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
@@ -285,7 +373,7 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if !response.Success {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Custom Provider Update Failed",
+			Summary:  fmt.Sprintf("Custom Provider Update Failed %+v", payload_string),
 			Detail:   response.Errors.Error,
 		})
 	}

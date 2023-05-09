@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type Error struct {
@@ -211,4 +213,54 @@ func GetApp(cidaas_client CidaasClient, client_id string) (base_response baseRes
 	base_response = operate_app(cidaas_client, client_id, "get_app")
 
 	return base_response
+}
+
+func preparePayload(d *schema.ResourceData) AppConfig {
+	var appConfig AppConfig
+	appConfig.ClientType = d.Get("client_type").(string)
+	appConfig.AccentColor = d.Get("accent_color").(string)
+	appConfig.PrimaryColor = d.Get("primary_color").(string)
+	appConfig.MediaType = d.Get("media_type").(string)
+	appConfig.ContentAlign = d.Get("content_align").(string)
+	appConfig.AllowLoginWith = interfaceArray2StringArray(d.Get("allow_login_with").([]interface{}))
+	appConfig.RedirectURIS = interfaceArray2StringArray(d.Get("redirect_uris").([]interface{}))
+	appConfig.AllowedLogoutUrls = interfaceArray2StringArray(d.Get("allowed_logout_urls").([]interface{}))
+	appConfig.EnableDeduplication = d.Get("enable_deduplication").(bool)
+	appConfig.AutoLoginAfterRegister = d.Get("auto_login_after_register").(bool)
+	appConfig.EnablePasswordlessAuth = d.Get("enable_passwordless_auth").(bool)
+	appConfig.RegisterWithLoginInformation = d.Get("register_with_login_information").(bool)
+	appConfig.AllowDisposableEmail = d.Get("allow_disposable_email").(bool)
+	appConfig.ValidatePhoneNumber = d.Get("validate_phone_number").(bool)
+	appConfig.FdsEnabled = d.Get("fds_enabled").(bool)
+	appConfig.HostedPageGroup = d.Get("hosted_page_group").(string)
+	appConfig.ClientName = d.Get("client_name").(string)
+	appConfig.ClientDisplayName = d.Get("client_display_name").(string)
+	appConfig.CompanyName = d.Get("company_name").(string)
+	appConfig.CompanyAddress = d.Get("company_address").(string)
+	appConfig.CompanyWebsite = d.Get("company_website").(string)
+	appConfig.AllowedScopes = interfaceArray2StringArray(d.Get("allowed_scopes").([]interface{}))
+	appConfig.ResponseTypes = interfaceArray2StringArray(d.Get("response_types").([]interface{}))
+	appConfig.GrantTypes = interfaceArray2StringArray(d.Get("grant_types").([]interface{}))
+	appConfig.LoginProviders = interfaceArray2StringArray(d.Get("login_providers").([]interface{}))
+	appConfig.AdditionalAccessTokenPayload = d.Get("additional_access_token_payload").(string)
+	appConfig.RequiredFields = interfaceArray2StringArray(d.Get("required_fields").([]interface{}))
+	appConfig.ApplicationMetaData = interfaceArray2StringArray(d.Get("application_meta_data").([]interface{}))
+	appConfig.IsHybridApp = d.Get("is_hybrid_app").(bool)
+	appConfig.AllowedWebOrigins = interfaceArray2StringArray(d.Get("allowed_web_origins").([]interface{}))
+	appConfig.AllowedOrigins = interfaceArray2StringArray(d.Get("allowed_origins").([]interface{}))
+	appConfig.MobileSettings = d.Get("mobile_settings").(string)
+	appConfig.RefreshTokenLifetimeInSeconds = d.Get("refresh_token_lifetime_in_seconds").(int)
+	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
+
+	return appConfig
+}
+
+func interfaceArray2StringArray(interfaceArray []interface{}) (stringArray []string) {
+
+	stringArray = make([]string, 0)
+	for _, txt := range interfaceArray {
+		stringArray = append(stringArray, txt.(string))
+	}
+
+	return stringArray
 }

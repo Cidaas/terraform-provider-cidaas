@@ -45,7 +45,7 @@ terraform {
 Example custom provider resource configuration
 
 ```hcl
-resource "cidaas_custom_provider" "Enter resource name" {
+resource "cidaas_custom_provider" "cp" {
   standard_type          = "OAUTH2"
   authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
   token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
@@ -56,7 +56,29 @@ resource "cidaas_custom_provider" "Enter resource name" {
   username               = "Terraform User"
   scope_names            = ["cidaas", "cidaas-user"]
   scope_display_label    = "Terraform Test Scope"
+  userinfo_fields {
+    name               = "cp_name"
+    family_name        = "cp_family_name"
+    address            = "cp_address"
+    birthdate          = "01-01-2000"
+    email              = "cp@email.com"
+    email_verified     = "true"
+    gender             = "male"
+    given_name         = "cp_given_name"
+    locale             = "cp_locale"
+    middle_name        = "cp_middle_name"
+    mobile_number      = "100000000"
+    nickname           = "cp_nickname"
+    phone_number       = "10000000"
+    picture            = "https://cp-picture.com/image.jpg"
+    preferred_username = "cp_preferred_username"
+    profile            = "cp_profile"
+    updated_at         = "01-01-01"
+    website            = "https://cp-website.com"
+    zoneinfo           = "cp_zone_info"
+  }
 }
+
 ```
 ##### Cidaas App Resource
 
