@@ -20,6 +20,7 @@ type CidaasClient struct {
 	TokenData    TokenData // generated
 	AppUrl       string
 	BaseUrl      string
+	ProvideUrl   string
 }
 
 func ClientBuilder(
@@ -30,7 +31,8 @@ func ClientBuilder(
 	grant_type string,
 	auth_url string,
 	app_url string,
-	base_url string) {
+	base_url string,
+	provider_url string) {
 
 	cidaas_client.ClientId = client_id
 	cidaas_client.ClientSecret = client_secret
@@ -39,4 +41,5 @@ func ClientBuilder(
 	cidaas_client.AuthUrl = auth_url
 	cidaas_client.AppUrl = app_url
 	cidaas_client.BaseUrl = base_url
+	cidaas_client.ProvideUrl = provider_url
 }
