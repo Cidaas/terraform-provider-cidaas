@@ -1,12 +1,11 @@
 terraform {
   required_providers {
     cidaas = {
-      version = "1.0.17"
-      source  = "hashicorp.com/cidaas-public/cidaas"
+      source  = "Cidaas/cidaas"
+      version = "1.0.18"
     }
   }
 }
-
 
 provider "cidaas" {
   redirect_uri = "https://kube-nightlybuild-dev.cidaas.de"

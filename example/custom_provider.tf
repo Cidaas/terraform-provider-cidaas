@@ -1,6 +1,6 @@
 resource "cidaas_custom_provider" "customer_provider" {
   standard_type          = "OAUTH2"
-  authorization_endpoint = "https://kube-nightlybuild-dev.cidaas.de//authz-srv/authz"
+  authorization_endpoint = "https://kube-nightlybuild-dev.cidaas.de/authz-srv/authz"
   token_endpoint         = "https://kube-nightlybuild-dev.cidaas.de/token-srv/token"
   provider_name          = "Terraform"
   display_name           = "Terraform"
