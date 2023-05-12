@@ -110,7 +110,7 @@ resource "cidaas_app" "Enter resource name" {
 ```
 
 ```hcl
-resource "cidaas_registration_page_field" "Enter resource name for resource type registration_page_fields" {
+resource "cidaas_registration_page_field" "Enter resource name" {
   parent_group_id      = "DEFAULT"
   is_group             = false
   data_type            = "TEXT"
