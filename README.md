@@ -12,7 +12,7 @@ The cidaas provider is used to interact with cidaas instances. It provides resou
 terraform {
     required_providers {
       cidaas = {
-        version = "1.0.22"
+        version = "1.0.23"
         source  = "Cidaas/cidaas"
       }
     }
@@ -39,8 +39,8 @@ terraform {
   }
   ```
 
-#### Supported Cidaas Resources
-##### Cidaas Custom Provider Resource
+## Supported Cidaas Resources
+### Cidaas Custom Provider Resource
 
 Example custom provider resource configuration
 
@@ -127,6 +127,20 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
   locale_text_name     = "erraform-test-field"
   locale_text_language = "en"
 }
+```
+## Import Cidaas Resources
+
+you can import cidaas resource by running the below command. Before you can import you need to create terraform file to import a resource. Please check **app_import.tf** and **custom_provide_import.tf** under the folder example.
+### Import an existing cidaas app
+
+```ssh
+terraform import cidaas_app.<resource name> client_id
+```
+
+### Import an existing cidaas custom provider
+
+```ssh
+terraform import cidaas_custom_provider.<resource name> provider_name
 ```
 
 - Run Terraform commands going inside Example directory where Terraform config file main.tf is located

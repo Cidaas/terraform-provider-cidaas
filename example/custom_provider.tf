@@ -1,10 +1,10 @@
 resource "cidaas_custom_provider" "cp" {
   standard_type          = "OAUTH2"
-  authorization_endpoint = "https://kube-nightlybuild-dev.cidaas.de/authz-srv/authz"
-  token_endpoint         = "https://kube-nightlybuild-dev.cidaas.de/token-srv/token"
+  authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
+  token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
   provider_name          = "Terraform"
   display_name           = "Terraform Name"
-  logo_url               = "https://kube-nightlybuild-dev.cidaas.de/logo"
+  logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
   userinfo_endpoint      = "https://qa.cidaas.de/users-srv/userinfo"
   scope_names            = ["cidaas", "cidaas-user"]
   scope_display_label    = "Terraform Test Scope"
