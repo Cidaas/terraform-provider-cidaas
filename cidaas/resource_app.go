@@ -372,23 +372,27 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 
 	d.SetId(appcreationresponse.Data.ClientId)
-	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+	custom_provider_name := d.Get("custom_provider_name").(string)
 
-	linkCpPayload.ClientId = appcreationresponse.Data.ClientId
-	linkCpPayload.Test = bool(false)
-	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+	if custom_provider_name != "" {
+		var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
 
-	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+		linkCpPayload.ClientId = appcreationresponse.Data.ClientId
+		linkCpPayload.Test = bool(false)
+		linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+		linkCpPayload.DisplayName = custom_provider_name
 
-	if !response.Success {
-		str := fmt.Sprintf("Unable to link custom provide to the client %+v", linkCpPayload.ClientId)
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  str,
-			Detail:   appcreationresponse.Errors.Error,
-		})
-		return diags
+		response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+
+		if !response.Success {
+			str := fmt.Sprintf("Unable to link custom provide to the client %+v", linkCpPayload.ClientId)
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  str,
+				Detail:   appcreationresponse.Errors.Error,
+			})
+			return diags
+		}
 	}
 
 	// resourceAppRead(ctx, d, m)
@@ -523,24 +527,27 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
 	client_id := d.Id()
+	custom_provider_name := d.Get("custom_provider_name").(string)
 
-	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+	if custom_provider_name != "" {
+		var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
 
-	t, _ := strconv.ParseBool("true")
-	linkCpPayload.ClientId = client_id
-	linkCpPayload.Test = t
-	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+		t, _ := strconv.ParseBool("true")
+		linkCpPayload.ClientId = client_id
+		linkCpPayload.Test = t
+		linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+		linkCpPayload.DisplayName = custom_provider_name
 
-	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+		response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
 
-	if !response.Success {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to unlink custom provider to the client",
-			Detail:   response.Error.Error,
-		})
-		return diags
+		if !response.Success {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Unable to unlink custom provider to the client",
+				Detail:   response.Error.Error,
+			})
+			return diags
+		}
 	}
 
 	appdeleteresponse := cidaas_sdk.DeleteApp(cidaas_client, client_id)

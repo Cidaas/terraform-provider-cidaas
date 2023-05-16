@@ -1,6 +1,6 @@
 # Cidaas Provider
 
-The cidaas provider is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields  as part of a Terraform deployment.
+The cidaas provider is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields as part of a Terraform deployment.
 
 ### Prerequisites
 
@@ -29,7 +29,6 @@ terraform {
   export TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET="ENTER CIDAAS CLIENT SECRET"
   ```
 
-
 - Add Cidaas Provider configuration to terraform configuration file inside Example directory
 
   ```hcl
@@ -40,6 +39,7 @@ terraform {
   ```
 
 ## Supported Cidaas Resources
+
 ### Cidaas Custom Provider Resource
 
 Example custom provider resource configuration
@@ -53,7 +53,6 @@ resource "cidaas_custom_provider" "cp" {
   display_name           = "Terraform"
   logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
   userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/users-srv/userinfo"
-  username               = "Terraform User"
   scope_names            = ["cidaas", "cidaas-user"]
   scope_display_label    = "Terraform Test Scope"
   userinfo_fields {
@@ -80,9 +79,10 @@ resource "cidaas_custom_provider" "cp" {
 }
 
 ```
+
 ##### Cidaas App Resource
 
-Example App resource configuration
+An example of App resource configuration. Here config **custom_provider_name** reads value from the resource **custom_provider**. This is an optional configuration. A custom_provide resource must be created before creating and app resource. This configuration is used to link an app resource to a custom provider.
 
 ```hcl
 resource "cidaas_app" "Enter resource name" {
@@ -128,9 +128,11 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
   locale_text_language = "en"
 }
 ```
+
 ## Import Cidaas Resources
 
 you can import cidaas resource by running the below command. Before you can import you need to create terraform file to import a resource. Please check **app_import.tf** and **custom_provide_import.tf** under the folder example.
+
 ### Import an existing cidaas app
 
 ```ssh
