@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type Error struct {
@@ -25,9 +27,9 @@ type baseResponse struct {
 	Success bool      `json:"success,omitempty"`
 	Status  int       `json:"status,omitempty"`
 	Data    AppConfig `json:"data,omitempty"`
-	Errors  Error     `json:"errors,omitempty"`
-	Error   string    `json:"error,omitempty"`
-	RefNum  string    `json:"renum,omitempty"`
+	Errors  Error     `json:"error,omitempty"`
+	// Error   string    `json:"error,omitempty"`
+	// RefNum  string    `json:"renum,omitempty"`
 }
 
 type AppConfig struct {
@@ -53,14 +55,21 @@ type AppConfig struct {
 	LoginProviders               []string    `json:"login_providers,omitempty"`
 	AdditionalAccessTokenPayload string      `json:"additional_access_token_payload,omitempty"`
 	GrantTypes                   []string    `json:"grant_types,omitempty"`
-	RequiredFields               string      `json:"required_fields,omitempty"`
-	ApplicationMetadata          string      `json:"application_metadata,omitempty"`
+	RequiredFields               []string    `json:"required_fields,omitempty"`
 	IsHybridApp                  bool        `json:"is_hybrid_app,omitempty"`
 	RedirectURIS                 []string    `json:"redirect_uris,omitempty"`
 	AllowedLogoutUrls            []string    `json:"allowed_logout_urls,omitempty"`
 	AllowedWebOrigins            []string    `json:"allowed_web_origins,omitempty"`
 	AllowedOrigins               []string    `json:"allowed_origins,omitempty"`
 	MobileSettings               interface{} `json:"mobile_settings,omitempty"`
+
+	AccentColor                   string      `json:"accent_color,omitempty"`
+	PrimaryColor                  string      `json:"primary_color,omitempty"`
+	MediaType                     string      `json:"media_type,omitempty"`
+	ContentAlign                  string      `json:"contentAlign,omitempty"`
+	ApplicationType               string      `json:"application_type,omitempty"`
+	ApplicationMetaData           interface{} `json:"application_meta_data,omitempty"`
+	RefreshTokenLifetimeInSeconds int         `json:"refresh_token_lifetime_in_seconds,omitempty"`
 }
 
 func CreateApp(cidaas_client CidaasClient, app_config AppConfig) (base_response baseResponse) {
@@ -204,4 +213,54 @@ func GetApp(cidaas_client CidaasClient, client_id string) (base_response baseRes
 	base_response = operate_app(cidaas_client, client_id, "get_app")
 
 	return base_response
+}
+
+func preparePayload(d *schema.ResourceData) AppConfig {
+	var appConfig AppConfig
+	appConfig.ClientType = d.Get("client_type").(string)
+	appConfig.AccentColor = d.Get("accent_color").(string)
+	appConfig.PrimaryColor = d.Get("primary_color").(string)
+	appConfig.MediaType = d.Get("media_type").(string)
+	appConfig.ContentAlign = d.Get("content_align").(string)
+	appConfig.AllowLoginWith = interfaceArray2StringArray(d.Get("allow_login_with").([]interface{}))
+	appConfig.RedirectURIS = interfaceArray2StringArray(d.Get("redirect_uris").([]interface{}))
+	appConfig.AllowedLogoutUrls = interfaceArray2StringArray(d.Get("allowed_logout_urls").([]interface{}))
+	appConfig.EnableDeduplication = d.Get("enable_deduplication").(bool)
+	appConfig.AutoLoginAfterRegister = d.Get("auto_login_after_register").(bool)
+	appConfig.EnablePasswordlessAuth = d.Get("enable_passwordless_auth").(bool)
+	appConfig.RegisterWithLoginInformation = d.Get("register_with_login_information").(bool)
+	appConfig.AllowDisposableEmail = d.Get("allow_disposable_email").(bool)
+	appConfig.ValidatePhoneNumber = d.Get("validate_phone_number").(bool)
+	appConfig.FdsEnabled = d.Get("fds_enabled").(bool)
+	appConfig.HostedPageGroup = d.Get("hosted_page_group").(string)
+	appConfig.ClientName = d.Get("client_name").(string)
+	appConfig.ClientDisplayName = d.Get("client_display_name").(string)
+	appConfig.CompanyName = d.Get("company_name").(string)
+	appConfig.CompanyAddress = d.Get("company_address").(string)
+	appConfig.CompanyWebsite = d.Get("company_website").(string)
+	appConfig.AllowedScopes = interfaceArray2StringArray(d.Get("allowed_scopes").([]interface{}))
+	appConfig.ResponseTypes = interfaceArray2StringArray(d.Get("response_types").([]interface{}))
+	appConfig.GrantTypes = interfaceArray2StringArray(d.Get("grant_types").([]interface{}))
+	appConfig.LoginProviders = interfaceArray2StringArray(d.Get("login_providers").([]interface{}))
+	appConfig.AdditionalAccessTokenPayload = d.Get("additional_access_token_payload").(string)
+	appConfig.RequiredFields = interfaceArray2StringArray(d.Get("required_fields").([]interface{}))
+	appConfig.ApplicationMetaData = interfaceArray2StringArray(d.Get("application_meta_data").([]interface{}))
+	appConfig.IsHybridApp = d.Get("is_hybrid_app").(bool)
+	appConfig.AllowedWebOrigins = interfaceArray2StringArray(d.Get("allowed_web_origins").([]interface{}))
+	appConfig.AllowedOrigins = interfaceArray2StringArray(d.Get("allowed_origins").([]interface{}))
+	appConfig.MobileSettings = d.Get("mobile_settings").(string)
+	appConfig.RefreshTokenLifetimeInSeconds = d.Get("refresh_token_lifetime_in_seconds").(int)
+	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
+
+	return appConfig
+}
+
+func interfaceArray2StringArray(interfaceArray []interface{}) (stringArray []string) {
+
+	stringArray = make([]string, 0)
+	for _, txt := range interfaceArray {
+		stringArray = append(stringArray, txt.(string))
+	}
+
+	return stringArray
 }

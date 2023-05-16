@@ -2,6 +2,7 @@ package cidaas
 
 import (
 	"context"
+	"os"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -13,58 +14,41 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"default_app_client_id": &schema.Schema{
+			"redirect_uri": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"default_app_client_secret": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_redirect_uri": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_auth_url": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_app_url": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"default_app_base_url": &schema.Schema{
+			"base_url": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// "hashicups_order": resourceOrder(),
 			"cidaas_app":                     resourceApp(),
 			"cidaas_registration_page_field": resourceRegistrationField(),
+			"cidaas_custom_provider":         resourceCustomProvider(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"cidaas_app": dataSourceApp(),
-			// "hashicups_coffees": dataSourceCoffees(),
-			// "hashicups_order":   dataSourceOrder(),
+			"cidaas_app":             dataSourceApp(),
+			"cidaas_custom_provider": dataSourceApp(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	client_id := d.Get("default_app_client_id").(string)
-	client_secret := d.Get("default_app_client_secret").(string)
-	redirect_uri := d.Get("default_app_redirect_uri").(string)
+
+	redirect_uri := d.Get("redirect_uri").(string)
+	base_url := d.Get("base_url").(string)
+
 	grant_type := "client_credentials"
-	auth_url := d.Get("default_app_auth_url").(string)
-	app_url := d.Get("default_app_app_url").(string)
-	base_url := d.Get("default_app_base_url").(string)
+	auth_url := base_url + "/token-srv/token"
+	provide_url := base_url + "/providers-srv/custom"
+	app_url := base_url + "/apps-srv/clients"
+
+	client_id := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID")
+	client_secret := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET")
 
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
@@ -78,7 +62,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		grant_type,
 		auth_url,
 		app_url,
-		base_url)
+		base_url,
+		provide_url)
 
 	cidaas_sdk.InitializeAuth(&cidaas_client)
 
