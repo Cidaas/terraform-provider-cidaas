@@ -9,6 +9,7 @@ stages:
 
 code_quality_json:
   stage: test
+  image: docker:stable
   allow_failure: true
   variables:
     CODE_QUALITY_IMAGE: "registry.gitlab.com/gitlab-org/ci-cd/codequality:latest"
