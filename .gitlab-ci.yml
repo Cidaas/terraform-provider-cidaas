@@ -1,11 +1,11 @@
-include:
-  - project: 'widas/software-quality/gitlab-template-projects/widas-ci-templates'
-    file: 'golang/go-lib.yml'
+# include:
+#   - project: 'widas/software-quality/gitlab-template-projects/widas-ci-templates'
+#     file: 'golang/go-lib.yml'
 
 stages:
   - test
-  - update-version
-  - release
+  # - update-version
+  # - release
 
 code_quality:
   stage: test
