@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -225,8 +224,6 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-
 	if err := d.Set("success", response.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -350,24 +347,6 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	// 	})
 	// 	return diags
 	// }
-
-	if err := d.Set("success", response.Success); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	if err := d.Set("success_status", int(response.Status)); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success_status to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
 
 	return diags
 }
