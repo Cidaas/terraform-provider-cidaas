@@ -18,7 +18,9 @@ func resourceApp() *schema.Resource {
 		ReadContext:   resourceAppRead,
 		UpdateContext: resourceAppUpdate,
 		DeleteContext: resourceAppDelete,
-
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"client_type": {
 				Type:     schema.TypeString,
@@ -369,26 +371,31 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		return diags
 	}
 
-	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+	d.SetId(appcreationresponse.Data.ClientId)
+	custom_provider_name := d.Get("custom_provider_name").(string)
 
-	linkCpPayload.ClientId = appcreationresponse.Data.ClientId
-	linkCpPayload.Test = bool(false)
-	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+	if custom_provider_name != "" {
+		var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
 
-	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+		linkCpPayload.ClientId = appcreationresponse.Data.ClientId
+		linkCpPayload.Test = bool(false)
+		linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+		linkCpPayload.DisplayName = custom_provider_name
 
-	if !response.Success {
-		str := fmt.Sprintf("Unable to link custom provide to the client %+v", linkCpPayload.ClientId)
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  str,
-			Detail:   appcreationresponse.Errors.Error,
-		})
-		return diags
+		response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+
+		if !response.Success {
+			str := fmt.Sprintf("Unable to link custom provide to the client %+v", linkCpPayload.ClientId)
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  str,
+				Detail:   appcreationresponse.Errors.Error,
+			})
+			return diags
+		}
 	}
 
-	resourceAppRead(ctx, d, m)
+	// resourceAppRead(ctx, d, m)
 
 	return diags
 }
@@ -400,26 +407,68 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
-	client_id := d.Get("client_id").(string)
-
+	client_id := d.Id()
 	appreadresponse := cidaas_sdk.GetApp(cidaas_client, client_id)
 
-	if err := d.Set("app_retrieval_success", appreadresponse.Success); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting app_retrieval_success to resourceData",
-			Detail:   err.Error(),
-		})
-		return diags
+	if err := d.Set("client_id", appreadresponse.Data.ClientId); err != nil {
+		return diag.FromErr(err)
 	}
-
-	if err := d.Set("app_retrieval_status", int(appreadresponse.Status)); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting app_retrieval_status to resourceData",
-			Detail:   err.Error(),
-		})
-		return diags
+	if err := d.Set("client_name", appreadresponse.Data.ClientName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("client_type", appreadresponse.Data.ClientType); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("allow_login_with", appreadresponse.Data.AllowLoginWith); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("auto_login_after_register", appreadresponse.Data.AutoLoginAfterRegister); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("enable_passwordless_auth", appreadresponse.Data.EnablePasswordlessAuth); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("register_with_login_information", appreadresponse.Data.RegisterWithLoginInformation); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("hosted_page_group", appreadresponse.Data.HostedPageGroup); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("client_display_name", appreadresponse.Data.ClientDisplayName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("company_name", appreadresponse.Data.CompanyName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("company_address", appreadresponse.Data.CompanyAddress); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("company_website", appreadresponse.Data.CompanyWebsite); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("allowed_scopes", appreadresponse.Data.AllowedScopes); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("response_types", appreadresponse.Data.ResponseTypes); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("grant_types", appreadresponse.Data.GrantTypes); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("template_group_id", appreadresponse.Data.TemplateGroupId); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("redirect_uris", appreadresponse.Data.RedirectURIS); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("allowed_logout_urls", appreadresponse.Data.AllowedLogoutUrls); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("fds_enabled", appreadresponse.Data.FdsEnabled); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("login_providers", appreadresponse.Data.LoginProviders); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return diags
@@ -477,25 +526,28 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
-	client_id := d.Get("client_id").(string)
+	client_id := d.Id()
+	custom_provider_name := d.Get("custom_provider_name").(string)
 
-	var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
+	if custom_provider_name != "" {
+		var linkCpPayload cidaas_sdk.LinkCustomProviderStruct
 
-	t, _ := strconv.ParseBool("true")
-	linkCpPayload.ClientId = client_id
-	linkCpPayload.Test = t
-	linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-	linkCpPayload.DisplayName = d.Get("custom_provider_name").(string)
+		t, _ := strconv.ParseBool("true")
+		linkCpPayload.ClientId = client_id
+		linkCpPayload.Test = t
+		linkCpPayload.Type = "CUSTOM_OPENID_CONNECT"
+		linkCpPayload.DisplayName = custom_provider_name
 
-	response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
+		response := cidaas_sdk.LinkCustomProvider(cidaas_client, linkCpPayload)
 
-	if !response.Success {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Unable to unlink custom provider to the client",
-			Detail:   response.Error.Error,
-		})
-		return diags
+		if !response.Success {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Unable to unlink custom provider to the client",
+				Detail:   response.Error.Error,
+			})
+			return diags
+		}
 	}
 
 	appdeleteresponse := cidaas_sdk.DeleteApp(cidaas_client, client_id)

@@ -143,7 +143,7 @@ func UpdateCustomProvider(cidaas_client CidaasClient, body CustomProvider) (base
 }
 
 func GetCustomProvider(cidaas_client CidaasClient, provider_name string) (base_response CpBaseResponse) {
-	url := "https://kube-nightlybuild-dev.cidaas.de/providers-srv/custom/" + provider_name
+	url := cidaas_client.BaseUrl + "/providers-srv/custom/" + provider_name
 	method := "GET"
 
 	client := &http.Client{}

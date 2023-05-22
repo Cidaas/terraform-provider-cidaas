@@ -161,8 +161,6 @@ func UpdateApp(cidaas_client CidaasClient, app_config AppConfig) (base_response 
 }
 
 func operate_app(cidaas_client CidaasClient, client_id string, operation_type string) (base_response baseResponse) {
-	//url := "https://terraform-cidaas-test-free.cidaas.de/apps-srv/clients/" + client_id
-	//url := "https://terraform-cidaas-test-free.cidaas.de/apps-srv/clients/" + client_id
 	url := cidaas_client.BaseUrl + "/apps-srv/clients/" + client_id
 
 	method := "GET"

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -22,7 +21,9 @@ func resourceCustomProvider() *schema.Resource {
 		ReadContext:   resourceCPRead,
 		UpdateContext: resourceCPUpdate,
 		DeleteContext: resourceCPDelete,
-
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"_id": {
 				Type:     schema.TypeString,
@@ -223,8 +224,6 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-
 	if err := d.Set("success", response.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -288,33 +287,66 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 		return diags
 	}
 
-	resourceCPRead(ctx, d, m)
+	d.SetId(response.Data.ProviderName)
 	return diags
 }
 
 func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
-	provider_name := d.Get("provider_name").(string)
+	provider_name := d.Id()
 	response := cidaas_sdk.GetCustomProvider(cidaas_client, strings.ToLower(provider_name))
 
-	if err := d.Set("success", response.Success); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
+	if err := d.Set("standard_type", response.Data.StandardType); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("authorization_endpoint", response.Data.AuthorizationEndpoint); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("token_endpoint", response.Data.TokenEndpoint); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("provider_name", response.Data.ProviderName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("display_name", response.Data.DisplayName); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("logo_url", response.Data.LogoUrl); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("userinfo_endpoint", response.Data.UserinfoEndpoint); err != nil {
+		return diag.FromErr(err)
 	}
 
-	if err := d.Set("success_status", int(response.Status)); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success_status to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
+	var scopes []string
+
+	for _, value := range response.Data.Scopes.Scopes {
+		scopes = append(scopes, value["scope_name"])
 	}
+
+	if err := d.Set("scope_names", scopes); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("scope_display_label", response.Data.Scopes.DisplayLabel); err != nil {
+		return diag.FromErr(err)
+	}
+
+	// read userinfo_fields and set
+	// var fileds []interface{}
+
+	// for _, value := range response.Data.UserinfoFields.(map[string]interface{}) {
+	// 	fileds = append(fileds, value)
+	// }
+
+	// if err := d.Set("userinfo_fields", fileds); err != nil {
+	// 	diags = append(diags, diag.Diagnostic{
+	// 		Severity: diag.Error,
+	// 		Summary:  fmt.Sprintf("Error Occured while setting success to custom provider %+v", fileds...),
+	// 		Detail:   err.Error(),
+	// 	})
+	// 	return diags
+	// }
 
 	return diags
 }
@@ -356,7 +388,7 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 	payload_string := string(json_payload)
 	response := cidaas_sdk.UpdateCustomProvider(cidaas_client, customProvider)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
+	d.SetId(response.Data.ProviderName)
 
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
@@ -378,7 +410,6 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 		})
 	}
 
-	resourceAppRead(ctx, d, m)
 	return diags
 }
 
@@ -386,7 +417,7 @@ func resourceCPDelete(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
-	provider_name := d.Get("provider_name").(string)
+	provider_name := d.Id()
 
 	response := cidaas_sdk.DeleteCustomProvider(cidaas_client, provider_name)
 
