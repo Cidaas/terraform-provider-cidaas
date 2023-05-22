@@ -3,7 +3,7 @@ terraform {
     cidaas = {
       source = "Cidaas/cidaas"
       # replace the value with the right version
-      version = "1.0.0"
+      version = "1.1.1"
     }
   }
 }
