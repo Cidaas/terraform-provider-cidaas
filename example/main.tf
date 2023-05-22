@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     cidaas = {
-      source = "Cidaas/cidaas"
+      source = "hashicorp.com/cidaas-public/cidaas"
       # replace the value with the right version
       version = "1.0.0"
     }
@@ -9,6 +9,6 @@ terraform {
 }
 
 provider "cidaas" {
-  redirect_uri = "https://terraform-cidaas-test-free.cidaas.de"
-  base_url     = "https://terraform-cidaas-test-free.cidaas.de"
+  redirect_uri = "https://sso.id-dev.elisa.fi"
+  base_url     = "https://sso.id-dev.elisa.fi"
 }
