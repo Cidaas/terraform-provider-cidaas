@@ -487,8 +487,6 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 
 	response := cidaas_sdk.UpdateApp(cidaas_client, appConfig)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "App Update Success",
