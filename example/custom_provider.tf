@@ -1,13 +1,31 @@
-resource "cidaas_custom_provider" "cp" {
+resource "cidaas_custom_provider" "sample" {
+  authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz"
+  client_id              = "client_id"
+  client_secret          = "client_secret"
+  display_name           = "terraform"
+  logo_url               = "https://avatars3.githubusercontent.com/Cidaas"
+  provider_name          = "terraform"
   standard_type          = "OAUTH2"
-  authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
-  token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
-  provider_name          = "Terraform"
-  display_name           = "Terraform Name"
-  logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
-  userinfo_endpoint      = "https://qa.cidaas.de/users-srv/userinfo"
-  scope_names            = ["cidaas", "cidaas-user"]
-  scope_display_label    = "Terraform Test Scope"
+  token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token"
+  userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/userinfo"
+  scope_display_label    = "scope_d_name"
+
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "openid"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "profile"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "email"
+  }
+
   userinfo_fields {
     name               = "cp_name"
     family_name        = "cp_family_name"

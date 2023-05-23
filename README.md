@@ -53,8 +53,26 @@ resource "cidaas_custom_provider" "cp" {
   display_name           = "Terraform"
   logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
   userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/users-srv/userinfo"
-  scope_names            = ["cidaas", "cidaas-user"]
   scope_display_label    = "Terraform Test Scope"
+  client_id              = "add your client id"
+  client_secret          = "add your cluient secret"
+
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "openid"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "profile"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "email"
+  }
+
   userinfo_fields {
     name               = "cp_name"
     family_name        = "cp_family_name"
@@ -131,7 +149,15 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
 
 ## Import Cidaas Resources
 
-you can import cidaas resource by running the below command. Before you can import you need to create terraform file to import a resource. Please check **app_import.tf** and **custom_provide_import.tf** under the folder example.
+you can import cidaas resource by running the below command. Before you can import you need to an empty terraform resource to import one. Example:
+
+```hcl
+resrouce "cidaas_custom_provider" "sample" {}
+
+output "sample_custom_provider" {
+  value = cidaas_custom_provider.sample
+}
+```
 
 ### Import an existing cidaas app
 
