@@ -11,8 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/google/uuid"
 )
 
 func resourceCustomProvider() *schema.Resource {
@@ -26,6 +24,10 @@ func resourceCustomProvider() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -47,7 +49,11 @@ func resourceCustomProvider() *schema.Resource {
 			},
 			"client_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
+			},
+			"client_secret": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"authorization_endpoint": {
 				Type:     schema.TypeString,
@@ -61,16 +67,29 @@ func resourceCustomProvider() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"scope_names": {
+			"scopes": {
 				Type:     schema.TypeList,
 				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"required": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"recommended": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
 				},
 			},
 			"scope_display_label": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"userinfo_fields": {
 				Type:     schema.TypeList,
@@ -156,26 +175,6 @@ func resourceCustomProvider() *schema.Resource {
 					},
 				},
 			},
-			"success_status": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"success": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"error": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"error_code": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"error_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -193,81 +192,60 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	customProvider.LogoUrl = d.Get("logo_url").(string)
 	customProvider.UserinfoEndpoint = d.Get("userinfo_endpoint").(string)
 	customProvider.Scopes.DisplayLabel = d.Get("scope_display_label").(string)
-	customProvider.Scopes.Scopes = arrayOfInterface(d.Get("scope_names").([]interface{}))
+	customProvider.ClientId = d.Get("client_id").(string)
+	customProvider.ClientSecret = d.Get("client_secret").(string)
 
-	ufs, ok := d.GetOk("userinfo_fields")
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "error while parsing userinfo_fields",
-			Detail:   "error while parsing userinfo_fields",
-		})
-		return diags
-	}
-	fileds := ufs.([]interface{})
-	for _, templateConfigBlock := range fileds {
-		customProvider.UserinfoFields = templateConfigBlock.(map[string]interface{})
+	scopes := d.Get("scopes").([]interface{})
+	scs := []cidaas_sdk.ScopesChild{}
+
+	for _, scope := range scopes {
+		temp := scope.(map[string]interface{})
+
+		sc := cidaas_sdk.ScopesChild{
+			ScopeName:  temp["scope_name"].(string),
+			Recommened: temp["recommended"].(bool),
+			Required:   temp["required"].(bool),
+		}
+
+		scs = append(scs, sc)
 	}
 
-	customProvider.ClientId = uuid.New().String()
-	customProvider.ClientSecret = uuid.New().String()
+	customProvider.Scopes.Scopes = scs
 
-	if err := d.Set("client_id", customProvider.ClientId); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "error while updating client_id in custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
+	ufs := d.Get("userinfo_fields").([]interface{})
+	fileds := cidaas_sdk.UserInfo{}
+
+	for _, uf := range ufs {
+		field := uf.(map[string]interface{})
+
+		fileds = cidaas_sdk.UserInfo{
+			Name:              field["name"].(string),
+			FamilyName:        field["family_name"].(string),
+			GivenName:         field["given_name"].(string),
+			MiddleName:        field["middle_name"].(string),
+			Nickname:          field["nickname"].(string),
+			PreferredUsername: field["preferred_username"].(string),
+			Profile:           field["profile"].(string),
+			Picture:           field["picture"].(string),
+			Website:           field["website"].(string),
+			Gender:            field["gender"].(string),
+			Birthdate:         field["birthdate"].(string),
+			Zoneinfo:          field["zoneinfo"].(string),
+			Locale:            field["locale"].(string),
+			Updated_at:        field["updated_at"].(string),
+			Email:             field["email"].(string),
+			EmailVerified:     field["email_verified"].(string),
+			PhoneNumber:       field["phone_number"].(string),
+			MobileNumber:      field["mobile_number"].(string),
+			Address:           field["address"].(string),
+		}
+
 	}
+
+	customProvider.UserinfoFields = fileds
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
-
-	if err := d.Set("success", response.Success); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	if err := d.Set("success_status", int(response.Status)); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting success_status to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	if err := d.Set("error", response.Errors.Error); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting error to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	if err := d.Set("error_code", int(response.Errors.Code)); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting error_code to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	if err := d.Set("error_type", response.Errors.Type); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error Occured while setting error_type to custom provider",
-			Detail:   err.Error(),
-		})
-		return diags
-	}
 
 	if !response.Success {
 		diags = append(diags, diag.Diagnostic{
@@ -286,7 +264,6 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 		})
 		return diags
 	}
-
 	d.SetId(response.Data.ProviderName)
 	return diags
 }
@@ -318,37 +295,83 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	if err := d.Set("userinfo_endpoint", response.Data.UserinfoEndpoint); err != nil {
 		return diag.FromErr(err)
 	}
-
-	var scopes []string
-
-	for _, value := range response.Data.Scopes.Scopes {
-		scopes = append(scopes, value["scope_name"])
+	if err := d.Set("_id", response.Data.ID); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("scope_display_label", response.Data.Scopes.DisplayLabel); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("client_id", response.Data.ClientId); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("client_secret", response.Data.ClientSecret); err != nil {
+		return diag.FromErr(err)
 	}
 
-	if err := d.Set("scope_names", scopes); err != nil {
+	scopes := flattenScopes(&response.Data.Scopes.Scopes)
+
+	if err := d.Set("scopes", scopes); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("scope_display_label", response.Data.Scopes.DisplayLabel); err != nil {
 		return diag.FromErr(err)
 	}
 
-	// read userinfo_fields and set
-	// var fileds []interface{}
+	fields := flattenUserFields(response.Data.UserinfoFields)
 
-	// for _, value := range response.Data.UserinfoFields.(map[string]interface{}) {
-	// 	fileds = append(fileds, value)
-	// }
-
-	// if err := d.Set("userinfo_fields", fileds); err != nil {
-	// 	diags = append(diags, diag.Diagnostic{
-	// 		Severity: diag.Error,
-	// 		Summary:  fmt.Sprintf("Error Occured while setting success to custom provider %+v", fileds...),
-	// 		Detail:   err.Error(),
-	// 	})
-	// 	return diags
-	// }
-
+	if err := d.Set("userinfo_fields", fields); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error Occured while setting User Fields %+v", fields...),
+			Detail:   err.Error(),
+		})
+		return diags
+	}
 	return diags
+}
+
+func flattenScopes(scs *[]cidaas_sdk.ScopesChild) []interface{} {
+	if scs != nil {
+		ois := make([]interface{}, len(*scs), len(*scs))
+
+		for i, sc := range *scs {
+			oi := make(map[string]interface{})
+
+			oi["scope_name"] = sc.ScopeName
+			oi["recommended"] = sc.Recommened
+			oi["required"] = sc.Required
+			ois[i] = oi
+		}
+
+		return ois
+	}
+
+	return make([]interface{}, 0)
+}
+
+func flattenUserFields(userinfo cidaas_sdk.UserInfo) []interface{} {
+	fileds := make(map[string]interface{})
+	fileds["name"] = userinfo.Name
+	fileds["family_name"] = userinfo.FamilyName
+	fileds["given_name"] = userinfo.GivenName
+	fileds["middle_name"] = userinfo.MiddleName
+	fileds["nickname"] = userinfo.Nickname
+	fileds["preferred_username"] = userinfo.PreferredUsername
+	fileds["profile"] = userinfo.Profile
+	fileds["picture"] = userinfo.Picture
+	fileds["website"] = userinfo.Website
+	fileds["gender"] = userinfo.Gender
+	fileds["birthdate"] = userinfo.Birthdate
+	fileds["zoneinfo"] = userinfo.Zoneinfo
+	fileds["locale"] = userinfo.Locale
+	fileds["updated_at"] = userinfo.Updated_at
+	fileds["email"] = userinfo.Email
+	fileds["email_verified"] = userinfo.EmailVerified
+	fileds["phone_number"] = userinfo.PhoneNumber
+	fileds["mobile_number"] = userinfo.MobileNumber
+	fileds["address"] = userinfo.Address
+
+	return []interface{}{fileds}
 }
 
 func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -364,31 +387,60 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 	customProvider.DisplayName = d.Get("display_name").(string)
 	customProvider.LogoUrl = d.Get("logo_url").(string)
 	customProvider.UserinfoEndpoint = d.Get("userinfo_endpoint").(string)
-	customProvider.ID = d.Get("_id").(string)
 	customProvider.ProviderName = strings.ToLower(d.Get("provider_name").(string))
 	customProvider.Scopes.DisplayLabel = d.Get("scope_display_label").(string)
-	customProvider.Scopes.Scopes = arrayOfInterface(d.Get("scope_names").([]interface{}))
+	customProvider.ID = d.Get("_id").(string)
+	scopes := d.Get("scopes").([]interface{})
+	scs := []cidaas_sdk.ScopesChild{}
 
-	ufs, ok := d.GetOk("userinfo_fields")
-	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "error while parsing userinfo_fields",
-			Detail:   "error while parsing userinfo_fields",
-		})
-		return diags
-	}
-	fileds := ufs.([]interface{})
-	for _, templateConfigBlock := range fileds {
-		customProvider.UserinfoFields = templateConfigBlock.(map[string]interface{})
+	for _, scope := range scopes {
+		temp := scope.(map[string]interface{})
+
+		sc := cidaas_sdk.ScopesChild{
+			ScopeName:  temp["scope_name"].(string),
+			Recommened: temp["recommended"].(bool),
+			Required:   temp["required"].(bool),
+		}
+
+		scs = append(scs, sc)
 	}
 
+	customProvider.Scopes.Scopes = scs
+
+	ufs := d.Get("userinfo_fields").([]interface{})
+	fileds := cidaas_sdk.UserInfo{}
+
+	for _, uf := range ufs {
+		field := uf.(map[string]interface{})
+
+		fileds = cidaas_sdk.UserInfo{
+			Name:              field["name"].(string),
+			FamilyName:        field["family_name"].(string),
+			GivenName:         field["given_name"].(string),
+			MiddleName:        field["middle_name"].(string),
+			Nickname:          field["nickname"].(string),
+			PreferredUsername: field["preferred_username"].(string),
+			Profile:           field["profile"].(string),
+			Picture:           field["picture"].(string),
+			Website:           field["website"].(string),
+			Gender:            field["gender"].(string),
+			Birthdate:         field["birthdate"].(string),
+			Zoneinfo:          field["zoneinfo"].(string),
+			Locale:            field["locale"].(string),
+			Updated_at:        field["updated_at"].(string),
+			Email:             field["email"].(string),
+			EmailVerified:     field["email_verified"].(string),
+			PhoneNumber:       field["phone_number"].(string),
+			MobileNumber:      field["mobile_number"].(string),
+			Address:           field["address"].(string),
+		}
+	}
+
+	customProvider.UserinfoFields = fileds
 	json_payload, _ := json.Marshal(customProvider)
 
 	payload_string := string(json_payload)
 	response := cidaas_sdk.UpdateCustomProvider(cidaas_client, customProvider)
-
-	d.SetId(response.Data.ProviderName)
 
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.Warning,

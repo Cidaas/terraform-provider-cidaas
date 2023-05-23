@@ -53,8 +53,26 @@ resource "cidaas_custom_provider" "cp" {
   display_name           = "Terraform"
   logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
   userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/users-srv/userinfo"
-  scope_names            = ["cidaas", "cidaas-user"]
   scope_display_label    = "Terraform Test Scope"
+  client_id              = "add your client id"
+  client_secret          = "add your cluient secret"
+
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "openid"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "profile"
+  }
+  scopes {
+    recommended = false
+    required    = false
+    scope_name  = "email"
+  }
+
   userinfo_fields {
     name               = "cp_name"
     family_name        = "cp_family_name"

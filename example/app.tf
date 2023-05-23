@@ -18,7 +18,7 @@ resource "cidaas_app" "terraform_app" {
   allowed_logout_urls             = ["https://cidaas.com"]
   fds_enabled                     = false
   login_providers                 = ["login_provider1", "login_provider2"]
-  custom_provider_name            = cidaas_custom_provider.cp.provider_name
+  # custom_provider_name            = cidaas_custom_provider.cp.provider_name
 }
 
 
