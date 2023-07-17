@@ -1,14 +1,14 @@
 resource "cidaas_custom_provider" "sample" {
-  authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz"
-  client_id              = "client_id"
-  client_secret          = "client_secret"
-  display_name           = "terraform"
-  logo_url               = "https://avatars3.githubusercontent.com/Cidaas"
-  provider_name          = "terraform"
   standard_type          = "OAUTH2"
-  token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token"
-  userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/userinfo"
-  scope_display_label    = "scope_d_name"
+  authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
+  token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
+  provider_name          = "Terraform"
+  display_name           = "Terraform"
+  logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
+  userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/users-srv/userinfo"
+  scope_display_label    = "Terraform Test Scope"
+  client_id              = "add your client id"
+  client_secret          = "add your cluient secret"
 
   scopes {
     recommended = false
@@ -46,5 +46,11 @@ resource "cidaas_custom_provider" "sample" {
     updated_at         = "01-01-01"
     website            = "https://cp-website.com"
     zoneinfo           = "cp_zone_info"
+    custom_fields = [{
+      key   = "terraform_test_field"
+      value = "terraform-test_field"
+      },
+    ]
   }
+
 }

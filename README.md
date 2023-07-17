@@ -105,7 +105,13 @@ resource "cidaas_custom_provider" "cp" {
     profile            = "cp_profile"
     updated_at         = "01-01-01"
     website            = "https://cp-website.com"
-    zoneinfo           = "cp_zone_info"
+    zoneinfo           = "cp_zone_info",
+    custom_fields = [
+      {
+        key   = "terraform_test_cf"
+        value = "key from the "
+      }
+    ],
   }
 }
 
@@ -113,7 +119,7 @@ resource "cidaas_custom_provider" "cp" {
 
 ##### Cidaas App Resource
 
-An example of App resource configuration. Here config **custom_provider_name** reads value from the resource **custom_provider**. This is an optional configuration. A custom_provide resource must be created before creating and app resource. This configuration is used to link an app resource to a custom provider.
+An example of App resource configuration. Here config **custom_provider_name** reads value from the resource **custom_provider**. This is an optional configuration. A custom_provider resource must be created before creating an app resource. This configuration is used to link an app resource to a custom provider.
 
 ```hcl
 resource "cidaas_app" "Enter resource name" {
@@ -140,6 +146,27 @@ resource "cidaas_app" "Enter resource name" {
 }
 ```
 
+##### Cidaas Scope Resource
+
+An example of Scope resource configuration.
+
+```hcl
+resource "cidaas_scope" "sample" {
+  locale                = "en-US"
+  language              = "en-US"
+  description           = "terraform description"
+  title                 = "terraform title"
+  security_level        = "PUBLIC"
+  scope_key             = "terraform-test-scope"
+  required_user_consent = false
+  group_name            = ["terraform-test-group"]
+}
+```
+
+##### Cidaas Registration Page Field Resource
+
+An example of Registration Page Field resource configuration.
+
 ```hcl
 resource "cidaas_registration_page_field" "Enter resource name for resource type registration_page_fields" {
   parent_group_id      = "DEFAULT"
@@ -150,12 +177,12 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
   enabled              = false
   read_only            = false
   internal             = false
-  scopes               = []
+  scopes               = ["terraform-test-scope"]
   claimable            = true
   order                = 25
   field_type           = "CUSTOM"
   locale_text_locale   = "en-GB"
-  locale_text_name     = "erraform-test-field"
+  locale_text_name     = "terraform-test-field"
   locale_text_language = "en"
 }
 ```

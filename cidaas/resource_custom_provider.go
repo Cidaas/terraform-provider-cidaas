@@ -172,6 +172,13 @@ func resourceCustomProvider() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"custom_fields": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeMap,
+							},
+						},
 					},
 				},
 			},
@@ -238,11 +245,54 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 			PhoneNumber:       field["phone_number"].(string),
 			MobileNumber:      field["mobile_number"].(string),
 			Address:           field["address"].(string),
+			CustomFields:      field["custom_fields"].([]interface{}),
 		}
-
 	}
 
-	customProvider.UserinfoFields = fileds
+	newVar := make(map[string]interface{})
+	newVar["name"] = fileds.Name
+	newVar["family_name"] = fileds.FamilyName
+	newVar["given_name"] = fileds.GivenName
+	newVar["middle_name"] = fileds.MiddleName
+	newVar["nickname"] = fileds.Nickname
+	newVar["preferred_username"] = fileds.PreferredUsername
+	newVar["profile"] = fileds.Profile
+	newVar["picture"] = fileds.Picture
+	newVar["website"] = fileds.Website
+	newVar["gender"] = fileds.Gender
+	newVar["birthdate"] = fileds.Birthdate
+	newVar["zoneinfo"] = fileds.Zoneinfo
+	newVar["locale"] = fileds.Locale
+	newVar["updated_at"] = fileds.Updated_at
+	newVar["email"] = fileds.Email
+	newVar["email_verified"] = fileds.EmailVerified
+	newVar["phone_number"] = fileds.PhoneNumber
+	newVar["mobile_number"] = fileds.MobileNumber
+	newVar["address"] = fileds.Address
+
+	for _, item := range fileds.CustomFields {
+		b, err := json.Marshal(item)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Unable to create custom provider %+v", err.Error()),
+				Detail:   err.Error(),
+			})
+			return diags
+		}
+		var data cidaas_sdk.CustomFields
+		if err := json.Unmarshal(b, &data); err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Unable to create custom provider %+v", err.Error()),
+				Detail:   err.Error(),
+			})
+			return diags
+		}
+		newVar["customFields."+data.Key] = data.Value
+	}
+
+	customProvider.UserinfoFields = newVar
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
@@ -317,7 +367,7 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 		return diag.FromErr(err)
 	}
 
-	fields := flattenUserFields(response.Data.UserinfoFields)
+	fields := flattenUserFields(cidaas_sdk.UserInfo{})
 
 	if err := d.Set("userinfo_fields", fields); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -433,10 +483,54 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 			PhoneNumber:       field["phone_number"].(string),
 			MobileNumber:      field["mobile_number"].(string),
 			Address:           field["address"].(string),
+			CustomFields:      field["custom_fields"].([]interface{}),
 		}
 	}
 
-	customProvider.UserinfoFields = fileds
+	newVar := make(map[string]interface{})
+	newVar["name"] = fileds.Name
+	newVar["family_name"] = fileds.FamilyName
+	newVar["given_name"] = fileds.GivenName
+	newVar["middle_name"] = fileds.MiddleName
+	newVar["nickname"] = fileds.Nickname
+	newVar["preferred_username"] = fileds.PreferredUsername
+	newVar["profile"] = fileds.Profile
+	newVar["picture"] = fileds.Picture
+	newVar["website"] = fileds.Website
+	newVar["gender"] = fileds.Gender
+	newVar["birthdate"] = fileds.Birthdate
+	newVar["zoneinfo"] = fileds.Zoneinfo
+	newVar["locale"] = fileds.Locale
+	newVar["updated_at"] = fileds.Updated_at
+	newVar["email"] = fileds.Email
+	newVar["email_verified"] = fileds.EmailVerified
+	newVar["phone_number"] = fileds.PhoneNumber
+	newVar["mobile_number"] = fileds.MobileNumber
+	newVar["address"] = fileds.Address
+
+	for _, item := range fileds.CustomFields {
+		b, err := json.Marshal(item)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Unable to update custom provider %+v", err.Error()),
+				Detail:   err.Error(),
+			})
+			return diags
+		}
+		var data cidaas_sdk.CustomFields
+		if err := json.Unmarshal(b, &data); err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("Unable to update custom provider %+v", err.Error()),
+				Detail:   err.Error(),
+			})
+			return diags
+		}
+		newVar["customFields."+data.Key] = data.Value
+	}
+
+	customProvider.UserinfoFields = newVar
 	json_payload, _ := json.Marshal(customProvider)
 
 	payload_string := string(json_payload)

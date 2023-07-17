@@ -28,10 +28,12 @@ func Provider() *schema.Provider {
 			"cidaas_app":                     resourceApp(),
 			"cidaas_registration_page_field": resourceRegistrationField(),
 			"cidaas_custom_provider":         resourceCustomProvider(),
+			"cidaas_scope":                   resourceScope(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"cidaas_app":             dataSourceApp(),
 			"cidaas_custom_provider": dataSourceApp(),
+			"cidaas_scope":           dataSourceApp(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
