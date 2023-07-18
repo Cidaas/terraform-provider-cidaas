@@ -363,11 +363,8 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	if err := d.Set("scopes", scopes); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("scope_display_label", response.Data.Scopes.DisplayLabel); err != nil {
-		return diag.FromErr(err)
-	}
 
-	fields := flattenUserFields(cidaas_sdk.UserInfo{})
+	fields := flattenUserFields(response.Data.UserinfoFields)
 
 	if err := d.Set("userinfo_fields", fields); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -399,29 +396,43 @@ func flattenScopes(scs *[]cidaas_sdk.ScopesChild) []interface{} {
 	return make([]interface{}, 0)
 }
 
-func flattenUserFields(userinfo cidaas_sdk.UserInfo) []interface{} {
-	fileds := make(map[string]interface{})
-	fileds["name"] = userinfo.Name
-	fileds["family_name"] = userinfo.FamilyName
-	fileds["given_name"] = userinfo.GivenName
-	fileds["middle_name"] = userinfo.MiddleName
-	fileds["nickname"] = userinfo.Nickname
-	fileds["preferred_username"] = userinfo.PreferredUsername
-	fileds["profile"] = userinfo.Profile
-	fileds["picture"] = userinfo.Picture
-	fileds["website"] = userinfo.Website
-	fileds["gender"] = userinfo.Gender
-	fileds["birthdate"] = userinfo.Birthdate
-	fileds["zoneinfo"] = userinfo.Zoneinfo
-	fileds["locale"] = userinfo.Locale
-	fileds["updated_at"] = userinfo.Updated_at
-	fileds["email"] = userinfo.Email
-	fileds["email_verified"] = userinfo.EmailVerified
-	fileds["phone_number"] = userinfo.PhoneNumber
-	fileds["mobile_number"] = userinfo.MobileNumber
-	fileds["address"] = userinfo.Address
+func flattenUserFields(userinfo map[string]interface{}) []interface{} {
+	fields := make(map[string]interface{})
+	fields["name"] = userinfo["name"]
+	fields["family_name"] = userinfo["family_name"]
+	fields["given_name"] = userinfo["given_name"]
+	fields["middle_name"] = userinfo["middle_name"]
+	fields["nickname"] = userinfo["nickname"]
+	fields["preferred_username"] = userinfo["preferred_username"]
+	fields["profile"] = userinfo["profile"]
+	fields["picture"] = userinfo["picture"]
+	fields["website"] = userinfo["website"]
+	fields["gender"] = userinfo["gender"]
+	fields["birthdate"] = userinfo["birthdate"]
+	fields["zoneinfo"] = userinfo["zoneinfo"]
+	fields["locale"] = userinfo["locale"]
+	fields["updated_at"] = userinfo["updated_at"]
+	fields["email"] = userinfo["email"]
+	fields["email_verified"] = userinfo["email_verified"]
+	fields["phone_number"] = userinfo["phone_number"]
+	fields["mobile_number"] = userinfo["mobile_number"]
+	fields["address"] = userinfo["address"]
+	var temp []interface{}
 
-	return []interface{}{fileds}
+	var keys []string
+	for k := range userinfo {
+		keys = append(keys, k)
+	}
+
+	for _, str := range keys {
+		if strings.HasPrefix(str, "customFields.") == true {
+			result := strings.TrimPrefix(str, "customFields.")
+			temp = append(temp, map[string]interface{}{"key": result, "value": userinfo[str]})
+		}
+	}
+	fields["custom_fields"] = temp
+
+	return []interface{}{fields}
 }
 
 func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
