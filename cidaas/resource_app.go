@@ -230,6 +230,10 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"custom_provider_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -483,8 +487,6 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 
 	response := cidaas_sdk.UpdateApp(cidaas_client, appConfig)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
 		Summary:  "App Update Success",
@@ -598,6 +600,7 @@ func preparePayload(d *schema.ResourceData) cidaas_sdk.AppConfig {
 	appConfig.ClientName = d.Get("client_name").(string)
 	appConfig.ClientDisplayName = d.Get("client_display_name").(string)
 	appConfig.CompanyName = d.Get("company_name").(string)
+	appConfig.ClientId = d.Get("client_id").(string)
 	appConfig.CompanyAddress = d.Get("company_address").(string)
 	appConfig.CompanyWebsite = d.Get("company_website").(string)
 	appConfig.AllowedScopes = interfaceArray2StringArray(d.Get("allowed_scopes").([]interface{}))

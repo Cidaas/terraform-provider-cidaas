@@ -3,7 +3,6 @@ package cidaas
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
 
@@ -17,25 +16,26 @@ func resourceRegistrationField() *schema.Resource {
 		ReadContext:   resourceRegistrationFieldRead,
 		UpdateContext: resourceRegistrationFieldUpdate,
 		DeleteContext: resourceRegistrationFieldDelete,
-
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
-
-			"required": &schema.Schema{
+			"required": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"internal": &schema.Schema{
+			"internal": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"claimable": &schema.Schema{
+			"claimable": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"scopes": &schema.Schema{
+			"scopes": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
@@ -43,116 +43,121 @@ func resourceRegistrationField() *schema.Resource {
 				},
 			},
 
-			"enabled": &schema.Schema{
+			"enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"is_group": &schema.Schema{
+			"is_group": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"is_list": &schema.Schema{
+			"is_list": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
-			"parent_group_id": &schema.Schema{
+			"parent_group_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"field_type": &schema.Schema{
+			"field_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"data_type": &schema.Schema{
+			"data_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"field_key": &schema.Schema{
+			"field_key": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"read_only": &schema.Schema{
+			"read_only": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
 
-			"order": &schema.Schema{
+			"order": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
 
-			"locale_text_locale": &schema.Schema{
+			"locale_text_locale": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"locale_text_name": &schema.Schema{
+			"locale_text_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"locale_text_language": &schema.Schema{
+			"locale_text_language": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"registration_field_id": &schema.Schema{
+			"registration_field_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"app_attributes": &schema.Schema{
+			"base_data_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"app_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": &schema.Schema{
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": &schema.Schema{
+						"value": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"datatype": &schema.Schema{
+						"datatype": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
-			"registration_field_retrieval_status": &schema.Schema{
+			"registration_field_retrieval_status": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"registration_field_retrieval_success": &schema.Schema{
+			"registration_field_retrieval_success": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"registration_field_creation_status": &schema.Schema{
+			"registration_field_creation_status": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"registration_field_creation_success": &schema.Schema{
+			"registration_field_creation_success": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"registration_field_creation_error": &schema.Schema{
+			"registration_field_creation_error": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"registration_field_creation_error_code": &schema.Schema{
+			"registration_field_creation_error_code": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"registration_field_creation_error_type": &schema.Schema{
+			"registration_field_creation_error_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -186,13 +191,12 @@ func resourceRegistrationFieldCreate(ctx context.Context, d *schema.ResourceData
 	registrationFieldConfig.Order = d.Get("order").(int)
 	registrationFieldConfig.FieldType = d.Get("field_type").(string)
 	registrationFieldConfig.LocaleText = make(map[string]interface{})
+	registrationFieldConfig.BaseDataType = "string"
 	registrationFieldConfig.LocaleText["locale"] = d.Get("locale_text_locale").(string)
 	registrationFieldConfig.LocaleText["name"] = d.Get("locale_text_name").(string)
 	registrationFieldConfig.LocaleText["language"] = d.Get("locale_text_language").(string)
 
 	registrationFieldcreationresponse := cidaas_sdk.CreateRegistrationField(cidaas_client, registrationFieldConfig)
-
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 
 	if err := d.Set("registration_field_creation_success", registrationFieldcreationresponse.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -261,6 +265,7 @@ func resourceRegistrationFieldCreate(ctx context.Context, d *schema.ResourceData
 		return diags
 	}
 
+	d.SetId(d.Get("field_key").(string))
 	resourceRegistrationFieldRead(ctx, d, m)
 
 	return diags
@@ -273,9 +278,27 @@ func resourceRegistrationFieldRead(ctx context.Context, d *schema.ResourceData, 
 
 	cidaas_client := m.(cidaas_sdk.CidaasClient)
 
-	registration_field_key := d.Get("field_key").(string)
+	registration_field_key := d.Id()
 
 	registrationFieldreadresponse := cidaas_sdk.GetRegistrationField(cidaas_client, registration_field_key)
+
+	d.Set("enabled", registrationFieldreadresponse.Data.Enabled)
+	d.Set("field_key", registrationFieldreadresponse.Data.FieldKey)
+	d.Set("parent_group_id", registrationFieldreadresponse.Data.ParentGroupId)
+	d.Set("is_group", registrationFieldreadresponse.Data.IsGroup)
+	d.Set("data_type", registrationFieldreadresponse.Data.DataType)
+	d.Set("required", registrationFieldreadresponse.Data.Required)
+	d.Set("read_only", registrationFieldreadresponse.Data.ReadOnly)
+	d.Set("internal", registrationFieldreadresponse.Data.Internal)
+	d.Set("scopes", registrationFieldreadresponse.Data.Scopes)
+	d.Set("claimable", registrationFieldreadresponse.Data.Claimable)
+	d.Set("order", registrationFieldreadresponse.Data.Order)
+	d.Set("field_type", registrationFieldreadresponse.Data.FieldType)
+	d.Set("locale_text_locale", registrationFieldreadresponse.Data.LocaleText[0]["locale"])
+	d.Set("locale_text_name", registrationFieldreadresponse.Data.LocaleText[0]["name"])
+	d.Set("locale_text_language", registrationFieldreadresponse.Data.LocaleText[0]["language"])
+	d.Set("registration_field_id", registrationFieldreadresponse.Data.Id)
+	d.Set("base_data_type", registrationFieldreadresponse.Data.BaseDataType)
 
 	if err := d.Set("registration_field_retrieval_success", registrationFieldreadresponse.Success); err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -294,7 +317,6 @@ func resourceRegistrationFieldRead(ctx context.Context, d *schema.ResourceData, 
 		})
 		return diags
 	}
-
 	return diags
 }
 
@@ -318,14 +340,15 @@ func resourceRegistrationFieldUpdate(ctx context.Context, d *schema.ResourceData
 	registrationFieldConfig.Order = d.Get("order").(int)
 	registrationFieldConfig.FieldType = d.Get("field_type").(string)
 	registrationFieldConfig.LocaleText = make(map[string]interface{})
+	registrationFieldConfig.BaseDataType = d.Get("base_data_type").(string)
+	registrationFieldConfig.Id = d.Get("registration_field_id").(string)
 	registrationFieldConfig.LocaleText["locale"] = d.Get("locale_text_locale").(string)
 	registrationFieldConfig.LocaleText["name"] = d.Get("locale_text_name").(string)
 	registrationFieldConfig.LocaleText["language"] = d.Get("locale_text_language").(string)
-	registrationFieldConfig.Id = d.Get("registration_field_id").(string)
 
 	registrationFieldupdateresponse := cidaas_sdk.UpdateRegistrationField(cidaas_client, registrationFieldConfig)
 
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
+	d.SetId(d.Get("field_key").(string))
 
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.Warning,
@@ -346,9 +369,6 @@ func resourceRegistrationFieldUpdate(ctx context.Context, d *schema.ResourceData
 			Detail:   "Registration Field Update Failed",
 		})
 	}
-
-	resourceRegistrationFieldRead(ctx, d, m)
-
 	return diags
 }
 

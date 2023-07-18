@@ -15,33 +15,53 @@ type baseResponseRegistrationField struct {
 	Error   Error                   `json:"error"`
 }
 
+type baseGetResponseRegistrationField struct {
+	Success bool                       `json:"success"`
+	Status  int                        `json:"status"`
+	Data    GetRegistrationFieldConfig `json:"data"`
+	Error   Error                      `json:"error"`
+}
+type GetRegistrationFieldConfig struct {
+	Internal      bool                     `json:"internal,omitempty"`
+	ReadOnly      bool                     `json:"read_only,omitempty"`
+	Claimable     bool                     `json:"claimable,omitempty"`
+	Required      bool                     `json:"required,omitempty"`
+	Scopes        []string                 `json:"scopes,omitempty"`
+	Enabled       bool                     `json:"enabled,omitempty"`
+	LocaleText    []map[string]interface{} `json:"localeText,omitempty"`
+	IsGroup       bool                     `json:"is_group,omitempty"`
+	IsList        bool                     `json:"is_list,omitempty"`
+	ParentGroupId string                   `json:"parent_group_id,omitempty"`
+	FieldType     string                   `json:"fieldType,omitempty"`
+	Id            string                   `json:"_id,omitempty"`
+	FieldKey      string                   `json:"fieldKey,omitempty"`
+	DataType      string                   `json:"dataType,omitempty"`
+	Order         int                      `json:"order,omitempty"`
+	BaseDataType  string                   `json:"baseDataType,omitempty"`
+}
+
 type RegistrationFieldConfig struct {
-	Internal        bool                   `json:"internal"`
-	ReadOnly        bool                   `json:"read_only"`
-	Claimable       bool                   `json:"claimable"`
-	Required        bool                   `json:"required"`
-	Scopes          []string               `json:"scopes"`
-	Enabled         bool                   `json:"enabled"`
-	LocaleText      map[string]interface{} `json:"localeText"`
-	IsGroup         bool                   `json:"is_group"`
-	IsList          bool                   `json:"is_list"`
-	ParentGroupId   string                 `json:"parent_group_id"`
-	FieldType       string                 `json:"fieldType"`
-	ConsentRefs     []string               `json:"consent"`
-	ClassName       string                 `json:"className"`
-	Id              string                 `json:"_id"`
-	FieldKey        string                 `json:"fieldKey"`
-	DataType        string                 `json:"dataType"`
-	Order           int                    `json:"order"`
-	FieldDefinition map[string]interface{} `json:"fieldDefinition"`
-	CreatedTime     string                 `json:"createdTime"`
-	UpdatedTime     string                 `json:"updatedTime"`
-	Deleted         bool                   `json:"deleted"`
+	Internal      bool                   `json:"internal,omitempty"`
+	ReadOnly      bool                   `json:"read_only,omitempty"`
+	Claimable     bool                   `json:"claimable,omitempty"`
+	Required      bool                   `json:"required,omitempty"`
+	Scopes        []string               `json:"scopes,omitempty"`
+	Enabled       bool                   `json:"enabled,omitempty"`
+	LocaleText    map[string]interface{} `json:"localeText"`
+	IsGroup       bool                   `json:"is_group,omitempty"`
+	IsList        bool                   `json:"is_list,omitempty"`
+	ParentGroupId string                 `json:"parent_group_id,omitempty"`
+	FieldType     string                 `json:"fieldType,omitempty"`
+	Id            string                 `json:"_id,omitempty"`
+	FieldKey      string                 `json:"fieldKey,omitempty"`
+	DataType      string                 `json:"dataType,omitempty"`
+	Order         int                    `json:"order,omitempty"`
+	BaseDataType  string                 `json:"baseDataType,omitempty"`
 }
 
 func CreateRegistrationField(cidaas_client CidaasClient, registration_field_config RegistrationFieldConfig) (base_response baseResponseRegistrationField) {
 
-	url := cidaas_client.BaseUrl + "/registration-setup-srv/fields"
+	url := cidaas_client.BaseUrl + "/fieldsetup-srv/fields"
 	method := "POST"
 
 	json_payload, err := json.Marshal(registration_field_config)
@@ -77,8 +97,6 @@ func CreateRegistrationField(cidaas_client CidaasClient, registration_field_conf
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
-
 	json.Unmarshal([]byte(body), &base_response)
 
 	return base_response
@@ -87,7 +105,7 @@ func CreateRegistrationField(cidaas_client CidaasClient, registration_field_conf
 
 func UpdateRegistrationField(cidaas_client CidaasClient, registration_field_config RegistrationFieldConfig) (base_response baseResponseRegistrationField) {
 
-	url := cidaas_client.BaseUrl + "/registration-setup-srv/fields"
+	url := cidaas_client.BaseUrl + "/fieldsetup-srv/fields"
 	method := "POST"
 
 	json_payload, err := json.Marshal(registration_field_config)
@@ -123,15 +141,13 @@ func UpdateRegistrationField(cidaas_client CidaasClient, registration_field_conf
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
-
 	json.Unmarshal([]byte(body), &base_response)
 
 	return base_response
 
 }
 
-func GetRegistrationField(cidaas_client CidaasClient, registration_field_key string) (base_response baseResponseRegistrationField) {
+func GetRegistrationField(cidaas_client CidaasClient, registration_field_key string) (base_response baseGetResponseRegistrationField) {
 
 	url := cidaas_client.BaseUrl + "/registration-setup-srv/fields/flat/field/" + registration_field_key
 	method := "GET"
@@ -160,8 +176,6 @@ func GetRegistrationField(cidaas_client CidaasClient, registration_field_key str
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
-
 	json.Unmarshal([]byte(body), &base_response)
 
 	return base_response
@@ -197,8 +211,6 @@ func DeleteRegistrationField(cidaas_client CidaasClient, registration_field_key 
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
-
 	json.Unmarshal([]byte(body), &base_response)
 
 	return base_response

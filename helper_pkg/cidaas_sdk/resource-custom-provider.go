@@ -9,29 +9,57 @@ import (
 )
 
 type Scopes struct {
-	DisplayLabel string              `json:"display_label,omitempty"`
-	Scopes       []map[string]string `json:"scopes,omitempty"`
+	DisplayLabel string        `json:"display_label,omitempty"`
+	Scopes       []ScopesChild `json:"scopes,omitempty"`
 }
 
+type ScopesChild struct {
+	ScopeName  string `json:"scope_name,omitempty"`
+	Required   bool   `json:"required,omitempty"`
+	Recommened bool   `json:"recommened,omitempty"`
+}
 type CustomProvider struct {
-	ID                    string      `json:"_id,omitempty"`
-	ClientId              string      `json:"client_id,omitempty"`
-	ClientSecret          string      `json:"client_secret,omitempty"`
-	DisplayName           string      `json:"display_name,omitempty"`
-	StandardType          string      `json:"standard_type,omitempty"`
-	AuthorizationEndpoint string      `json:"authorization_endpoint,omitempty"`
-	TokenEndpoint         string      `json:"token_endpoint,omitempty"`
-	ProviderName          string      `json:"provider_name,omitempty"`
-	LogoUrl               string      `json:"logo_url,omitempty"`
-	UserinfoEndpoint      string      `json:"userinfo_endpoint,omitempty"`
-	UserinfoFields        interface{} `json:"userinfo_fields,omitempty"`
-	Scopes                Scopes      `json:"scopes,omitempty"`
+	ID                    string                 `json:"_id,omitempty"`
+	ClientId              string                 `json:"client_id,omitempty"`
+	ClientSecret          string                 `json:"client_secret,omitempty"`
+	DisplayName           string                 `json:"display_name,omitempty"`
+	StandardType          string                 `json:"standard_type,omitempty"`
+	AuthorizationEndpoint string                 `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint         string                 `json:"token_endpoint,omitempty"`
+	ProviderName          string                 `json:"provider_name,omitempty"`
+	LogoUrl               string                 `json:"logo_url,omitempty"`
+	UserinfoEndpoint      string                 `json:"userinfo_endpoint,omitempty"`
+	UserinfoFields        map[string]interface{} `json:"userinfo_fields,omitempty"`
+	Scopes                Scopes                 `json:"scopes,omitempty"`
 }
 
 type UserInfo struct {
-	Name string `json:"name,omitempty"`
+	Name              string        `json:"name,omitempty"`
+	FamilyName        string        `json:"family_name,omitempty"`
+	GivenName         string        `json:"given_name,omitempty"`
+	MiddleName        string        `json:"middle_name,omitempty"`
+	Nickname          string        `json:"nickname,omitempty"`
+	PreferredUsername string        `json:"preferred_username,omitempty"`
+	Profile           string        `json:"profile,omitempty"`
+	Picture           string        `json:"picture,omitempty"`
+	Website           string        `json:"website,omitempty"`
+	Gender            string        `json:"gender,omitempty"`
+	Birthdate         string        `json:"birthdate,omitempty"`
+	Zoneinfo          string        `json:"zoneinfo,omitempty"`
+	Locale            string        `json:"locale,omitempty"`
+	Updated_at        string        `json:"updated_at,omitempty"`
+	Email             string        `json:"email,omitempty"`
+	EmailVerified     string        `json:"email_verified,omitempty"`
+	PhoneNumber       string        `json:"phone_number,omitempty"`
+	MobileNumber      string        `json:"mobile_number,omitempty"`
+	Address           string        `json:"address,omitempty"`
+	CustomFields      []interface{} `json:"custom_fields,omitempty"`
 }
 
+type CustomFields struct {
+	Key   string `json:"key,omitempty"`
+	Value string `json:"value,omitempty"`
+}
 type CpBaseResponse struct {
 	Success bool           `json:"success,omitempty"`
 	Status  int            `json:"status,omitempty"`
