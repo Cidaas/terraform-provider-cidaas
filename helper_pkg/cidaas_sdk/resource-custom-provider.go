@@ -64,9 +64,7 @@ type CpBaseResponse struct {
 	Success bool           `json:"success,omitempty"`
 	Status  int            `json:"status,omitempty"`
 	Data    CustomProvider `json:"data,omitempty"`
-	Errors  Error          `json:"error,omitempty"`
-	// Error   string    `json:"error,omitempty"`
-	// RefNum  string    `json:"renum,omitempty"`
+	Error   string         `json:"error,omitempty"`
 }
 
 type LinkCustomProviderStruct struct {
@@ -85,7 +83,7 @@ type LinkCpResponse struct {
 	Error Error `json:"error,omitempty"`
 }
 
-func CreateCustomProvider(cidaas_client CidaasClient, cp CustomProvider) (base_response CpBaseResponse) {
+func CreateCustomProvider(cidaas_client CidaasClient, cp *CustomProvider) (base_response CpBaseResponse) {
 
 	url := cidaas_client.ProvideUrl
 	method := "POST"
@@ -128,9 +126,9 @@ func CreateCustomProvider(cidaas_client CidaasClient, cp CustomProvider) (base_r
 	return base_response
 }
 
-func UpdateCustomProvider(cidaas_client CidaasClient, body CustomProvider) (base_response CpBaseResponse) {
+func UpdateCustomProvider(cidaas_client CidaasClient, body *CustomProvider) (base_response CpBaseResponse) {
 
-	url := cidaas_client.ProvideUrl
+	url := cidaas_client.BaseUrl + "/providers-srv/custom/" + body.ProviderName
 	method := "PUT"
 
 	json_payload, err := json.Marshal(body)
