@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
-	"terraform-provider-cidaas/helper_pkg/cidaas_sdk"
+	"terraform-provider-cidaas/helper/cidaas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -188,33 +187,28 @@ func resourceCustomProvider() *schema.Resource {
 
 func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	cidaas_client := m.(cidaas_sdk.CidaasClient)
-	customProvider, err := prepareCpPayload(d)
-
+	cidaas_client := m.(cidaas.CidaasClient)
+	customProvider, err := prepareCpRequestPayload(d)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to create custom provider"),
+			Summary:  fmt.Sprintf("error while creating custom provider payload"),
+			Detail:   err.Error(),
+		})
+	}
+	response, err := cidaas_client.CreateCustomProvider(customProvider)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to create custom provider %+v", customProvider.ProviderName),
 			Detail:   err.Error(),
 		})
 		return diags
 	}
-	response := cidaas_sdk.CreateCustomProvider(cidaas_client, customProvider)
-
-	if !response.Success {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Unable to create custom provider %+v", response.Error),
-			Detail:   response.Error,
-		})
-		return diags
-	}
-
 	if err := d.Set("_id", response.Data.ID); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error Occured while setting _id to custom provider",
+			Summary:  "failed to update _id to custom provider resource",
 			Detail:   err.Error(),
 		})
 		return diags
@@ -225,9 +219,18 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 
 func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	cidaas_client := m.(cidaas_sdk.CidaasClient)
+	cidaas_client := m.(cidaas.CidaasClient)
 	provider_name := d.Id()
-	response := cidaas_sdk.GetCustomProvider(cidaas_client, strings.ToLower(provider_name))
+	response, err := cidaas_client.GetCustomProvider(strings.ToLower(provider_name))
+
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to read custom provider %+v", provider_name),
+			Detail:   err.Error(),
+		})
+		return diags
+	}
 
 	if err := d.Set("standard_type", response.Data.StandardType); err != nil {
 		return diag.FromErr(err)
@@ -274,7 +277,7 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	if err := d.Set("userinfo_fields", fields); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error Occured while setting User Fields %+v", fields...),
+			Summary:  fmt.Sprintf("failed to update userinfo_fields in resourceCPRead() %+v", fields...),
 			Detail:   err.Error(),
 		})
 		return diags
@@ -282,22 +285,55 @@ func resourceCPRead(ctx context.Context, d *schema.ResourceData, m interface{}) 
 	return diags
 }
 
-func flattenScopes(scs *[]cidaas_sdk.ScopesChild) []interface{} {
+func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	cidaas_client := m.(cidaas.CidaasClient)
+	customProvider, err := prepareCpRequestPayload(d)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to create custom provider payload"),
+			Detail:   err.Error(),
+		})
+	}
+	_, err = cidaas_client.UpdateCustomProvider(customProvider)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to update custom provider %+v", customProvider.ProviderName),
+			Detail:   err.Error(),
+		})
+	}
+	return diags
+}
+
+func resourceCPDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	cidaas_client := m.(cidaas.CidaasClient)
+	provider_name := d.Id()
+	_, err := cidaas_client.DeleteCustomProvider(provider_name)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to delete custom provider %+v", provider_name),
+			Detail:   err.Error(),
+		})
+	}
+	return diags
+}
+
+func flattenScopes(scs *[]cidaas.ScopesChild) []interface{} {
 	if scs != nil {
 		ois := make([]interface{}, len(*scs), len(*scs))
-
 		for i, sc := range *scs {
 			oi := make(map[string]interface{})
-
 			oi["scope_name"] = sc.ScopeName
 			oi["recommended"] = sc.Recommened
 			oi["required"] = sc.Required
 			ois[i] = oi
 		}
-
 		return ois
 	}
-
 	return make([]interface{}, 0)
 }
 
@@ -322,9 +358,10 @@ func flattenUserFields(userinfo map[string]interface{}) []interface{} {
 	fields["phone_number"] = userinfo["phone_number"]
 	fields["mobile_number"] = userinfo["mobile_number"]
 	fields["address"] = userinfo["address"]
-	var temp []interface{}
 
+	var temp []interface{}
 	var keys []string
+
 	for k := range userinfo {
 		keys = append(keys, k)
 	}
@@ -336,83 +373,11 @@ func flattenUserFields(userinfo map[string]interface{}) []interface{} {
 		}
 	}
 	fields["custom_fields"] = temp
-
 	return []interface{}{fields}
 }
 
-func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	cidaas_client := m.(cidaas_sdk.CidaasClient)
-
-	var diags diag.Diagnostics
-	customProvider, err := prepareCpPayload(d)
-
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to create custom provider"),
-			Detail:   err.Error(),
-		})
-		return diags
-	}
-
-	json_payload, _ := json.Marshal(customProvider)
-	payload_string := string(json_payload)
-	response := cidaas_sdk.UpdateCustomProvider(cidaas_client, customProvider)
-
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Custom Provider Update Success",
-		Detail:   strconv.FormatBool(response.Success),
-	})
-
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Custom Provider Update Status",
-		Detail:   strconv.Itoa(response.Status),
-	})
-
-	if !response.Success {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Custom Provider Update Failed %+v", payload_string),
-			Detail:   response.Error,
-		})
-	}
-
-	return diags
-}
-
-func resourceCPDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	cidaas_client := m.(cidaas_sdk.CidaasClient)
-	provider_name := d.Id()
-
-	response := cidaas_sdk.DeleteCustomProvider(cidaas_client, provider_name)
-
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Custom provider Deletion Success",
-		Detail:   strconv.FormatBool(response.Success),
-	})
-
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Custom provider Deletion Status",
-		Detail:   strconv.Itoa(response.Status),
-	})
-
-	if !response.Success {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Custom provider Deletion Failed",
-			Detail:   response.Error,
-		})
-	}
-	return diags
-}
-
-func prepareCpPayload(d *schema.ResourceData) (*cidaas_sdk.CustomProvider, error) {
-	var customProvider cidaas_sdk.CustomProvider
+func prepareCpRequestPayload(d *schema.ResourceData) (*cidaas.CustomProvider, error) {
+	var customProvider cidaas.CustomProvider
 
 	customProvider.StandardType = d.Get("standard_type").(string)
 	customProvider.AuthorizationEndpoint = d.Get("authorization_endpoint").(string)
@@ -430,29 +395,27 @@ func prepareCpPayload(d *schema.ResourceData) (*cidaas_sdk.CustomProvider, error
 	}
 
 	scopes := d.Get("scopes").([]interface{})
-	scs := []cidaas_sdk.ScopesChild{}
+	scs := []cidaas.ScopesChild{}
 
 	for _, scope := range scopes {
 		temp := scope.(map[string]interface{})
-
-		sc := cidaas_sdk.ScopesChild{
+		sc := cidaas.ScopesChild{
 			ScopeName:  temp["scope_name"].(string),
 			Recommened: temp["recommended"].(bool),
 			Required:   temp["required"].(bool),
 		}
-
 		scs = append(scs, sc)
 	}
 
 	customProvider.Scopes.Scopes = scs
 
 	ufs := d.Get("userinfo_fields").([]interface{})
-	fileds := cidaas_sdk.UserInfo{}
+	fileds := cidaas.UserInfo{}
 
 	for _, uf := range ufs {
 		field := uf.(map[string]interface{})
 
-		fileds = cidaas_sdk.UserInfo{
+		fileds = cidaas.UserInfo{
 			Name:              field["name"].(string),
 			FamilyName:        field["family_name"].(string),
 			GivenName:         field["given_name"].(string),
@@ -502,7 +465,7 @@ func prepareCpPayload(d *schema.ResourceData) (*cidaas_sdk.CustomProvider, error
 		if err != nil {
 			return nil, err
 		}
-		var data cidaas_sdk.CustomFields
+		var data cidaas.CustomFields
 		if err := json.Unmarshal(b, &data); err != nil {
 			return nil, err
 		}

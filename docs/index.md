@@ -1,6 +1,19 @@
-# Cidaas Provider
+![Logo](logo.jpg)
 
-The cidaas provider is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields as part of a Terraform deployment.
+## About cidaas:
+[cidaas](https://www.cidaas.com)
+ is a fast and secure Cloud Identity & Access Management solution that standardises what’s important and simplifies what’s complex.
+
+## Feature set includes:
+* Single Sign On (SSO) based on OAuth 2.0, OpenID Connect, SAML 2.0 
+* Multi-Factor-Authentication with more than 14 authentication methods, including TOTP and FIDO2 
+* Passwordless Authentication 
+* Social Login (e.g. Facebook, Google, LinkedIn and more) as well as Enterprise Identity Provider (e.g. SAML or AD) 
+* Security in Machine-to-Machine (M2M) and IoT
+
+# Cidaas Provider for Terraform
+
+The cidaas provider for terraform is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields as part of a Terraform deployment.
 
 ### Prerequisites
 
@@ -12,7 +25,7 @@ The cidaas provider is used to interact with cidaas instances. It provides resou
 terraform {
     required_providers {
       cidaas = {
-        version = "1.0.23"
+        version = "1.0.0"
         source  = "Cidaas/cidaas"
       }
     }
@@ -42,7 +55,10 @@ terraform {
 
 ### Cidaas Custom Provider Resource
 
-Example custom provider resource configuration
+Example custom provider resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_custom_provider
+
+* cidaas:identity_provider_read
+* cidaas:identity_provider_write
 
 ```hcl
 resource "cidaas_custom_provider" "cp" {
@@ -108,6 +124,12 @@ resource "cidaas_custom_provider" "cp" {
 
 An example of App resource configuration. Here config **custom_provider_name** reads value from the resource **custom_provider**. This is an optional configuration. A custom_provider resource must be created before creating an app resource. This configuration is used to link an app resource to a custom provider.
 
+Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app
+
+* cidaas:apps_read
+* cidaas:apps_write
+* cidaas:apps_delete
+
 ```hcl
 resource "cidaas_app" "Enter resource name" {
   client_type                     = "SINGLE_PAGE"
@@ -135,7 +157,11 @@ resource "cidaas_app" "Enter resource name" {
 
 ##### Cidaas Scope Resource
 
-An example of Scope resource configuration.
+An example of Scope resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
 
 ```hcl
 resource "cidaas_scope" "sample" {
@@ -152,7 +178,11 @@ resource "cidaas_scope" "sample" {
 
 ##### Cidaas Registration Page Field Resource
 
-An example of Registration Page Field resource configuration.
+An example of Registration Page Field resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_registration_page_field
+
+* cidaas:field_setup_read
+* cidaas:field_setup_write
+* cidaas:field_setup_delete
 
 ```hcl
 resource "cidaas_registration_page_field" "Enter resource name for resource type registration_page_fields" {
