@@ -96,11 +96,10 @@ func (c *CidaasClient) CreateCustomProvider(cp *CustomProvider) (response *Custo
 }
 
 func (c *CidaasClient) UpdateCustomProvider(body *CustomProvider) (response *CustomProviderResponse, err error) {
-	url := c.BaseUrl + "/providers-srv/custom/" + body.ProviderName
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
-	res, err := h.Put(url, body)
+	res, err := h.Put(c.ProvideUrl, body)
 	if err != nil {
 		return nil, err
 	}
