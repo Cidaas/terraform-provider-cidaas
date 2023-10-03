@@ -28,6 +28,7 @@ func Provider() *schema.Provider {
 			"cidaas_registration_page_field": resourceRegistrationField(),
 			"cidaas_custom_provider":         resourceCustomProvider(),
 			"cidaas_scope":                   resourceScope(),
+			"cidaas_webhook":                 resourceWebhook(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
