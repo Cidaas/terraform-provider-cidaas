@@ -204,6 +204,29 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
 }
 ```
 
+##### Cidaas Webhook Resource
+
+An example of Webhook resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_webhook
+
+* cidaas:webhook_read
+* cidaas:webhook_write
+* cidaas:webhook_delete
+
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type = "APIKEY"
+  url       = "https://cidaas.com/webhook-test"
+  events = [
+    "ACCOUNT_MODIFIED"
+  ]
+  api_key_details = {
+    apikey_placeholder = "apikey"
+    apikey_placement   = "header"
+    apikey             = "test-key"
+  }
+}
+```
+
 ## Import Cidaas Resources
 
 you can import cidaas resource by running the below command. Before you can import you need to an empty terraform resource to import one. Example:
