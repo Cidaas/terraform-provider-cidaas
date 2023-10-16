@@ -1,3 +1,13 @@
+## [2.3.2](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.3.1...v2.3.2) (2023-10-16)
+
+
+### Bug Fixes
+
+* releaserc added ([6250be0](https://gitlab.widas.de/cidaas-management/terraform/commit/6250be005afaa6213074ecbc3fe23edd3ef60908))
+* releaserc added ([ecb60fe](https://gitlab.widas.de/cidaas-management/terraform/commit/ecb60fe2e693bbb2326ed0fe08ae55fffebd01fa))
+* update github release config ([895c90c](https://gitlab.widas.de/cidaas-management/terraform/commit/895c90c7b4f36de44dd71df6d04e8e1e48436495))
+* update release template ([e8b8835](https://gitlab.widas.de/cidaas-management/terraform/commit/e8b8835154a79520a9d16aac8159124f5a0ff407))
+
 ## [2.3.1](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.3.0...v2.3.1) (2023-10-16)
 
 
