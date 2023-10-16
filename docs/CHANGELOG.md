@@ -1,3 +1,10 @@
+## [2.3.1](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.3.0...v2.3.1) (2023-10-16)
+
+
+### Bug Fixes
+
+* release message removed ([2d93de0](https://gitlab.widas.de/cidaas-management/terraform/commit/2d93de042b5afcecc217ae01669b8db6b9ae9c08))
+
 # [2.3.0](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.2.2...v2.3.0) (2023-10-16)
 
 
