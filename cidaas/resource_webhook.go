@@ -86,7 +86,7 @@ func resourceWebhookCreate(ctx context.Context, d *schema.ResourceData, m interf
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to create webhook %+v", webhook),
+			Summary:  fmt.Sprintf("failed to create webhook"),
 			Detail:   err.Error(),
 		})
 		return diags
