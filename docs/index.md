@@ -206,12 +206,30 @@ resource "cidaas_registration_page_field" "Enter resource name for resource type
 
 ##### Cidaas Webhook Resource
 
-An example of Webhook resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_webhook
+Some examples of Webhook resource configuration shown below. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_webhook
 
 * cidaas:webhook_read
 * cidaas:webhook_write
 * cidaas:webhook_delete
 
+The terraform configuration for webhook varies based on the **auth_type** provided in the configuration file. Here is the detail of the attribues below
+
+| Attribute Name | is optional | Description |
+| ------ | ------ | ------ |
+| auth_type | no | The attribute auth_type is to define how this url is secured from your end. The allowed values are APIKEY, TOTP and CIDAAS_OAUTH2|
+| url | no | The webhook url that needs to be called when an event occurs |
+| events | no | The events that trigger the webhook  |
+| apikey_placeholder | yes |  **required** parameter when the auth_type is APIKEY. The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header|
+| apikey_placement | yes | **required** parameter when the auth_type is APIKEY. The allowed value are **header** and **query**. when the value is set to **header** the apikey will be passed in request header and when set to **query** the apikey is passed as a query parameter |
+| apikey | yes | **required** parameter when the auth_type is APIKEY. This is the value of the key that will be passed in the request header or in query param |
+| totp_placeholder | yes | **required** parameter when the auth_type is TOTP. The attribute is the placeholder for the totp which need to be passed as a query parameter or in the request header |
+| totp_placement | yes | **required** parameter when the auth_type is TOTP. The allowed value are **header** and **query**. when the value is set to **header** the totpkey will be passed in request header and when set to **query** the totpkey is passed as a query parameter |
+| totpkey | yes | **required** parameter when the auth_type is TOTP. This is the value of the totp that will be passed in the request header or in query param |
+| client_id | yes | **required** parameter when the auth_type is CIDAAS_OAUTH2. This is the id of the client which will be used for authentication when the webhook is triggered|
+
+The example shown below are the configurations with the required parameters for each auth_type
+
+* APIKEY
 ```hcl
 resource "cidaas_webhook" "sample_webhook" {
   auth_type = "APIKEY"
@@ -219,11 +237,35 @@ resource "cidaas_webhook" "sample_webhook" {
   events = [
     "ACCOUNT_MODIFIED"
   ]
-  api_key_details = {
-    apikey_placeholder = "apikey"
-    apikey_placement   = "header"
-    apikey             = "test-key"
-  }
+  apikey_placeholder = "api-test-placeholder"
+  apikey_placement   = "query"
+  apikey             = "api-test-key"
+}
+```
+
+* TOTP
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type = "TOTP"
+  url       = "https://cidaas.com/webhook-test"
+  events = [
+    "ACCOUNT_MODIFIED"
+  ]
+  totp_placeholder   = "test-totp-placeholder"
+  totp_placement     = "header"
+  totpkey            = "totp-key"
+}
+```
+
+* CIDAAS_OAUTH2
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type = "CIDAAS_OAUTH2"
+  url       = "https://cidaas.com/webhook-test"
+  events = [
+    "ACCOUNT_MODIFIED"
+  ]
+  client_id          = "jf1a884-8298-4431-a8k5-2f4130037i17"
 }
 ```
 

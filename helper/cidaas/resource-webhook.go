@@ -6,12 +6,17 @@ import (
 	"terraform-provider-cidaas/helper/util"
 )
 
+var AllowedAuthType = []string{"APIKEY", "TOTP", "CIDAAS_OAUTH2"}
+var AllowedKeyPlacementValue = []string{"query", "header"}
+
 type WebhookRequestPayload struct {
-	AuthType      string                 `json:"auth_type,omitempty"`
-	Url           string                 `json:"url,omitempty"`
-	Events        []string               `json:"events,omitempty"`
-	ApiKeyDetails map[string]interface{} `json:"apikeyDetails,omitempty"`
-	ID            string                 `json:"_id,omitempty"`
+	AuthType          string            `json:"auth_type,omitempty"`
+	Url               string            `json:"url,omitempty"`
+	Events            []string          `json:"events,omitempty"`
+	ID                string            `json:"_id,omitempty"`
+	ApiKeyDetails     ApiKeyDetails     `json:"apikeyDetails,omitempty"`
+	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
+	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
 }
 
 type ApiKeyDetails struct {
@@ -28,15 +33,26 @@ type WebhookResponse struct {
 }
 
 type ResponseData struct {
-	ID            string            `json:"_id,omitempty"`
-	AuthType      string            `json:"auth_type,omitempty"`
-	Url           string            `json:"url,omitempty"`
-	Events        []string          `json:"events,omitempty"`
-	ApiKeyDetails map[string]string `json:"apikeyDetails,omitempty"`
-	Disable       bool              `json:"disable,omitempty"`
+	ID                string            `json:"_id,omitempty"`
+	AuthType          string            `json:"auth_type,omitempty"`
+	Url               string            `json:"url,omitempty"`
+	Events            []string          `json:"events,omitempty"`
+	ApiKeyDetails     ApiKeyDetails     `json:"apikeyDetails,omitempty"`
+	Disable           bool              `json:"disable,omitempty"`
+	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
+	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
 }
 
-func (c *CidaasClient) CreateOrUpdateWebhook(wb WebhookRequestPayload) (response *WebhookResponse, err error) {
+type TotpDetails struct {
+	TotpPlaceholder string `json:"totp_placeholder,omitempty"`
+	TotpPlacement   string `json:"totp_placement,omitempty"`
+	TotpKey         string `json:"totpkey,omitempty"`
+}
+type CidaasAuthDetails struct {
+	ClientId string `json:"client_id,omitempty"`
+}
+
+func (c *CidaasClient) CreateOrUpdateWebhook(wb *WebhookRequestPayload) (response *WebhookResponse, err error) {
 	url := c.BaseUrl + "/webhook-srv/webhook"
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,

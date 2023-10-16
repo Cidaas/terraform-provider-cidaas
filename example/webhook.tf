@@ -4,9 +4,7 @@ resource "cidaas_webhook" "sample_webhook" {
   events = [
     "ACCOUNT_MODIFIED"
   ]
-  api_key_details = {
-    apikey_placeholder = "apikey"
-    apikey_placement   = "header"
-    apikey             = "test-key"
-  }
+  apikey_placeholder = "api-test-placeholder"
+  apikey_placement   = "query"
+  apikey             = "api-test-key"
 }
