@@ -218,6 +218,18 @@ func resourceApp() *schema.Resource {
 					},
 				},
 			},
+			"default_max_age": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"id_token_lifetime_in_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"refresh_token_lifetime_in_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -365,6 +377,18 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("login_providers", response.Data.LoginProviders); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("default_max_age", response.Data.DefaultMaxAge); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("token_lifetime_in_seconds", response.Data.TokenLifetimeInSeconds); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("id_token_lifetime_in_seconds", response.Data.IdTokenLifetimeInSeconds); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("refresh_token_lifetime_in_seconds", response.Data.RefreshTokenLifetimeInSeconds); err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
 }
 
@@ -453,6 +477,10 @@ func preparePayload(d *schema.ResourceData) cidaas.AppConfig {
 	appConfig.GrantTypes = util.InterfaceArray2StringArray(d.Get("grant_types").([]interface{}))
 	appConfig.LoginProviders = util.InterfaceArray2StringArray(d.Get("login_providers").([]interface{}))
 	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
+	appConfig.DefaultMaxAge = d.Get("default_max_age").(int)
+	appConfig.TokenLifetimeInSeconds = d.Get("token_lifetime_in_seconds").(int)
+	appConfig.IdTokenLifetimeInSeconds = d.Get("id_token_lifetime_in_seconds").(int)
+	appConfig.RefreshTokenLifetimeInSeconds = d.Get("refresh_token_lifetime_in_seconds").(int)
 
 	return appConfig
 }

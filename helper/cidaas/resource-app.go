@@ -48,6 +48,9 @@ type AppConfig struct {
 	ContentAlign                  string      `json:"contentAlign,omitempty"`
 	ApplicationType               string      `json:"application_type,omitempty"`
 	ApplicationMetaData           interface{} `json:"application_meta_data,omitempty"`
+	DefaultMaxAge                 int         `json:"default_max_age,omitempty"`
+	TokenLifetimeInSeconds        int         `json:"token_lifetime_in_seconds,omitempty"`
+	IdTokenLifetimeInSeconds      int         `json:"id_token_lifetime_in_seconds,omitempty"`
 	RefreshTokenLifetimeInSeconds int         `json:"refresh_token_lifetime_in_seconds,omitempty"`
 }
 
