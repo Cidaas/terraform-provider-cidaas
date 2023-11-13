@@ -9,7 +9,9 @@ import (
 func InterfaceArray2StringArray(interfaceArray []interface{}) []string {
 	result := make([]string, 0)
 	for _, txt := range interfaceArray {
-		result = append(result, txt.(string))
+		if txt != nil {
+			result = append(result, txt.(string))
+		}
 	}
 	return result
 }
