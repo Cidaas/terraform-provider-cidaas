@@ -40,7 +40,6 @@ resource "cidaas_app" "terraform_app" {
   id_token_lifetime_in_seconds      = 86400
   refresh_token_lifetime_in_seconds = 15780000
   template_group_id                 = "custtemp"
-  custom_provider_name              = "test-custom-provider"
   policy_uri                        = "https://cidaas.com"
   tos_uri                           = "https://cidaas.com"
   imprint_uri                       = "https://cidaas.com"
@@ -60,6 +59,12 @@ resource "cidaas_app" "terraform_app" {
     provider_name = "sample-custom-provider"
     display_name  = "sample-custom-provider"
     type          = "CUSTOM_OPENID_CONNECT"
+  }
+  custom_providers {
+    logo_url      = cidaas_custom_provider.sample.logo_url
+    provider_name = cidaas_custom_provider.sample.provider_name
+    display_name  = cidaas_custom_provider.sample.display_name
+    type          = cidaas_custom_provider.sample.standard_type
   }
   saml_providers {
     logo_url      = "https://cidaas.com/logo-url"
@@ -81,13 +86,11 @@ resource "cidaas_app" "terraform_app" {
     roles         = ["developer", "qa", "admin"]
     default_roles = ["developer"]
   }
-
   operations_allowed_groups {
     group_id      = "developer101"
     roles         = ["developer", "qa", "admin"]
     default_roles = ["developer"]
   }
-
   deleted                             = false
   enabled                             = false
   allowed_fields                      = ["email"]

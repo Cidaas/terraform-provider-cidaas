@@ -2,13 +2,13 @@ resource "cidaas_custom_provider" "sample" {
   standard_type          = "OAUTH2"
   authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
   token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
-  provider_name          = "Terraform"
+  provider_name          = "terraform"
   display_name           = "Terraform"
   logo_url               = "https://terraform-cidaas-test-free.cidaas.de/logo"
   userinfo_endpoint      = "https://terraform-cidaas-test-free.cidaas.de/users-srv/userinfo"
   scope_display_label    = "Terraform Test Scope"
   client_id              = "add your client id"
-  client_secret          = "add your cluient secret"
+  client_secret          = "add your client secret"
 
   scopes {
     recommended = false
