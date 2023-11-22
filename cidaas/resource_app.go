@@ -3,7 +3,6 @@ package cidaas
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"terraform-provider-cidaas/helper/cidaas"
 	"terraform-provider-cidaas/helper/util"
@@ -257,10 +256,6 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"custom_provider_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"policy_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -499,7 +494,7 @@ func resourceApp() *schema.Resource {
 			},
 			"app_key": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"_id": {
@@ -1032,26 +1027,6 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		})
 		return diags
 	}
-	custom_provider_name := d.Get("custom_provider_name").(string)
-	if custom_provider_name != "" {
-		var enableCpPayload cidaas.CustomProviderConfigPayload
-
-		enableCpPayload.ClientId = response.Data.ClientId
-		enableCpPayload.Test = bool(false)
-		enableCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-		enableCpPayload.DisplayName = custom_provider_name
-
-		_, err := cidaas_client.ConfigureCustomProvider(enableCpPayload)
-		if err != nil {
-			errStr := fmt.Sprintf("custom provider configuration failed for the client %+v. app created successfully", enableCpPayload.ClientId)
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  errStr,
-				Detail:   err.Error(),
-			})
-			return diags
-		}
-	}
 	d.SetId(response.Data.ClientId)
 	resourceAppRead(ctx, d, m)
 	return diags
@@ -1481,27 +1456,6 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas.CidaasClient)
 	client_id := d.Id()
-	custom_provider_name := d.Get("custom_provider_name").(string)
-
-	if custom_provider_name != "" {
-		var disableCpPayload cidaas.CustomProviderConfigPayload
-		t, _ := strconv.ParseBool("true")
-		disableCpPayload.ClientId = client_id
-		disableCpPayload.Test = t
-		disableCpPayload.Type = "CUSTOM_OPENID_CONNECT"
-		disableCpPayload.DisplayName = custom_provider_name
-
-		_, err := cidaas_client.ConfigureCustomProvider(disableCpPayload)
-		if err != nil {
-			errStr := fmt.Sprintf("custom provider configuration failed for the client %+v", disableCpPayload.ClientId)
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  errStr,
-				Detail:   err.Error(),
-			})
-			return diags
-		}
-	}
 	var appConfig cidaas.AppConfig
 	appConfig.ClientId = client_id
 	resp, err := cidaas_client.DeleteApp(appConfig)

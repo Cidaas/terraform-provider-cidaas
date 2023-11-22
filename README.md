@@ -127,7 +127,7 @@ terraform import cidaas_custom_provider.<resource name> provider_name
 
 ##### Cidaas App Resource
 
-An example of App resource configuration. Here config **custom_provider_name** reads value from the resource **custom_provider**. This is an optional configuration. A custom_provider resource must be created before creating an app resource. This configuration is used to link an app resource to a custom provider.
+An example of App resource configuration.
 
 Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app
 
@@ -178,7 +178,6 @@ resource "cidaas_app" "terraform_app" {
   id_token_lifetime_in_seconds      = 86400
   refresh_token_lifetime_in_seconds = 15780000
   template_group_id                 = "custtemp"
-  custom_provider_name              = "test-custom-provider"
   policy_uri                        = "https://cidaas.com"
   tos_uri                           = "https://cidaas.com"
   imprint_uri                       = "https://cidaas.com"
@@ -198,6 +197,12 @@ resource "cidaas_app" "terraform_app" {
     provider_name = "sample-custom-provider"
     display_name  = "sample-custom-provider"
     type          = "CUSTOM_OPENID_CONNECT"
+  }
+   custom_providers {
+    logo_url      = cidaas_custom_provider.sample.logo_url
+    provider_name = cidaas_custom_provider.sample.provider_name
+    display_name  = cidaas_custom_provider.sample.display_name
+    type          = cidaas_custom_provider.sample.standard_type
   }
   saml_providers {
     logo_url      = "https://cidaas.com/logo-url"
