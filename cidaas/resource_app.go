@@ -872,51 +872,6 @@ func resourceApp() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"basic_settings": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"token_endpoint_auth_method": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"redirect_uris": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"allowed_logout_urls": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"app_owner": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"allowed_scopes": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"hosted_page_group": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -1380,9 +1335,6 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("request_uris", response.Data.RequestUris); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("basic_settings", cidaas.FlattenBasicSettings(response.Data.BasicSettings)); err != nil {
-		return diag.FromErr(err)
-	}
 	if err := d.Set("description", response.Data.Description); err != nil {
 		return diag.FromErr(err)
 	}
@@ -1581,7 +1533,6 @@ func preparePayload(d *schema.ResourceData) cidaas.AppConfig {
 	appConfig.RequestObjectEncryptionAlg = d.Get("request_object_encryption_alg").(string)
 	appConfig.RequestObjectEncryptionEnc = d.Get("request_object_encryption_enc").(string)
 	appConfig.RequestUris = util.InterfaceArray2StringArray(d.Get("request_uris").([]interface{}))
-	appConfig.BasicSettings = cidaas.SerializeBasicSettings(d.Get("basic_settings").([]interface{}))
 	appConfig.Description = d.Get("description").(string)
 	appConfig.DefaultScopes = util.InterfaceArray2StringArray(d.Get("default_scopes").([]interface{}))
 	appConfig.PendingScopes = util.InterfaceArray2StringArray(d.Get("pending_scopes").([]interface{}))

@@ -302,15 +302,6 @@ resource "cidaas_app" "terraform_app" {
   request_object_encryption_alg   = "RS256"
   request_object_encryption_enc   = "userinfo_encrypted_response_enc"
   request_uris                    = ["sample"]
-  basic_settings {
-    client_id                  = "test-client-id"
-    token_endpoint_auth_method = "client_secret_post"
-    redirect_uris              = ["https://cidaas.com/redirect1", "https://cidaas.com/redirect2"]
-    allowed_logout_urls        = ["https://cidaas.com/logout-url", "https://cidaas.com/logout-url"]
-    app_owner                  = "cidaas"
-    allowed_scopes             = ["profile", "email"]
-    hosted_page_group          = "sample-hosted-page-group"
-  }
   description            = "it's a sample description of the client. The client supports system to system communication"
   default_scopes         = ["sample"]
   pending_scopes         = ["sample"]
