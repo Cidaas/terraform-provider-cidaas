@@ -162,25 +162,16 @@ resource "cidaas_app" "terraform_app" {
   request_object_encryption_alg   = "RS256"
   request_object_encryption_enc   = "userinfo_encrypted_response_enc"
   request_uris                    = ["sample"]
-  basic_settings {
-    client_id                  = "test-client-id"
-    token_endpoint_auth_method = "client_secret_post"
-    redirect_uris              = ["https://cidaas.com/redirect1", "https://cidaas.com/redirect2"]
-    allowed_logout_urls        = ["https://cidaas.com/logout-url", "https://cidaas.com/logout-url"]
-    app_owner                  = "cidaas"
-    allowed_scopes             = ["profile", "email"]
-    hosted_page_group          = "sample-hosted-page-group"
-  }
-  description            = "it's a sample description of the client. The client supports system to system communication"
-  default_scopes         = ["sample"]
-  pending_scopes         = ["sample"]
-  consent_page_group     = "sample-consent-page-group"
-  password_policy_ref    = "password-policy-ref"
-  blocking_mechanism_ref = "blocking-mechanism-ref"
-  sub                    = "sample-sub"
-  role                   = "sample-role"
-  mfa_configuration      = "sample-configuration"
-  suggest_mfa            = ["OFF"]
+  description                     = "it's a sample description of the client. The client supports system to system communication"
+  default_scopes                  = ["sample"]
+  pending_scopes                  = ["sample"]
+  consent_page_group              = "sample-consent-page-group"
+  password_policy_ref             = "password-policy-ref"
+  blocking_mechanism_ref          = "blocking-mechanism-ref"
+  sub                             = "sample-sub"
+  role                            = "sample-role"
+  mfa_configuration               = "sample-configuration"
+  suggest_mfa                     = ["OFF"]
   login_spi {
     oauth_client_id = "bcb-4a6b-9777-8a64abe6af"
     spi_url         = "https://cidaas.com/spi-url"

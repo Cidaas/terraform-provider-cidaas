@@ -126,7 +126,6 @@ type AppConfig struct {
 	RequestUris                      []string              `json:"request_uris,omitempty"`
 	RequireAuthTime                  bool                  `json:"require_auth_time,omitempty"`
 	BackchannelLogoutSessionRequired bool                  `json:"backchannel_logout_session_required,omitempty"`
-	BasicSettings                    IBasicSettings        `json:"basic_settings,omitempty"`
 	TappId                           string                `json:"tapp_id,omitempty"`
 	ClientGroupId                    string                `json:"client_group_id,omitempty"`
 	LegalEntity                      string                `json:"legal_entity,omitempty"`
@@ -153,17 +152,6 @@ type AppConfig struct {
 	BotCaptchaRef                    string                `json:"bot_captcha_ref,omitempty"`
 	CreatedTime                      string                `json:"createdTime,omitempty"`
 	UpdatedTime                      string                `json:"UpdatedTime,omitempty"`
-}
-
-type IBasicSettings struct {
-	ClientId                string   `json:"client_id,omitempty"`
-	ClientIdIssuedAt        int      `json:"client_id_issued_at,omitempty"`
-	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method,omitempty"`
-	RedirectUris            []string `json:"redirect_uris,omitempty"`
-	AllowedLogoutUrls       []string `json:"allowed_logout_urls,omitempty"`
-	AppOwner                string   `json:"app_owner,omitempty"`
-	AllowedScopes           []string `json:"allowed_scopes,omitempty"`
-	HostedPageGroup         string   `json:"hosted_page_group,omitempty"`
 }
 
 type IAllowedGroups struct {
@@ -443,36 +431,6 @@ func SerializePushConfig(configs []interface{}) (resp IPushConfig) {
 	return resp
 }
 
-func SerializeBasicSettings(settings []interface{}) (resp IBasicSettings) {
-	for _, value := range settings {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			if temp["client_id"] != nil {
-				resp.ClientId = temp["client_id"].(string)
-			}
-			if temp["token_endpoint_auth_method"] != nil {
-				resp.TokenEndpointAuthMethod = temp["token_endpoint_auth_method"].(string)
-			}
-			if temp["redirect_uris"] != nil {
-				resp.RedirectUris = util.InterfaceArray2StringArray(temp["redirect_uris"].([]interface{}))
-			}
-			if temp["allowed_logout_urls"] != nil {
-				resp.AllowedLogoutUrls = util.InterfaceArray2StringArray(temp["allowed_logout_urls"].([]interface{}))
-			}
-			if temp["app_owner"] != nil {
-				resp.AppOwner = temp["app_owner"].(string)
-			}
-			if temp["allowed_scopes"] != nil {
-				resp.AllowedScopes = util.InterfaceArray2StringArray(temp["allowed_scopes"].([]interface{}))
-			}
-			if temp["hosted_page_group"] != nil {
-				resp.HostedPageGroup = temp["hosted_page_group"].(string)
-			}
-		}
-	}
-	return resp
-}
-
 func SerializeLoginSpi(spi []interface{}) (resp ILoginSPI) {
 	for _, value := range spi {
 		if value != nil {
@@ -583,18 +541,6 @@ func FlattenPushConfig(pc IPushConfig) []interface{} {
 	fields["key"] = pc.Key
 	fields["secret"] = pc.Secret
 	fields["owner"] = pc.Owner
-	return []interface{}{fields}
-}
-
-func FlattenBasicSettings(bs IBasicSettings) []interface{} {
-	fields := make(map[string]interface{})
-	fields["client_id"] = bs.ClientId
-	fields["token_endpoint_auth_method"] = bs.TokenEndpointAuthMethod
-	fields["redirect_uris"] = bs.RedirectUris
-	fields["allowed_logout_urls"] = bs.AllowedLogoutUrls
-	fields["app_owner"] = bs.AppOwner
-	fields["allowed_scopes"] = bs.AllowedScopes
-	fields["hosted_page_group"] = bs.HostedPageGroup
 	return []interface{}{fields}
 }
 
