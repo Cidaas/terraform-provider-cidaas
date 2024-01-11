@@ -171,6 +171,10 @@ func resourceCustomProvider() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"sub": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"custom_fields": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -358,6 +362,7 @@ func flattenUserFields(userinfo map[string]interface{}) []interface{} {
 	fields["phone_number"] = userinfo["phone_number"]
 	fields["mobile_number"] = userinfo["mobile_number"]
 	fields["address"] = userinfo["address"]
+	fields["sub"] = userinfo["sub"]
 
 	var temp []interface{}
 	var keys []string
@@ -436,6 +441,7 @@ func prepareCpRequestPayload(d *schema.ResourceData) (*cidaas.CustomProvider, er
 			MobileNumber:      field["mobile_number"].(string),
 			Address:           field["address"].(string),
 			CustomFields:      field["custom_fields"].([]interface{}),
+			Sub:               field["sub"].(string),
 		}
 	}
 
@@ -459,6 +465,7 @@ func prepareCpRequestPayload(d *schema.ResourceData) (*cidaas.CustomProvider, er
 	newVar["phone_number"] = fileds.PhoneNumber
 	newVar["mobile_number"] = fileds.MobileNumber
 	newVar["address"] = fileds.Address
+	newVar["sub"] = fileds.Sub
 
 	for _, item := range fileds.CustomFields {
 		b, err := json.Marshal(item)
