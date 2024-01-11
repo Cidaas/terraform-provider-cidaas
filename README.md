@@ -109,6 +109,7 @@ resource "cidaas_custom_provider" "cp" {
     updated_at         = "01-01-01"
     website            = "https://cp-website.com"
     zoneinfo           = "cp_zone_info",
+    sub                = "bcb-4a6b-9777-8a64abe6af"
     custom_fields = [
       {
         key   = "terraform_test_cf"
