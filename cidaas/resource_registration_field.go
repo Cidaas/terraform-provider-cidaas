@@ -102,7 +102,26 @@ func resourceRegistrationField() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
+			"locale_text_min_length": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"locale_text_max_length": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"min_length_error_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"max_length_error_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"required_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"registration_field_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -159,11 +178,62 @@ func resourceRegistrationFieldCreate(ctx context.Context, d *schema.ResourceData
 	registrationFieldConfig.Claimable = d.Get("claimable").(bool)
 	registrationFieldConfig.Order = d.Get("order").(int)
 	registrationFieldConfig.FieldType = d.Get("field_type").(string)
-	registrationFieldConfig.LocaleText = make(map[string]interface{})
 	registrationFieldConfig.BaseDataType = "string"
-	registrationFieldConfig.LocaleText["locale"] = d.Get("locale_text_locale").(string)
-	registrationFieldConfig.LocaleText["name"] = d.Get("locale_text_name").(string)
-	registrationFieldConfig.LocaleText["language"] = d.Get("locale_text_language").(string)
+	registrationFieldConfig.LocaleText.Locale = d.Get("locale_text_locale").(string)
+	registrationFieldConfig.LocaleText.Name = d.Get("locale_text_name").(string)
+	registrationFieldConfig.LocaleText.Language = d.Get("locale_text_language").(string)
+	registrationFieldConfig.LocaleText.MinLengthErrorMsg = d.Get("min_length_error_msg").(string)
+	registrationFieldConfig.LocaleText.MaxLengthErrorMsg = d.Get("max_length_error_msg").(string)
+	registrationFieldConfig.LocaleText.RequiredMsg = d.Get("required_msg").(string)
+	registrationFieldConfig.FieldDefinition.Locale = d.Get("locale_text_locale").(string)
+	registrationFieldConfig.FieldDefinition.Name = d.Get("locale_text_name").(string)
+	registrationFieldConfig.FieldDefinition.Language = d.Get("locale_text_language").(string)
+	registrationFieldConfig.FieldDefinition.MinLength = d.Get("locale_text_min_length").(int)
+	registrationFieldConfig.FieldDefinition.MaxLength = d.Get("locale_text_max_length").(int)
+
+	if registrationFieldConfig.FieldDefinition.MinLength > 0 {
+		if registrationFieldConfig.FieldDefinition.MaxLength <= 0 {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "locale_text_max_length can not be empty or less than equal to 0",
+			})
+			return diags
+		}
+
+		if registrationFieldConfig.FieldDefinition.MinLength > registrationFieldConfig.FieldDefinition.MaxLength {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "locale_text_min_length can not be greater than locale_text_max_length",
+			})
+			return diags
+		}
+	}
+
+	if registrationFieldConfig.FieldDefinition.MinLength > 0 && registrationFieldConfig.LocaleText.MinLengthErrorMsg == "" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "min_length_error_msg can not be empty when locale_text_min_length is greater than 0",
+		})
+		return diags
+	}
+
+	if registrationFieldConfig.FieldDefinition.MaxLength > 0 && registrationFieldConfig.LocaleText.MaxLengthErrorMsg == "" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "max_length_error_msg can not be empty when locale_text_max_length is greater than 0",
+		})
+		return diags
+	}
+
+	if registrationFieldConfig.Required {
+		if registrationFieldConfig.LocaleText.RequiredMsg == "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "required_msg can not be empty when required is true",
+			})
+			return diags
+		}
+	}
 
 	response, err := cidaas_client.CreateRegistrationField(registrationFieldConfig)
 	if err != nil {
@@ -218,7 +288,16 @@ func resourceRegistrationFieldRead(ctx context.Context, d *schema.ResourceData, 
 		d.Set("locale_text_locale", response.Data.LocaleText[0]["locale"])
 		d.Set("locale_text_name", response.Data.LocaleText[0]["name"])
 		d.Set("locale_text_language", response.Data.LocaleText[0]["language"])
+		d.Set("min_length_error_msg", response.Data.LocaleText[0]["minLength"])
+		d.Set("max_length_error_msg", response.Data.LocaleText[0]["maxLength"])
+		d.Set("required_msg", response.Data.LocaleText[0]["required"])
 	}
+	d.Set("locale_text_locale", response.Data.FieldDefinition.Locale)
+	d.Set("locale_text_name", response.Data.FieldDefinition.Name)
+	d.Set("locale_text_language", response.Data.FieldDefinition.Language)
+	d.Set("locale_text_min_length", response.Data.FieldDefinition.MinLength)
+	d.Set("locale_text_max_length", response.Data.FieldDefinition.MaxLength)
+
 	return diags
 }
 
@@ -239,12 +318,63 @@ func resourceRegistrationFieldUpdate(ctx context.Context, d *schema.ResourceData
 	rfg.Claimable = d.Get("claimable").(bool)
 	rfg.Order = d.Get("order").(int)
 	rfg.FieldType = d.Get("field_type").(string)
-	rfg.LocaleText = make(map[string]interface{})
 	rfg.BaseDataType = d.Get("base_data_type").(string)
 	rfg.Id = d.Get("registration_field_id").(string)
-	rfg.LocaleText["locale"] = d.Get("locale_text_locale").(string)
-	rfg.LocaleText["name"] = d.Get("locale_text_name").(string)
-	rfg.LocaleText["language"] = d.Get("locale_text_language").(string)
+	rfg.LocaleText.Locale = d.Get("locale_text_locale").(string)
+	rfg.LocaleText.Name = d.Get("locale_text_name").(string)
+	rfg.LocaleText.Language = d.Get("locale_text_language").(string)
+	rfg.LocaleText.MinLengthErrorMsg = d.Get("min_length_error_msg").(string)
+	rfg.LocaleText.MaxLengthErrorMsg = d.Get("max_length_error_msg").(string)
+	rfg.LocaleText.RequiredMsg = d.Get("required_msg").(string)
+	rfg.FieldDefinition.Locale = d.Get("locale_text_locale").(string)
+	rfg.FieldDefinition.Name = d.Get("locale_text_name").(string)
+	rfg.FieldDefinition.Language = d.Get("locale_text_language").(string)
+	rfg.FieldDefinition.MinLength = d.Get("locale_text_min_length").(int)
+	rfg.FieldDefinition.MaxLength = d.Get("locale_text_max_length").(int)
+
+	if rfg.FieldDefinition.MinLength > 0 {
+		if rfg.FieldDefinition.MaxLength <= 0 {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "locale_text_max_length can not be empty or less than equal to 0",
+			})
+			return diags
+		}
+
+		if rfg.FieldDefinition.MinLength > rfg.FieldDefinition.MaxLength {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "locale_text_min_length can not be greater than locale_text_max_length",
+			})
+			return diags
+		}
+	}
+
+	if rfg.FieldDefinition.MinLength > 0 && rfg.LocaleText.MinLengthErrorMsg == "" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "min_length_error_msg can not be empty when locale_text_min_length is greater than 0",
+		})
+		return diags
+	}
+
+	if rfg.FieldDefinition.MaxLength > 0 && rfg.LocaleText.MaxLengthErrorMsg == "" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "max_length_error_msg can not be empty when locale_text_max_length is greater than 0",
+		})
+		return diags
+	}
+
+	if rfg.Required {
+		if rfg.LocaleText.RequiredMsg == "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "required_msg can not be empty when required is true",
+			})
+			return diags
+		}
+	}
 
 	_, err := cidaas_client.UpdateRegistrationField(rfg)
 	if err != nil {

@@ -19,41 +19,60 @@ type GetRegistrationFieldResponse struct {
 }
 
 type GetRegistrationFieldConfig struct {
-	Internal      bool                     `json:"internal,omitempty"`
-	ReadOnly      bool                     `json:"readOnly,omitempty"`
-	Claimable     bool                     `json:"claimable,omitempty"`
-	Required      bool                     `json:"required,omitempty"`
-	Scopes        []string                 `json:"scopes,omitempty"`
-	Enabled       bool                     `json:"enabled,omitempty"`
-	LocaleText    []map[string]interface{} `json:"localeText,omitempty"`
-	IsGroup       bool                     `json:"is_group,omitempty"`
-	IsList        bool                     `json:"is_list,omitempty"`
-	ParentGroupId string                   `json:"parent_group_id,omitempty"`
-	FieldType     string                   `json:"fieldType,omitempty"`
-	Id            string                   `json:"_id,omitempty"`
-	FieldKey      string                   `json:"fieldKey,omitempty"`
-	DataType      string                   `json:"dataType,omitempty"`
-	Order         int                      `json:"order,omitempty"`
-	BaseDataType  string                   `json:"baseDataType,omitempty"`
+	Internal        bool                     `json:"internal,omitempty"`
+	ReadOnly        bool                     `json:"readOnly,omitempty"`
+	Claimable       bool                     `json:"claimable,omitempty"`
+	Required        bool                     `json:"required,omitempty"`
+	Scopes          []string                 `json:"scopes,omitempty"`
+	Enabled         bool                     `json:"enabled,omitempty"`
+	LocaleText      []map[string]interface{} `json:"localeText,omitempty"`
+	IsGroup         bool                     `json:"is_group,omitempty"`
+	IsList          bool                     `json:"is_list,omitempty"`
+	ParentGroupId   string                   `json:"parent_group_id,omitempty"`
+	FieldType       string                   `json:"fieldType,omitempty"`
+	Id              string                   `json:"_id,omitempty"`
+	FieldKey        string                   `json:"fieldKey,omitempty"`
+	DataType        string                   `json:"dataType,omitempty"`
+	Order           int                      `json:"order,omitempty"`
+	BaseDataType    string                   `json:"baseDataType,omitempty"`
+	FieldDefinition FieldDefinition          `json:"fieldDefinition,omitempty"`
 }
 
 type RegistrationFieldConfig struct {
-	Internal      bool                   `json:"internal,omitempty"`
-	ReadOnly      bool                   `json:"readOnly,omitempty"`
-	Claimable     bool                   `json:"claimable,omitempty"`
-	Required      bool                   `json:"required,omitempty"`
-	Scopes        []string               `json:"scopes,omitempty"`
-	Enabled       bool                   `json:"enabled,omitempty"`
-	LocaleText    map[string]interface{} `json:"localeText,omitempty"`
-	IsGroup       bool                   `json:"is_group,omitempty"`
-	IsList        bool                   `json:"is_list,omitempty"`
-	ParentGroupId string                 `json:"parent_group_id,omitempty"`
-	FieldType     string                 `json:"fieldType,omitempty"`
-	Id            string                 `json:"_id,omitempty"`
-	FieldKey      string                 `json:"fieldKey,omitempty"`
-	DataType      string                 `json:"dataType,omitempty"`
-	Order         int                    `json:"order,omitempty"`
-	BaseDataType  string                 `json:"baseDataType,omitempty"`
+	Internal        bool            `json:"internal,omitempty"`
+	ReadOnly        bool            `json:"readOnly,omitempty"`
+	Claimable       bool            `json:"claimable,omitempty"`
+	Required        bool            `json:"required,omitempty"`
+	Scopes          []string        `json:"scopes,omitempty"`
+	Enabled         bool            `json:"enabled,omitempty"`
+	LocaleText      LocaleText      `json:"localeText,omitempty"`
+	IsGroup         bool            `json:"is_group,omitempty"`
+	IsList          bool            `json:"is_list,omitempty"`
+	ParentGroupId   string          `json:"parent_group_id,omitempty"`
+	FieldType       string          `json:"fieldType,omitempty"`
+	Id              string          `json:"_id,omitempty"`
+	FieldKey        string          `json:"fieldKey,omitempty"`
+	DataType        string          `json:"dataType,omitempty"`
+	Order           int             `json:"order,omitempty"`
+	BaseDataType    string          `json:"baseDataType,omitempty"`
+	FieldDefinition FieldDefinition `json:"fieldDefinition,omitempty"`
+}
+
+type FieldDefinition struct {
+	MinLength int    `json:"minLength,omitempty"`
+	MaxLength int    `json:"maxLength,omitempty"`
+	Language  string `json:"language,omitempty"`
+	Locale    string `json:"locale,omitempty"`
+	Name      string `json:"name,omitempty"`
+}
+
+type LocaleText struct {
+	MinLengthErrorMsg string `json:"minLength,omitempty"`
+	MaxLengthErrorMsg string `json:"maxLength,omitempty"`
+	RequiredMsg       string `json:"required,omitempty"`
+	Language          string `json:"language,omitempty"`
+	Locale            string `json:"locale,omitempty"`
+	Name              string `json:"name,omitempty"`
 }
 
 func (c *CidaasClient) CreateRegistrationField(rfg RegistrationFieldConfig) (response *RegistrationFieldResponse, err error) {
