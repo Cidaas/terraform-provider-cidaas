@@ -139,3 +139,30 @@ func (c *CidaasClient) DeleteRegistrationField(key string) (response *Registrati
 	}
 	return response, nil
 }
+
+func ValidateRequest(registrationFieldConfig RegistrationFieldConfig) (bool, string) {
+	if registrationFieldConfig.FieldDefinition.MinLength > 0 {
+		if registrationFieldConfig.FieldDefinition.MaxLength <= 0 {
+			return false, "locale_text_max_length can not be empty or less than equal to 0"
+		}
+
+		if registrationFieldConfig.FieldDefinition.MinLength > registrationFieldConfig.FieldDefinition.MaxLength {
+			return false, "locale_text_min_length can not be greater than locale_text_max_length"
+		}
+	}
+
+	if registrationFieldConfig.FieldDefinition.MinLength > 0 && registrationFieldConfig.LocaleText.MinLengthErrorMsg == "" {
+		return false, "min_length_error_msg can not be empty when locale_text_min_length is greater than 0"
+	}
+
+	if registrationFieldConfig.FieldDefinition.MaxLength > 0 && registrationFieldConfig.LocaleText.MaxLengthErrorMsg == "" {
+		return false, "max_length_error_msg can not be empty when locale_text_max_length is greater than 0"
+	}
+
+	if registrationFieldConfig.Required {
+		if registrationFieldConfig.LocaleText.RequiredMsg == "" {
+			return false, "required_msg can not be empty when required is true"
+		}
+	}
+	return true, ""
+}
