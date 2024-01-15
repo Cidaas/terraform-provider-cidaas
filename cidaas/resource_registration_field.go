@@ -102,7 +102,26 @@ func resourceRegistrationField() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
+			"locale_text_min_length": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"locale_text_max_length": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"min_length_error_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"max_length_error_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"required_msg": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"registration_field_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -137,34 +156,18 @@ func resourceRegistrationField() *schema.Resource {
 	}
 }
 
-type registrationFeildCreationResponse struct {
-	Success bool
-	Status  int
-}
-
 func resourceRegistrationFieldCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var registrationFieldConfig cidaas.RegistrationFieldConfig
 	cidaas_client := m.(cidaas.CidaasClient)
-
-	registrationFieldConfig.ParentGroupId = d.Get("parent_group_id").(string)
-	registrationFieldConfig.Scopes = util.InterfaceArray2StringArray(d.Get("scopes").([]interface{}))
-	registrationFieldConfig.DataType = d.Get("data_type").(string)
-	registrationFieldConfig.FieldKey = d.Get("field_key").(string)
-	registrationFieldConfig.Required = d.Get("required").(bool)
-	registrationFieldConfig.IsGroup = d.Get("is_group").(bool)
-	registrationFieldConfig.Enabled = d.Get("enabled").(bool)
-	registrationFieldConfig.ReadOnly = d.Get("read_only").(bool)
-	registrationFieldConfig.Internal = d.Get("internal").(bool)
-	registrationFieldConfig.Claimable = d.Get("claimable").(bool)
-	registrationFieldConfig.Order = d.Get("order").(int)
-	registrationFieldConfig.FieldType = d.Get("field_type").(string)
-	registrationFieldConfig.LocaleText = make(map[string]interface{})
-	registrationFieldConfig.BaseDataType = "string"
-	registrationFieldConfig.LocaleText["locale"] = d.Get("locale_text_locale").(string)
-	registrationFieldConfig.LocaleText["name"] = d.Get("locale_text_name").(string)
-	registrationFieldConfig.LocaleText["language"] = d.Get("locale_text_language").(string)
-
+	registrationFieldConfig := prepareRegistrationFieldConfig(d)
+	isValid, msg := cidaas.ValidateRequest(registrationFieldConfig)
+	if !isValid {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  msg,
+		})
+		return diags
+	}
 	response, err := cidaas_client.CreateRegistrationField(registrationFieldConfig)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -218,35 +221,31 @@ func resourceRegistrationFieldRead(ctx context.Context, d *schema.ResourceData, 
 		d.Set("locale_text_locale", response.Data.LocaleText[0]["locale"])
 		d.Set("locale_text_name", response.Data.LocaleText[0]["name"])
 		d.Set("locale_text_language", response.Data.LocaleText[0]["language"])
+		d.Set("min_length_error_msg", response.Data.LocaleText[0]["minLength"])
+		d.Set("max_length_error_msg", response.Data.LocaleText[0]["maxLength"])
+		d.Set("required_msg", response.Data.LocaleText[0]["required"])
 	}
+	d.Set("locale_text_min_length", response.Data.FieldDefinition.MinLength)
+	d.Set("locale_text_max_length", response.Data.FieldDefinition.MaxLength)
+
 	return diags
 }
 
 func resourceRegistrationFieldUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas.CidaasClient)
-	var rfg cidaas.RegistrationFieldConfig
-
-	rfg.ParentGroupId = d.Get("parent_group_id").(string)
-	rfg.Scopes = util.InterfaceArray2StringArray(d.Get("scopes").([]interface{}))
-	rfg.DataType = d.Get("data_type").(string)
-	rfg.FieldKey = d.Get("field_key").(string)
-	rfg.Required = d.Get("required").(bool)
-	rfg.IsGroup = d.Get("is_group").(bool)
-	rfg.Enabled = d.Get("enabled").(bool)
-	rfg.ReadOnly = d.Get("read_only").(bool)
-	rfg.Internal = d.Get("internal").(bool)
-	rfg.Claimable = d.Get("claimable").(bool)
-	rfg.Order = d.Get("order").(int)
-	rfg.FieldType = d.Get("field_type").(string)
-	rfg.LocaleText = make(map[string]interface{})
-	rfg.BaseDataType = d.Get("base_data_type").(string)
-	rfg.Id = d.Get("registration_field_id").(string)
-	rfg.LocaleText["locale"] = d.Get("locale_text_locale").(string)
-	rfg.LocaleText["name"] = d.Get("locale_text_name").(string)
-	rfg.LocaleText["language"] = d.Get("locale_text_language").(string)
-
-	_, err := cidaas_client.UpdateRegistrationField(rfg)
+	registrationFieldConfig := prepareRegistrationFieldConfig(d)
+	registrationFieldConfig.Id = d.Get("registration_field_id").(string)
+	registrationFieldConfig.BaseDataType = d.Get("base_data_type").(string)
+	isValid, msg := cidaas.ValidateRequest(registrationFieldConfig)
+	if !isValid {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  msg,
+		})
+		return diags
+	}
+	_, err := cidaas_client.UpdateRegistrationField(registrationFieldConfig)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -271,4 +270,33 @@ func resourceRegistrationFieldDelete(ctx context.Context, d *schema.ResourceData
 		})
 	}
 	return diags
+}
+
+func prepareRegistrationFieldConfig(d *schema.ResourceData) cidaas.RegistrationFieldConfig {
+	var registrationFieldConfig cidaas.RegistrationFieldConfig
+	registrationFieldConfig.ParentGroupId = d.Get("parent_group_id").(string)
+	registrationFieldConfig.Scopes = util.InterfaceArray2StringArray(d.Get("scopes").([]interface{}))
+	registrationFieldConfig.DataType = d.Get("data_type").(string)
+	registrationFieldConfig.FieldKey = d.Get("field_key").(string)
+	registrationFieldConfig.Required = d.Get("required").(bool)
+	registrationFieldConfig.IsGroup = d.Get("is_group").(bool)
+	registrationFieldConfig.Enabled = d.Get("enabled").(bool)
+	registrationFieldConfig.ReadOnly = d.Get("read_only").(bool)
+	registrationFieldConfig.Internal = d.Get("internal").(bool)
+	registrationFieldConfig.Claimable = d.Get("claimable").(bool)
+	registrationFieldConfig.Order = d.Get("order").(int)
+	registrationFieldConfig.FieldType = d.Get("field_type").(string)
+	registrationFieldConfig.BaseDataType = "string"
+	registrationFieldConfig.LocaleText.Locale = d.Get("locale_text_locale").(string)
+	registrationFieldConfig.LocaleText.Name = d.Get("locale_text_name").(string)
+	registrationFieldConfig.LocaleText.Language = d.Get("locale_text_language").(string)
+	registrationFieldConfig.LocaleText.MinLengthErrorMsg = d.Get("min_length_error_msg").(string)
+	registrationFieldConfig.LocaleText.MaxLengthErrorMsg = d.Get("max_length_error_msg").(string)
+	registrationFieldConfig.LocaleText.RequiredMsg = d.Get("required_msg").(string)
+	registrationFieldConfig.FieldDefinition.Locale = d.Get("locale_text_locale").(string)
+	registrationFieldConfig.FieldDefinition.Name = d.Get("locale_text_name").(string)
+	registrationFieldConfig.FieldDefinition.Language = d.Get("locale_text_language").(string)
+	registrationFieldConfig.FieldDefinition.MinLength = d.Get("locale_text_min_length").(int)
+	registrationFieldConfig.FieldDefinition.MaxLength = d.Get("locale_text_max_length").(int)
+	return registrationFieldConfig
 }
