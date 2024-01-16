@@ -3,7 +3,6 @@ package cidaas
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"terraform-provider-cidaas/helper/util"
 )
 
@@ -19,7 +18,7 @@ type ScopeGroupResponse struct {
 	Data    ScopeGroupConfig `json:"data,omitempty"`
 }
 
-func (c *CidaasClient) CreateOrUpdateScopeGroup(scopeGroup ScopeGroupConfig) (response *ScopeGroupResponse, err error) {
+func (c *CidaasClient) UpsertScopeGroup(scopeGroup ScopeGroupConfig) (response *ScopeGroupResponse, err error) {
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
@@ -36,7 +35,7 @@ func (c *CidaasClient) CreateOrUpdateScopeGroup(scopeGroup ScopeGroupConfig) (re
 }
 
 func (c *CidaasClient) GetScopeGroup(scopeGroupName string) (response *ScopeGroupResponse, err error) {
-	url := c.BaseUrl + "/scopes-srv/group?group_name=" + strings.ToLower(scopeGroupName)
+	url := c.BaseUrl + "/scopes-srv/group?group_name=" + scopeGroupName
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}

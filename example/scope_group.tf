@@ -1,4 +1,4 @@
 resource "cidaas_scope_group" "sample" {
-  description           = "terraform Scope Group description -UPDATED7"
+  description           = "Scope Group created using Cidaas custom Terraform Provider"
   group_name            = "TerraSG"
 }

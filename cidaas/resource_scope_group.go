@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
 	"terraform-provider-cidaas/helper/cidaas"
 )
 
@@ -24,25 +23,25 @@ func resourceScopeGroup() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CreateContext: resourceScopeGroupCreateOrUpdate,
+		CreateContext: resourceScopeGroupUpsert,
 		ReadContext:   resourceScopeGroupRead,
-		UpdateContext: resourceScopeGroupCreateOrUpdate,
+		UpdateContext: resourceScopeGroupUpsert,
 		DeleteContext: resourceScopeGroupDelete,
 	}
 
 }
 
-func resourceScopeGroupCreateOrUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceScopeGroupUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	cidaasClient := m.(cidaas.CidaasClient)
 	var scopeGroupConfig cidaas.ScopeGroupConfig
 	scopeGroupConfig.GroupName = d.Get("group_name").(string)
 	scopeGroupConfig.Description = d.Get("description").(string)
-	response, err := cidaasClient.CreateOrUpdateScopeGroup(scopeGroupConfig)
+	response, err := cidaasClient.UpsertScopeGroup(scopeGroupConfig)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to create scope %+v", scopeGroupConfig.GroupName),
+			Summary:  fmt.Sprintf("failed to create scope group %+v", scopeGroupConfig.GroupName),
 			Detail:   err.Error(),
 		})
 		return diags
@@ -63,7 +62,7 @@ func resourceScopeGroupRead(ctx context.Context, d *schema.ResourceData, m inter
 	var diags diag.Diagnostics
 	cidaasClient := m.(cidaas.CidaasClient)
 	scopeGroupName := d.Id()
-	response, err := cidaasClient.GetScopeGroup(strings.ToLower(scopeGroupName))
+	response, err := cidaasClient.GetScopeGroup(scopeGroupName)
 
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
