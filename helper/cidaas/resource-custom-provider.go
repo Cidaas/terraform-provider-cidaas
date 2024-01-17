@@ -52,6 +52,7 @@ type UserInfo struct {
 	PhoneNumber       string        `json:"phone_number,omitempty"`
 	MobileNumber      string        `json:"mobile_number,omitempty"`
 	Address           string        `json:"address,omitempty"`
+	Sub               string        `json:"sub,omitempty"`
 	CustomFields      []interface{} `json:"custom_fields,omitempty"`
 }
 

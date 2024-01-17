@@ -109,6 +109,7 @@ resource "cidaas_custom_provider" "cp" {
     updated_at         = "01-01-01"
     website            = "https://cp-website.com"
     zoneinfo           = "cp_zone_info",
+    sub                = "bcb-4a6b-9777-8a64abe6af"
     custom_fields = [
       {
         key   = "terraform_test_cf"
@@ -386,23 +387,32 @@ An example of Registration Page Field resource configuration. Please add the bel
 * cidaas:field_setup_delete
 
 ```hcl
-resource "cidaas_registration_page_field" "Enter resource name for resource type registration_page_fields" {
-  parent_group_id      = "DEFAULT"
-  is_group             = false
-  data_type            = "TEXT"
-  field_key            = "Enter registration_page_field name"
-  required             = false
-  enabled              = false
-  read_only            = false
-  internal             = false
-  scopes               = ["terraform-test-scope"]
-  claimable            = true
-  order                = 25
-  field_type           = "CUSTOM"
-  locale_text_locale   = "en-GB"
-  locale_text_name     = "terraform-test-field"
-  locale_text_language = "en"
+resource "cidaas_registration_page_field" "sample" {
+  claimable              = true
+  data_type              = "TEXT"
+  enabled                = false
+  field_key              = "sample_field"
+  field_type             = "CUSTOM"
+  internal               = false
+  is_group               = false
+  locale_text_language   = "en"
+  locale_text_locale     = "en-us"
+  locale_text_name       = "Sample Field"
+  order                  = 2
+  parent_group_id        = "DEFAULT"
+  read_only              = false
+  required               = true
+  required_msg           = "sample_field is required"
+  locale_text_min_length = 10
+  locale_text_max_length = 100
+  min_length_error_msg   = "minimum length should be 10"
+  max_length_error_msg   = "maximum length should be 100"
+  scopes = [
+    "profile",
+    "cidaas:public_profile",
+  ]
 }
+
 ```
 
 Use the command below to import an existing cidaas_registration_page_field
