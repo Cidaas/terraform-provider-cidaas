@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"terraform-provider-cidaas/helper/cidaas"
 )
 
@@ -12,8 +13,9 @@ func resourceScopeGroup() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"group_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -36,7 +38,7 @@ func resourceScopeGroupUpdate(ctx context.Context, d *schema.ResourceData, m int
 	cidaasClient := m.(cidaas.CidaasClient)
 	var scopeGroupConfig cidaas.ScopeGroupConfig
 	scopeGroupName := d.Id()
-	if scopeGroupName != d.Get("group_name").(string) {
+	if scopeGroupName != "" && scopeGroupName != d.Get("group_name").(string) {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  fmt.Sprintf("Scope group name %v does not exist, cannot update. Please create one first", d.Get("group_name").(string)),
