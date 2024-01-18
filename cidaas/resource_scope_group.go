@@ -23,17 +23,53 @@ func resourceScopeGroup() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		CreateContext: resourceScopeGroupUpsert,
+		CreateContext: resourceScopeGroupCreate,
 		ReadContext:   resourceScopeGroupRead,
-		UpdateContext: resourceScopeGroupUpsert,
+		UpdateContext: resourceScopeGroupUpdate,
 		DeleteContext: resourceScopeGroupDelete,
 	}
 
 }
 
-func resourceScopeGroupUpsert(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceScopeGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	cidaasClient := m.(cidaas.CidaasClient)
+	var scopeGroupConfig cidaas.ScopeGroupConfig
+	scopeGroupName := d.Id()
+	if scopeGroupName != d.Get("group_name").(string) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Scope group name %v does not exist, cannot update. Please create one first", d.Get("group_name").(string)),
+		})
+		return diags
+	}
+	scopeGroupConfig.GroupName = scopeGroupName
+	scopeGroupConfig.Description = d.Get("description").(string)
+	response, err := cidaasClient.UpsertScopeGroup(scopeGroupConfig)
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("failed to create scope group %+v", scopeGroupConfig.GroupName),
+			Detail:   err.Error(),
+		})
+		return diags
+	}
+	if err := d.Set("group_name", response.Data.GroupName); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "error while setting group_name to scope resource",
+			Detail:   err.Error(),
+		})
+		return diags
+	}
+	d.SetId(response.Data.GroupName)
+	return diags
+}
+
+func resourceScopeGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+	cidaasClient := m.(cidaas.CidaasClient)
+
 	var scopeGroupConfig cidaas.ScopeGroupConfig
 	scopeGroupConfig.GroupName = d.Get("group_name").(string)
 	scopeGroupConfig.Description = d.Get("description").(string)
@@ -63,7 +99,6 @@ func resourceScopeGroupRead(ctx context.Context, d *schema.ResourceData, m inter
 	cidaasClient := m.(cidaas.CidaasClient)
 	scopeGroupName := d.Id()
 	response, err := cidaasClient.GetScopeGroup(scopeGroupName)
-
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
