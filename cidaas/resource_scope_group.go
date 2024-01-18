@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"terraform-provider-cidaas/helper/cidaas"
 )
 
@@ -12,8 +13,9 @@ func resourceScopeGroup() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"group_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -35,6 +37,15 @@ func resourceScopeGroupUpsert(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 	cidaasClient := m.(cidaas.CidaasClient)
 	var scopeGroupConfig cidaas.ScopeGroupConfig
+	isCreate := d.Id() == ""
+	scopeGroupName := d.Id()
+	if !isCreate && scopeGroupName != "" && scopeGroupName != d.Get("group_name").(string) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Scope group name %v does not exist, cannot update. Please create one first", d.Get("group_name").(string)),
+		})
+		return diags
+	}
 	scopeGroupConfig.GroupName = d.Get("group_name").(string)
 	scopeGroupConfig.Description = d.Get("description").(string)
 	response, err := cidaasClient.UpsertScopeGroup(scopeGroupConfig)
@@ -63,7 +74,6 @@ func resourceScopeGroupRead(ctx context.Context, d *schema.ResourceData, m inter
 	cidaasClient := m.(cidaas.CidaasClient)
 	scopeGroupName := d.Id()
 	response, err := cidaasClient.GetScopeGroup(scopeGroupName)
-
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
