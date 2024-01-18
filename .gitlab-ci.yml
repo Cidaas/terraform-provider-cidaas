@@ -1,8 +1,8 @@
 include:
-  - project: "widas/software-quality/gitlab-template-projects/widas-ci-templates"
+  - project: "widas/software-quality/gitlab-template-projects/widas-customer-ci-templates"
     file: "golang/go-lib.yml"
 
 stages:
+  - prepare
   - test
-  - update-version
   - release
