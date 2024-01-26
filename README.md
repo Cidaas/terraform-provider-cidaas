@@ -383,11 +383,10 @@ An example of Role resource configuration. Please add the below roles to the cli
 * cidaas:roles_read
 * cidaas:roles_write
 * cidaas:roles_delete
-* cidaas:roles
 
 ```hcl
 resource "cidaas_role" "sample" {
-  description           = "Role created using Cidaas custom Terraform Provider"
+  description     = "Role created using Cidaas custom Terraform Provider"
   role            = "role-terraform"
   name            = "role-terraform"
 }

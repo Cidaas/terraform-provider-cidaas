@@ -47,7 +47,7 @@ func resourceRoleUpsert(ctx context.Context, d *schema.ResourceData, m interface
 	if !isCreate && role != "" && role != d.Get("role").(string) {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Role %v does not exist, cannot update. Please create one first", d.Get("role").(string)),
+			Summary:  fmt.Sprintf("role %v cannot be modified. Please check if exists", d.Get("role").(string)),
 		})
 		return diags
 	}
