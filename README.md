@@ -540,7 +540,23 @@ resource "cidaas_hosted_page" "sample" {
     url            = "https://terraform-cidaas-test-free.cidaas.de/login_success_hosted_page"
   }
 }
+```
 
+##### Cidaas User Group Category Resource
+
+Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_group_category
+
+* cidaas:group_type_read
+* cidaas:group_type_write
+* cidaas:group_type_delete
+
+```hcl
+resource "cidaas_user_group_category" "sample" {
+  role_mode     = "no_roles"
+  group_type    = "TerraformUserGroupCategory"
+  description   = "terraform user group category description"
+  allowed_roles = []
+}
 ```
 
 Use the command below to import an existing cidaas_hosted_page

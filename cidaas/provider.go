@@ -28,6 +28,7 @@ func Provider() *schema.Provider {
 			"cidaas_webhook":                 resourceWebhook(),
 			"cidaas_hosted_page":             resourceHostedPage(),
 			"cidaas_template":                resourceTemplate(),
+			"cidaas_user_group_category":     resourceUserGroupCategory(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
