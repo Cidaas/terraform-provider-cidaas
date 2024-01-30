@@ -542,6 +542,12 @@ resource "cidaas_hosted_page" "sample" {
 }
 ```
 
+Use the command below to import an existing cidaas_hosted_page
+
+```ssh
+terraform import cidaas_hosted_page.<resource name> hosted_page_group_name
+```
+
 ##### Cidaas User Group Category Resource
 
 Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_group_category
@@ -559,10 +565,10 @@ resource "cidaas_user_group_category" "sample" {
 }
 ```
 
-Use the command below to import an existing cidaas_hosted_page
+Use the command below to import an existing cidaas_user_group_category
 
 ```ssh
-terraform import cidaas_hosted_page.<resource name> hosted_page_group_name
+terraform import cidaas_user_group_category.<resource name> user_group_category_name
 ```
 
 ##### Cidaas Template Resource
