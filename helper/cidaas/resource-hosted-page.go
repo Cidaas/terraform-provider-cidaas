@@ -3,7 +3,6 @@ package cidaas
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"terraform-provider-cidaas/helper/util"
 )
 
@@ -45,7 +44,7 @@ func (c *CidaasClient) CreateOrUpdateHostedPage(sc HostedPagePayload) (response 
 }
 
 func (c *CidaasClient) GetHostedPage(hp_group_name string) (response *HostedPageResponse, err error) {
-	url := c.BaseUrl + "/hostedpages-srv/hpgroup/" + strings.ToLower(hp_group_name)
+	url := c.BaseUrl + "/hostedpages-srv/hpgroup/" + hp_group_name
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
@@ -61,7 +60,7 @@ func (c *CidaasClient) GetHostedPage(hp_group_name string) (response *HostedPage
 }
 
 func (c *CidaasClient) DeleteHostedPage(hp_group_name string) (response *HostedPageResponse, err error) {
-	url := c.BaseUrl + "/hostedpages-srv/hpgroup/" + strings.ToLower(hp_group_name)
+	url := c.BaseUrl + "/hostedpages-srv/hpgroup/" + hp_group_name
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
