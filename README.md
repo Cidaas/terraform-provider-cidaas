@@ -549,6 +549,35 @@ Use the command below to import an existing cidaas_hosted_page
 terraform import cidaas_hosted_page.<resource name> hosted_page_group_name
 ```
 
+##### Cidaas Template Resource
+
+An examples of Template resource configuration shown below.
+
+Here is the details of the attribues
+
+| Attribute Name | Type | is optional | Description |
+| ------ | ------ | ----- | ------ |
+| locale | string | no | The local of the template. Example: en-us, en-uk. Please ensure thatt the local is set in lowercase |
+| template_key | string | no | The name of the template. The template_key is unique and can't be updated for an existing state |
+| template_type | string | no | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. template_types are case sensitive |
+| content | string | no | The content of the template |
+| subject | string | yes | The attribute subject is only applicable for the template_type EMAIL |
+
+```hcl
+resource "cidaas_template" "sample" {
+  locale        = "en-us"
+  template_key  = "TERRAFORM_TEST"
+  template_type = "SMS"
+  content       = "sample content for resource cidaas template"
+}
+```
+
+Use the command below to import an existing cidaas_hosted_page
+
+```ssh
+terraform import cidaas_temaplate.<resource name> <template_key>_<template_type>
+```
+
 ##### To start using the provider run the Terraform commands below going inside the example directory where Terraform config files are available
 
   1. terraform init : It will build the Terraform Cidaas Plugin/Provider.

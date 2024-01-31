@@ -27,6 +27,7 @@ func Provider() *schema.Provider {
 			"cidaas_role":                    resourceRole(),
 			"cidaas_webhook":                 resourceWebhook(),
 			"cidaas_hosted_page":             resourceHostedPage(),
+			"cidaas_template":                resourceTemplate(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
