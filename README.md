@@ -46,7 +46,6 @@ terraform {
 
   ```hcl
   provider "cidaas" {
-    redirect_uri  = "Enter redirect-uri of default app"
     base_url      = "https://terraform-cidaas-test-free.cidaas.de"
   }
   ```
