@@ -986,7 +986,7 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 	if err := d.Set("client_secret", response.Data.ClientSecret); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("error while setting client_id to cidaas_app %+v", appConfig.ClientName),
+			Summary:  fmt.Sprintf("error while setting client_secret to cidaas_app %+v", appConfig.ClientName),
 			Detail:   err.Error(),
 		})
 		return diags
