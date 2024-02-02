@@ -25,7 +25,6 @@ func InitializeAuth(cidaas_client *CidaasClient) {
 	requestPayload := &TokenRequestPayload{
 		ClientId:     cidaas_client.ClientId,
 		ClientSecret: cidaas_client.ClientSecret,
-		RedirectURI:  cidaas_client.RedirectURI,
 		GrantType:    cidaas_client.GrantType,
 	}
 

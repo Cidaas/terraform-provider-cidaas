@@ -13,11 +13,6 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"redirect_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
 			"base_url": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -37,8 +32,6 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-
-	redirect_uri := d.Get("redirect_uri").(string)
 	base_url := d.Get("base_url").(string)
 	client_id := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID")
 	client_secret := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET")
@@ -57,7 +50,6 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	cidaas_client := cidaas.CidaasClient{
 		ClientId:     client_id,
 		ClientSecret: client_secret,
-		RedirectURI:  redirect_uri,
 		GrantType:    "client_credentials",
 		AuthUrl:      base_url + "/token-srv/token",
 		AppUrl:       base_url + "/apps-srv/clients",
