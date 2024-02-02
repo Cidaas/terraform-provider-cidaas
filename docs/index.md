@@ -1,4 +1,4 @@
-![Logo](logo.jpg)
+![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
 ## About cidaas:
 [cidaas](https://www.cidaas.com)
