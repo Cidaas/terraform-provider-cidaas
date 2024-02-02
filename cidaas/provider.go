@@ -29,6 +29,7 @@ func Provider() *schema.Provider {
 			"cidaas_hosted_page":             resourceHostedPage(),
 			"cidaas_template":                resourceTemplate(),
 			"cidaas_user_group_category":     resourceUserGroupCategory(),
+			"cidaas_user_groups":             resourceUserGroup(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

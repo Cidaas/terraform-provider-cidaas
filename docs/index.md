@@ -600,6 +600,37 @@ Use the command below to import an existing cidaas_hosted_page
 terraform import cidaas_temaplate.<resource name> <template_key>_<template_type>
 ```
 
+##### Cidaas User Groups Resource
+
+Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_groups
+
+* cidaas:groups_write
+* cidaas:groups_read
+* cidaas:groups_delete
+
+```hcl
+resource "cidaas_user_groups" "sample" {
+  group_type            = "sample-group-type"
+  group_id              = "sample-group-id"
+  group_name            = "sample-group-name"
+  logo_url              = "https://cidaas.de/logo"
+  description           = "sample user groups description"
+  make_first_user_admin = false
+  custom_fields = {
+    custom_field_name = "sample custom field"
+  }
+  member_profile_visibility      = "full"
+  none_member_profile_visibility = "public"
+  parent_id                      = "sample-parent-id"
+}
+```
+
+Use the command below to import an existing cidaas_user_groups
+
+```ssh
+terraform import cidaas_user_groups.<resource name> user_groups_name
+```
+
 ##### To start using the provider run the Terraform commands below going inside the example directory where Terraform config files are available
 
   1. terraform init : It will build the Terraform Cidaas Plugin/Provider.
