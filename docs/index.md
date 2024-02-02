@@ -355,6 +355,48 @@ Use the command below to import an existing cidaas_scope
 ```ssh
 terraform import cidaas_scope.<resource name> scope_key
 ```
+##### Cidaas Scope Group Resource
+
+An example of Scope Group resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
+
+```hcl
+resource "cidaas_scope_group" "sample" {
+  description           = "terraform Scope Group description"
+  group_name            = "TerraSG"
+}
+```
+
+Use the command below to import an existing cidaas_scope_group
+
+```ssh
+terraform import cidaas_scope_group.<resource name> scopeGroup_key
+```
+
+##### Cidaas Role Resource
+
+An example of Role resource configuration. Please add the below roles to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+
+* cidaas:roles_read
+* cidaas:roles_write
+* cidaas:roles_delete
+
+```hcl
+resource "cidaas_role" "sample" {
+  description     = "Role created using Cidaas custom Terraform Provider"
+  role            = "role-terraform"
+  name            = "role-terraform"
+}
+```
+
+Use the command below to import an existing cidaas_role
+
+```ssh
+terraform import cidaas_role.<resource name> role
+```
 
 
 ##### Cidaas Registration Page Field Resource
