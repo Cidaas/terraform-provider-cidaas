@@ -63,7 +63,7 @@ func resourceRoleUpsert(ctx context.Context, d *schema.ResourceData, m interface
 		})
 		return diags
 	}
-	if err := d.Set("role", response.Data.Role); err != nil {
+	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "error while setting role to Role resource",
