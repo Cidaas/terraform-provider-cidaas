@@ -242,11 +242,12 @@ func resourceApp() *schema.Resource {
 			},
 			"client_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"client_secret": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 			"id": {
 				Type:     schema.TypeString,
@@ -982,6 +983,14 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		})
 		return diags
 	}
+	if err := d.Set("client_secret", response.Data.ClientSecret); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("error while setting client_secret to cidaas_app %+v", appConfig.ClientName),
+			Detail:   err.Error(),
+		})
+		return diags
+	}
 	d.SetId(response.Data.ClientId)
 	resourceAppRead(ctx, d, m)
 	return diags
@@ -1462,6 +1471,7 @@ func preparePayload(d *schema.ResourceData) cidaas.AppConfig {
 	appConfig.RefreshTokenLifetimeInSeconds = d.Get("refresh_token_lifetime_in_seconds").(int)
 	appConfig.TemplateGroupId = d.Get("template_group_id").(string)
 	appConfig.ClientId = d.Get("client_id").(string)
+	appConfig.ClientSecret = d.Get("client_secret").(string)
 	appConfig.PolicyUri = d.Get("policy_uri").(string)
 	appConfig.TosUri = d.Get("tos_uri").(string)
 	appConfig.ImprintUri = d.Get("tos_uri").(string)

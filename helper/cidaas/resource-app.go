@@ -7,9 +7,12 @@ import (
 )
 
 type AppResponse struct {
-	Success bool      `json:"success,omitempty"`
-	Status  int       `json:"status,omitempty"`
-	Data    AppConfig `json:"data,omitempty"`
+	Success bool `json:"success,omitempty"`
+	Status  int  `json:"status,omitempty"`
+	Data    struct {
+		AppConfig
+		AppKey IAppKeySettings `json:"appKey,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 type AppConfig struct {
@@ -72,7 +75,6 @@ type AppConfig struct {
 	Deleted                          bool                  `json:"deleted,omitempty"`
 	Enabled                          bool                  `json:"enabled,omitempty"`
 	AllowedFields                    []string              `json:"allowed_fields,omitempty"`
-	AppKey                           IAppKeySettings       `json:"appKey,omitempty"`
 	AlwaysAskMfa                     bool                  `json:"always_ask_mfa,omitempty"`
 	SmartMfa                         bool                  `json:"smart_mfa,omitempty"`
 	AllowedMfa                       []string              `json:"allowed_mfa,omitempty"`

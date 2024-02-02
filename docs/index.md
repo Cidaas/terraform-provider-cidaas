@@ -127,13 +127,13 @@ terraform import cidaas_custom_provider.<resource name> provider_name
 
 ##### Cidaas App Resource
 
-An example of App resource configuration.
-
-Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app
+An example of App resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app.
 
 * cidaas:apps_read
 * cidaas:apps_write
 * cidaas:apps_delete
+
+To create a client with custom client_id and client_secret you can provide the same in the configuration, if not provided cidaas will create a set for you. client_secret is a sensitive data. Please refer to the article https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to setup sensitive data.
 
 ```hcl
 resource "cidaas_app" "terraform_app" {
