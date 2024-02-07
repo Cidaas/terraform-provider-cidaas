@@ -7,9 +7,12 @@ import (
 )
 
 type AppResponse struct {
-	Success bool      `json:"success,omitempty"`
-	Status  int       `json:"status,omitempty"`
-	Data    AppConfig `json:"data,omitempty"`
+	Success bool `json:"success,omitempty"`
+	Status  int  `json:"status,omitempty"`
+	Data    struct {
+		AppConfig
+		AppKey IAppKeySettings `json:"appKey,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 type AppConfig struct {
@@ -72,7 +75,6 @@ type AppConfig struct {
 	Deleted                          bool                  `json:"deleted,omitempty"`
 	Enabled                          bool                  `json:"enabled,omitempty"`
 	AllowedFields                    []string              `json:"allowed_fields,omitempty"`
-	AppKey                           IAppKeySettings       `json:"appKey,omitempty"`
 	AlwaysAskMfa                     bool                  `json:"always_ask_mfa,omitempty"`
 	SmartMfa                         bool                  `json:"smart_mfa,omitempty"`
 	AllowedMfa                       []string              `json:"allowed_mfa,omitempty"`
@@ -282,20 +284,13 @@ func (c *CidaasClient) GetApp(app AppConfig) (response *AppResponse, err error) 
 }
 
 func SerializeMobileSettings(ms []interface{}) (resp IAppMobileSettings) {
-	for _, value := range ms {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			if temp["team_id"] != nil {
-				resp.TeamId = temp["team_id"].(string)
-			}
-			if temp["bundle_id"] != nil {
-				resp.BundleId = temp["bundle_id"].(string)
-			}
-			if temp["package_name"] != nil {
-				resp.PackageName = temp["package_name"].(string)
-			}
-			if temp["key_hash"] != nil {
-				resp.KeyHash = temp["key_hash"].(string)
+	for _, v := range ms {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = IAppMobileSettings{
+				TeamId:      m["team_id"].(string),
+				BundleId:    m["bundle_id"].(string),
+				PackageName: m["package_name"].(string),
+				KeyHash:     m["key_hash"].(string),
 			}
 		}
 	}
@@ -303,80 +298,52 @@ func SerializeMobileSettings(ms []interface{}) (resp IAppMobileSettings) {
 }
 
 func SerializeSocialProviders(sp []interface{}) (resp []ISocialProviderData) {
-	for _, value := range sp {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			var socialProvider ISocialProviderData
-			if temp["social_id"] != nil {
-				socialProvider.SocialId = temp["social_id"].(string)
-			}
-			if temp["provider_name"] != nil {
-				socialProvider.ProviderName = temp["provider_name"].(string)
-			}
-			if temp["display_name"] != nil {
-				socialProvider.DisplayName = temp["display_name"].(string)
-			}
-			resp = append(resp, socialProvider)
+	for _, v := range sp {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = append(resp, ISocialProviderData{
+				SocialId:     m["social_id"].(string),
+				ProviderName: m["provider_name"].(string),
+				DisplayName:  m["display_name"].(string),
+			})
 		}
 	}
 	return resp
 }
 
 func SerializeProviders(providers []interface{}) (resp []IProviderMetadData) {
-	for _, value := range providers {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			var provider IProviderMetadData
-			if temp["logo_url"] != nil {
-				provider.LogoUrl = temp["logo_url"].(string)
-			}
-			if temp["provider_name"] != nil {
-				provider.ProviderName = temp["provider_name"].(string)
-			}
-			if temp["display_name"] != nil {
-				provider.DisplayName = temp["display_name"].(string)
-			}
-			if temp["type"] != nil {
-				provider.Type = temp["type"].(string)
-			}
-			resp = append(resp, provider)
+	for _, v := range providers {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = append(resp, IProviderMetadData{
+				LogoUrl:      m["logo_url"].(string),
+				ProviderName: m["provider_name"].(string),
+				DisplayName:  m["display_name"].(string),
+				Type:         m["type"].(string),
+			})
 		}
 	}
 	return resp
 }
 
 func SerializeAllowedGroups(groups []interface{}) (resp []IAllowedGroups) {
-	for _, value := range groups {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			var group IAllowedGroups
-			if temp["group_id"] != nil {
-				group.GroupId = temp["group_id"].(string)
-			}
-			if temp["roles"] != nil {
-				group.Roles = util.InterfaceArray2StringArray(temp["roles"].([]interface{}))
-			}
-			if temp["default_roles"] != nil {
-				group.DefaultRoles = util.InterfaceArray2StringArray(temp["default_roles"].([]interface{}))
-			}
-			resp = append(resp, group)
+	for _, v := range groups {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = append(resp, IAllowedGroups{
+				GroupId:      m["group_id"].(string),
+				Roles:        util.InterfaceArray2StringArray(m["roles"].([]interface{})),
+				DefaultRoles: util.InterfaceArray2StringArray(m["default_roles"].([]interface{})),
+			})
 		}
 	}
 	return resp
 }
 
 func SerializeGroupSelection(groups []interface{}) (resp IGroupSelection) {
-	for _, value := range groups {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			if temp["always_show_group_selection"] != nil {
-				resp.AlwaysShowGroupSelection = temp["always_show_group_selection"].(bool)
-			}
-			if temp["selectable_groups"] != nil {
-				resp.SelectableGroupTypes = util.InterfaceArray2StringArray(temp["selectable_groups"].([]interface{}))
-			}
-			if temp["selectable_group_types"] != nil {
-				resp.SelectableGroupTypes = util.InterfaceArray2StringArray(temp["selectable_group_types"].([]interface{}))
+	for _, v := range groups {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = IGroupSelection{
+				AlwaysShowGroupSelection: m["always_show_group_selection"].(bool),
+				SelectableGroups:         util.InterfaceArray2StringArray(m["selectable_groups"].([]interface{})),
+				SelectableGroupTypes:     util.InterfaceArray2StringArray(m["selectable_group_types"].([]interface{})),
 			}
 		}
 	}
@@ -384,17 +351,12 @@ func SerializeGroupSelection(groups []interface{}) (resp IGroupSelection) {
 }
 
 func SerializeMfaOption(options []interface{}) (resp IMfaOption) {
-	for _, value := range options {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			if temp["setting"] != nil {
-				resp.Setting = temp["setting"].(string)
-			}
-			if temp["time_interval_in_seconds"] != nil {
-				resp.TimeIntervalInSeconds = temp["time_interval_in_seconds"].(int)
-			}
-			if temp["allowed_methods"] != nil {
-				resp.AllowedMethods = util.InterfaceArray2StringArray(temp["allowed_methods"].([]interface{}))
+	for _, v := range options {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = IMfaOption{
+				Setting:               m["setting"].(string),
+				TimeIntervalInSeconds: m["time_interval_in_seconds"].(int),
+				AllowedMethods:        util.InterfaceArray2StringArray(m["allowed_methods"].([]interface{})),
 			}
 		}
 	}
@@ -432,14 +394,11 @@ func SerializePushConfig(configs []interface{}) (resp IPushConfig) {
 }
 
 func SerializeLoginSpi(spi []interface{}) (resp ILoginSPI) {
-	for _, value := range spi {
-		if value != nil {
-			temp := value.(map[string]interface{})
-			if temp["oauth_client_id"] != nil {
-				resp.OauthClientId = temp["oauth_client_id"].(string)
-			}
-			if temp["spi_url"] != nil {
-				resp.SpiUrl = temp["spi_url"].(string)
+	for _, v := range spi {
+		if m, ok := v.(map[string]interface{}); ok {
+			resp = ILoginSPI{
+				OauthClientId: m["oauth_client_id"].(string),
+				SpiUrl:        m["spi_url"].(string),
 			}
 		}
 	}
@@ -469,38 +428,38 @@ func FlattenMobileSettings(mbs IAppMobileSettings) []interface{} {
 
 func FlattenSocialProvider(sps *[]ISocialProviderData) []interface{} {
 	if sps != nil {
-		tempSps := make([]interface{}, len(*sps), len(*sps))
+		result := make([]interface{}, len(*sps), len(*sps))
 		for i, sp := range *sps {
 			temp := make(map[string]interface{})
 			temp["provider_name"] = sp.ProviderName
 			temp["social_id"] = sp.SocialId
 			temp["display_name"] = sp.DisplayName
-			tempSps[i] = temp
+			result[i] = temp
 		}
-		return tempSps
+		return result
 	}
 	return make([]interface{}, 0)
 }
 
 func FlattenProviders(pmds *[]IProviderMetadData) []interface{} {
 	if pmds != nil {
-		tempSps := make([]interface{}, len(*pmds), len(*pmds))
+		result := make([]interface{}, len(*pmds), len(*pmds))
 		for i, pmd := range *pmds {
 			temp := make(map[string]interface{})
 			temp["logo_url"] = pmd.LogoUrl
 			temp["provider_name"] = pmd.ProviderName
 			temp["display_name"] = pmd.DisplayName
 			temp["type"] = pmd.Type
-			tempSps[i] = temp
+			result[i] = temp
 		}
-		return tempSps
+		return result
 	}
 	return make([]interface{}, 0)
 }
 
 func FlattenAllowedGroups(ags *[]IAllowedGroups) []interface{} {
 	if ags != nil {
-		tempAgs := make([]interface{}, len(*ags), len(*ags))
+		result := make([]interface{}, len(*ags), len(*ags))
 		for i, pmd := range *ags {
 			temp := make(map[string]interface{})
 			temp["id"] = pmd.Id
@@ -508,9 +467,9 @@ func FlattenAllowedGroups(ags *[]IAllowedGroups) []interface{} {
 			temp["group_id"] = pmd.GroupId
 			temp["roles"] = pmd.Roles
 			temp["default_roles"] = pmd.DefaultRoles
-			tempAgs[i] = temp
+			result[i] = temp
 		}
-		return tempAgs
+		return result
 	}
 	return make([]interface{}, 0)
 }

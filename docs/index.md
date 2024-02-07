@@ -1,4 +1,4 @@
-![Logo](logo.jpg)
+![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
 ## About cidaas:
 [cidaas](https://www.cidaas.com)
@@ -46,10 +46,10 @@ terraform {
 
   ```hcl
   provider "cidaas" {
-    redirect_uri  = "Enter redirect-uri of default app"
     base_url      = "https://terraform-cidaas-test-free.cidaas.de"
   }
   ```
+  <span style="color:red">Note: From version 2.5.1 redirect_url is not supported in provider configuration</span>
 
 ## Supported Cidaas Resources
 
@@ -128,13 +128,13 @@ terraform import cidaas_custom_provider.<resource name> provider_name
 
 ##### Cidaas App Resource
 
-An example of App resource configuration.
-
-Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app
+An example of App resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app.
 
 * cidaas:apps_read
 * cidaas:apps_write
 * cidaas:apps_delete
+
+To create a client with custom client_id and client_secret you can provide the same in the configuration, if not provided cidaas will create a set for you. client_secret is a sensitive data. Please refer to the article https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to setup sensitive data.
 
 ```hcl
 resource "cidaas_app" "terraform_app" {
@@ -356,6 +356,48 @@ Use the command below to import an existing cidaas_scope
 ```ssh
 terraform import cidaas_scope.<resource name> scope_key
 ```
+##### Cidaas Scope Group Resource
+
+An example of Scope Group resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
+
+```hcl
+resource "cidaas_scope_group" "sample" {
+  description           = "terraform Scope Group description"
+  group_name            = "TerraSG"
+}
+```
+
+Use the command below to import an existing cidaas_scope_group
+
+```ssh
+terraform import cidaas_scope_group.<resource name> scopeGroup_key
+```
+
+##### Cidaas Role Resource
+
+An example of Role resource configuration. Please add the below roles to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+
+* cidaas:roles_read
+* cidaas:roles_write
+* cidaas:roles_delete
+
+```hcl
+resource "cidaas_role" "sample" {
+  description     = "Role created using Cidaas custom Terraform Provider"
+  role            = "role-terraform"
+  name            = "role-terraform"
+}
+```
+
+Use the command below to import an existing cidaas_role
+
+```ssh
+terraform import cidaas_role.<resource name> role
+```
 
 
 ##### Cidaas Registration Page Field Resource
@@ -485,27 +527,109 @@ Please add the below scopes to the client with client_id set in the env in order
 ```hcl
 resource "cidaas_hosted_page" "sample" {
   hosted_page_group_name = "hosted-page-sample-group"
-  default_locale         = "en-us"
+  default_locale         = "en-US"
 
   hosted_pages {
     hosted_page_id = "register_success"
-    locale         = "en-us"
+    locale         = "en-US"
     url            = "https://terraform-cidaas-test-free.cidaas.de/register_success_hosted_page"
   }
 
   hosted_pages {
     hosted_page_id = "login_success"
-    locale         = "en-us"
+    locale         = "en-US"
     url            = "https://terraform-cidaas-test-free.cidaas.de/login_success_hosted_page"
   }
 }
-
 ```
 
 Use the command below to import an existing cidaas_hosted_page
 
 ```ssh
 terraform import cidaas_hosted_page.<resource name> hosted_page_group_name
+```
+
+##### Cidaas User Group Category Resource
+
+Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_group_category
+
+* cidaas:group_type_read
+* cidaas:group_type_write
+* cidaas:group_type_delete
+
+```hcl
+resource "cidaas_user_group_category" "sample" {
+  role_mode     = "no_roles"
+  group_type    = "TerraformUserGroupCategory"
+  description   = "terraform user group category description"
+  allowed_roles = []
+}
+```
+
+Use the command below to import an existing cidaas_user_group_category
+
+```ssh
+terraform import cidaas_user_group_category.<resource name> user_group_category_name
+```
+
+##### Cidaas Template Resource
+
+An examples of Template resource configuration shown below.
+
+Here is the details of the attribues
+
+| Attribute Name | Type | is optional | Description |
+| ------ | ------ | ----- | ------ |
+| locale | string | no | The local of the template. Example: en-us, en-uk. Please ensure thatt the local is set in lowercase |
+| template_key | string | no | The name of the template. The template_key is unique and can't be updated for an existing state |
+| template_type | string | no | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. template_types are case sensitive |
+| content | string | no | The content of the template |
+| subject | string | yes | The attribute subject is only applicable for the template_type EMAIL |
+
+```hcl
+resource "cidaas_template" "sample" {
+  locale        = "en-us"
+  template_key  = "TERRAFORM_TEST"
+  template_type = "SMS"
+  content       = "sample content for resource cidaas template"
+}
+```
+
+Use the command below to import an existing cidaas_hosted_page
+
+```ssh
+terraform import cidaas_temaplate.<resource name> <template_key>_<template_type>
+```
+
+##### Cidaas User Groups Resource
+
+Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_groups
+
+* cidaas:groups_write
+* cidaas:groups_read
+* cidaas:groups_delete
+
+```hcl
+resource "cidaas_user_groups" "sample" {
+  group_type            = "sample-group-type"
+  group_id              = "sample-group-id"
+  group_name            = "sample-group-name"
+  logo_url              = "https://cidaas.de/logo"
+  description           = "sample user groups description"
+  make_first_user_admin = false
+  custom_fields = {
+    custom_field_name = "sample custom field"
+  }
+  member_profile_visibility      = "full"
+  none_member_profile_visibility = "public"
+  parent_id                      = "sample-parent-id"
+}
+```
+
+Use the command below to import an existing cidaas_user_groups
+
+```ssh
+terraform import cidaas_user_groups.<resource name> user_groups_name
 ```
 
 ##### To start using the provider run the Terraform commands below going inside the example directory where Terraform config files are available

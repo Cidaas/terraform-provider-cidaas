@@ -14,9 +14,9 @@ import (
 
 func resourceScope() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceScopeCreate,
+		CreateContext: resourceScopeCreateOrUpdate,
 		ReadContext:   resourceScopeRead,
-		UpdateContext: resourceScopeUpdate,
+		UpdateContext: resourceScopeCreateOrUpdate,
 		DeleteContext: resourceScopeDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -69,7 +69,7 @@ func resourceScope() *schema.Resource {
 	}
 }
 
-func resourceScopeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func resourceScopeCreateOrUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var scope cidaas.Scope
 	var scopeDescription cidaas.ScopeLocalDescription
@@ -150,35 +150,6 @@ func resourceScopeRead(ctx context.Context, d *schema.ResourceData, m interface{
 	}
 	if err := d.Set("group_name", response.Data.GroupName); err != nil {
 		return diag.FromErr(err)
-	}
-	return diags
-}
-
-func resourceScopeUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	var scope cidaas.Scope
-	var scopeDescription cidaas.ScopeLocalDescription
-
-	scopeDescription.Locale = d.Get("locale").(string)
-	scopeDescription.Language = d.Get("language").(string)
-	scopeDescription.Title = d.Get("title").(string)
-	scopeDescription.Description = d.Get("description").(string)
-
-	scope.LocaleWiseDescription = []cidaas.ScopeLocalDescription{scopeDescription}
-	scope.SecurityLevel = d.Get("security_level").(string)
-	scope.ScopeKey = d.Get("scope_key").(string)
-	scope.RequiredUserConsent = d.Get("required_user_consent").(bool)
-	scope.GroupName = util.InterfaceArray2StringArray(d.Get("group_name").([]interface{}))
-	scope.ID = d.Get("_id").(string)
-
-	cidaas_client := m.(cidaas.CidaasClient)
-	_, err := cidaas_client.CreateOrUpdateScope(scope)
-	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to update scope %+v", scope.ScopeKey),
-			Detail:   err.Error(),
-		})
 	}
 	return diags
 }
