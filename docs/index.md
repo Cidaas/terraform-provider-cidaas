@@ -49,6 +49,7 @@ terraform {
     base_url      = "https://terraform-cidaas-test-free.cidaas.de"
   }
   ```
+  <span style="color:red">Note: From version 2.5.1 redirect_url is not supported in provider configuration</span>
 
 ## Supported Cidaas Resources
 
