@@ -11,15 +11,22 @@
 * Social Login (e.g. Facebook, Google, LinkedIn and more) as well as Enterprise Identity Provider (e.g. SAML or AD) 
 * Security in Machine-to-Machine (M2M) and IoT
 
-# Cidaas Provider for Terraform
+# Terraform Provider for Cidaas
 
-The cidaas provider for terraform is used to interact with cidaas instances. It provides resources that allow you to create Apps and Registration Page Fields as part of a Terraform deployment.
+The Terraform provider for Cidaas enables interaction with Cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities. From managing applications to configuring custom providers, the Terraform provider enhances the user's capacity to define, provision and manipulate their Cidaas resources.
 
-### Prerequisites
+## Prerequisites
 
-- Install Terraform in your local machine. Find steps to install Terraform for different operating system [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- Ensure Terraform is installed on your local machine. Find installation instructions for different operating systems [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
+
 
 ## Example Usage
+
+Below is a step-by-step guide to help you set up the provider, configure essential environment variables and integrate the provider into your configuration:
+
+### 1. Terraform Provider Declaration
+
+Begin by specifying the Cidaas provider in your `terraform` block in your Terraform configuration file:
 
 ```hcl
 terraform {
@@ -29,39 +36,57 @@ terraform {
         source  = "Cidaas/cidaas"
       }
     }
-  }
+}
 ```
 
-- Setup Environment variables: client_id and client_secret must be set as environment variable in order to allow Cidaas terraform provider to complete client credentials flow and generate an access_token
+Terraform pulls the version configured of the Cidaas provider for your infrastructure.
 
-  ```bash
-  export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID="ENTER CIDAAS CLIENT ID"
-  ```
+### 2. Setup Environment Variables
 
-  ```bash
-  export TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET="ENTER CIDAAS CLIENT SECRET"
-  ```
+To authenticate and authorize Terraform operations with Cidaas, set the necessary environment variables. These variables include your Cidaas client credentials, allowing the Terraform provider to complete the client credentials flow and generate an access_token. Execute the following commands in your terminal, replacing placeholders with your actual Cidaas client ID and client secret.
 
-- Add Cidaas Provider configuration to terraform configuration file inside Example directory
+```bash
+export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID="ENTER CIDAAS CLIENT ID"
+export TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET="ENTER CIDAAS CLIENT SECRET"
+```
 
-  ```hcl
-  provider "cidaas" {
-    base_url      = "https://terraform-cidaas-test-free.cidaas.de"
-  }
-  ```
-  <span style="color:red">Note: From version 2.5.1 redirect_url is not supported in provider configuration</span>
+### 3. Add Cidaas Provider Configuration
 
-## Supported Cidaas Resources
-
-### Cidaas Custom Provider Resource
-
-Example custom provider resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_custom_provider
-
-* cidaas:identity_provider_read
-* cidaas:identity_provider_write
+Next, add the Cidaas provider configuration to your Terraform configuration file. Specify the `base_url` parameter to point to your Cidaas instance. For reference, check the example folder.
 
 ```hcl
-resource "cidaas_custom_provider" "cp" {
+provider "cidaas" {
+  base_url = "https://terraform-cidaas-test-free.cidaas.de"
+}
+```
+
+**Note:** Starting from version 2.5.1, the `redirect_url` is no longer supported in the provider configuration. Ensure that you adjust your configuration accordingly.
+
+By following these steps, you integrate the Cidaas Terraform provider, enabling you to manage your Cidaas resources with Terraform.
+
+## Supported Resources
+
+The Terraform provider for Cidaas supports a variety of resources that enables you to manage and configure different aspects of your Cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your Cidaas resources as code.
+
+Explore the following resources to understand their attributes, functionalities and how to use them in your Terraform configurations:
+
+
+## Custom Provider
+
+This example demonstrates the configuration of a custom provider resource for interacting with Cidaas. Before using this custom provider to perform CRUD operations on `cidaas_custom_provider`, ensure the following scopes are added to the client associated with the specified `client_id`. These scopes are essential for enabling the necessary permissions:
+
+### Required Scopes:
+
+- **test:provider_read** : This scope grants read access. It is necessary for fetching data from the provider.
+
+- **test:provider_write** :  This scope is essential for write operations on the `cidaas_custom_provider`.
+
+### Configuration Example:
+
+Below is an example configuration for the custom provider resource in your Terraform files:
+
+```hcl
+resource "cidaas_custom_provider" "sample" {
   standard_type          = "OAUTH2"
   authorization_endpoint = "https://terraform-cidaas-test-free.cidaas.de/authz-srv/authz"
   token_endpoint         = "https://terraform-cidaas-test-free.cidaas.de/token-srv/token"
@@ -119,22 +144,56 @@ resource "cidaas_custom_provider" "cp" {
   }
 }
 ```
+Refer to the detailed parameter descriptions provided in the table below :
 
-Use the command below to import an existing cidaas_custom_provider
+| Key                     | Type | Description                                           |
+|-------------------------|-----------|-------------------------------------------------------|
+| standard_type         | String    | Type of standard. Allowed values OAUTH2 and OPENID_CONNECT
+| authorization_endpoint| String    | URL for authorization in Cidaas                        |
+| token_endpoin`        | String    | URL for token in Cidaas                                |
+| provider_name         | String    | Name of the provider
+| display_name          | String    | Display name of the provider
+| logo_url              | String    | URL for the provider's logo                            |
+| userinfo_endpoint     | String    | URL for userinfo in Cidaas                             |
+| scope_display_label   | String    | Display label for the specified scope |
+| client_id             | String    | Cidaas client ID                                      |
+| client_secret         | String    | Cidaas client secret                                  |
+| scopes                | List      | List of scopes with details (recommended, required, scope_name). Details in the next table |
+| userinfo_fields       | Object    | Object containing various user information fields with their values |
 
-```ssh
-terraform import cidaas_custom_provider.<resource name> provider_name
+Parameters in the scopes described here :
+
+| Key | Type | Description                                      |
+|--------------|-----------|--------------------------------------------------|
+| recommended| Boolean   | Indicates if the scope is recommended            |
+| required   | Boolean   | Indicates if the scope is required               |
+| scope_name | String    | The name of the scope, e.g., "openid", "profile" |
+
+Note: The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization.
+
+### Import Statement:
+
+Use the following command to import an existing `cidaas_custom_provider` into Terraform:
+
+```bash
+terraform import custom_provider.resource_name provider_name
 ```
 
-##### Cidaas App Resource
+In this command, `resource_name` refers to the name assigned to your `cidaas_custom_provider` resource, and `provider_name` represents the actual provider name used in your Cidaas instance. Ensure the correct mapping between the Terraform resource and the corresponding Cidaas provider. This import statement is important for syncing Terraform state with the existing Cidaas resources.
 
-An example of App resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_app.
+## App
 
-* cidaas:apps_read
-* cidaas:apps_write
-* cidaas:apps_delete
+The App resource allows creation and management of clients in Cidaas system. To perform CRUD operations on these clients, it is necessary to assign specific scopes to the client with the designated client_id in the environment.
 
-To create a client with custom client_id and client_secret you can provide the same in the configuration, if not provided cidaas will create a set for you. client_secret is a sensitive data. Please refer to the article https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to setup sensitive data.
+- cidaas:apps_read
+- cidaas:apps_write
+- cidaas:apps_delete
+
+When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_app" "terraform_app" {
@@ -323,20 +382,27 @@ resource "cidaas_app" "terraform_app" {
 }
 ```
 
-Use the command below to import an existing cidaas_app
+### Import Statement:
 
-```ssh
-terraform import cidaas_app.<resource name> client_id
+Use the following command to import an existing `cidaas_app` into Terraform:
+
+```bash
+terraform import cidaas_app.resource_name client_id
 ```
 
+Here, client_id is the specific identifier of the existing app client in the Cidaas instance that you want to associate with your Terraform configuration.
 
-##### Cidaas Scope Resource
+## Scope
 
-An example of Scope resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client). To perform CRUD operations on Scopes, please add the below scopes to the client with the designated client_id in the environment:
 
 * cidaas:scopes_read
 * cidaas:scopes_write
 * cidaas:scopes_delete
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_scope" "sample" {
@@ -351,39 +417,71 @@ resource "cidaas_scope" "sample" {
 }
 ```
 
-Use the command below to import an existing cidaas_scope
+Refer to the detailed parameter descriptions provided in the table below :
 
-```ssh
-terraform import cidaas_scope.<resource name> scope_key
+| Key                   | Type     | Description                                                  |
+|-----------------------|----------|--------------------------------------------------------------|
+| locale                | string   | The locale for the scope, e.g., "en-US".                     |
+| language              | string   | The language for the scope, e.g., "en-US".                   |
+| description           | string   | Description providing information about the scope.           |
+| title                 | string   | The title for the scope.                                     |
+| security_level        | string   | The security level of the scope, e.g., "PUBLIC".             |
+| scope_key             | string   | Unique identifier for the scope.                             |
+| required_user_consent | boolean  | Indicates whether user consent is required for the scope.    |
+| group_name            | list     | List of group names to associate the scope with.             |
+
+### Import Statement:
+
+Use the following command to import an existing `cidaas_scope` into Terraform:
+
+```bash
+terraform import cidaas_scope.resource_name scope_key
 ```
-##### Cidaas Scope Group Resource
 
-An example of Scope Group resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+## Scope Group
+
+The cidaas_scope_group resource in Terraform allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control. To enable CRUD operations on cidaas_scope_group, ensure that the client associated with the specified client_id has the following roles:
 
 * cidaas:scopes_read
 * cidaas:scopes_write
 * cidaas:scopes_delete
 
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
+
 ```hcl
 resource "cidaas_scope_group" "sample" {
   description           = "terraform Scope Group description"
-  group_name            = "TerraSG"
+  group_name            = "TerraformScopeGroup"
 }
 ```
+Refer to the detailed parameter descriptions provided in the table below :
 
-Use the command below to import an existing cidaas_scope_group
+| Key           | Type   | Description                                                 |
+|---------------|--------|-------------------------------------------------------------|
+| description   | string | A description providing information about the scope group. |
+| group_name    | string | Unique identifier for the scope group. |
 
-```ssh
-terraform import cidaas_scope_group.<resource name> scopeGroup_key
+### Import Statement:
+
+Use the following command to import an existing `cidaas_scope_group` into Terraform:
+
+```bash
+terraform import cidaas_scope_group.resource_name scopeGroup_key
 ```
 
-##### Cidaas Role Resource
+## Role
 
-An example of Role resource configuration. Please add the below roles to the client with client_id set in the env in order to perform CRUD on cidaas_scope
+The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements. To enable CRUD operations on cidaas_role, ensure that the client associated with the specified client_id has the following roles:
 
 * cidaas:roles_read
 * cidaas:roles_write
 * cidaas:roles_delete
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_role" "sample" {
@@ -393,20 +491,34 @@ resource "cidaas_role" "sample" {
 }
 ```
 
-Use the command below to import an existing cidaas_role
+Refer to the detailed parameter descriptions provided in the table below :
 
-```ssh
-terraform import cidaas_role.<resource name> role
+| Key          | Type   | Description                                                  |
+|--------------|--------|--------------------------------------------------------------|
+| description  | string | A desription providing information about the role. |
+| role         | string | Unique identifier for the role, used for internal reference.  |
+| name         | string | name for the role. |
+
+
+### Import Statement:
+
+Use the following command to import an existing `cidaas_role` into Terraform:
+
+```bash
+terraform import cidaas_role.resource_name role
 ```
 
+## Registration Page Field
 
-##### Cidaas Registration Page Field Resource
-
-An example of Registration Page Field resource configuration. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_registration_page_field
+The `cidaas_registration_page_field` in Terraform allows management of Registration Page Fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration. To enable CRUD operations on cidaas_registration_page_field, ensure that the client associated with the specified client_id has the following scopes:
 
 * cidaas:field_setup_read
 * cidaas:field_setup_write
 * cidaas:field_setup_delete
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_registration_page_field" "sample" {
@@ -434,26 +546,88 @@ resource "cidaas_registration_page_field" "sample" {
     "cidaas:public_profile",
   ]
 }
-
 ```
 
-Use the command below to import an existing cidaas_registration_page_field
+Refer to the detailed parameter descriptions provided in the table below :
 
-```ssh
-terraform import cidaas_registration_page_field.<resource name> field_key
+| Key                     | Type    | Description                                               |
+|-------------------------|---------|-----------------------------------------------------------|
+| claimable               | boolean | Indicates whether the field is claimable by the user.      |
+| data_type               | string  | Specifies the data type of the field (e.g. "TEXT").       |
+| enabled                 | boolean | Indicates whether the field is enabled.                   |
+| field_key               | string  | Unique key identifier for the registration page field.    |
+| field_type              | string  | Specifies the type of the field.         |
+| internal                | boolean | Indicates whether the field is internal.                  |
+| is_group                | boolean | Indicates whether the field is a group.                   |
+| locale_text_language    | string  | Language code for localization (e.g. "en").              |
+| locale_text_locale      | string  | Locale code for localization (e.g. "en-us").             |
+| locale_text_name        | string  | Name for the field used in localization.  |
+| order                   | number  | Specifies the order of the field.                         |
+| parent_group_id         | string  | Identifier for the parent group of the field.             |
+| read_only               | boolean | Indicates whether the field is read-only.                 |
+| required                | boolean | Indicates whether the field is required during registration.|
+| required_msg            | string  | Custom message for the required field validation.         |
+| locale_text_min_length  | number  | Minimum length for locale_text_name.                         |
+| locale_text_max_length  | number  | Maximum length for locale_text_name.                         |
+| min_length_error_msg    | string  | Custom message for minimum length validation.             |
+| max_length_error_msg    | string  | Custom message for maximum length validation.             |
+| scopes                  | list    | List of scopes associated with the field.                 |
+
+### Import Statement:
+
+Use the following command to import an existing `cidaas_registration_page_field` into Terraform:
+
+```bash
+terraform import cidaas_registration_page_field.resource_name field_key
 ```
 
+## Webhook
 
-
-##### Cidaas Webhook Resource
-
-Some examples of Webhook resource configuration shown below. Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_webhook
+The Webhook resource in Terraform facilitates integration of webhooks in the Cidaas system. This resource allows you to configure webhooks with different authentication options. To enable CRUD operations on cidaas_webhook, ensure the client associated with the specified client_id has the following scopes:
 
 * cidaas:webhook_read
 * cidaas:webhook_write
 * cidaas:webhook_delete
 
-The terraform configuration for webhook varies based on the **auth_type** provided in the configuration file. Here is the detail of the attribues below
+### Configuration Example:
+
+The terraform configuration for webhook varies based on the **auth_type**. These comprehensive examples below demonstrates how to use `cidaas_webhook` configurations based on different authentication options, allowing you to integrate webhooks into the Cidaas system.
+
+#### APIKEY
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type          = "APIKEY"
+  url                = "https://cidaas.com/webhook-test"
+  events             = ["ACCOUNT_MODIFIED"]
+  apikey_placeholder = "api-test-placeholder"
+  apikey_placement   = "query"
+  apikey             = "api-test-key"
+}
+```
+
+#### TOTP
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type        = "TOTP"
+  url              = "https://cidaas.com/webhook-test"
+  events           = ["ACCOUNT_MODIFIED"]
+  totp_placeholder = "test-totp-placeholder"
+  totp_placement   = "header"
+  totpkey          = "totp-key"
+}
+```
+
+#### CIDAAS_OAUTH2
+```hcl
+resource "cidaas_webhook" "sample_webhook" {
+  auth_type = "CIDAAS_OAUTH2"
+  url       = "https://cidaas.com/webhook-test"
+  events    = ["ACCOUNT_MODIFIED"]
+  client_id = "jf1a884-8298-4431-a8k5-2f4130037i17"
+}
+```
+
+Refer to the detailed parameter descriptions provided in the table below :
 
 | Attribute Name | is optional | Description |
 | ------ | ------ | ------ |
@@ -468,61 +642,26 @@ The terraform configuration for webhook varies based on the **auth_type** provid
 | totpkey | yes | **required** parameter when the auth_type is TOTP. This is the value of the totp that will be passed in the request header or in query param |
 | client_id | yes | **required** parameter when the auth_type is CIDAAS_OAUTH2. This is the id of the client which will be used for authentication when the webhook is triggered|
 
-The example shown below are the configurations with the required parameters for each auth_type
 
-* APIKEY
-```hcl
-resource "cidaas_webhook" "sample_webhook" {
-  auth_type = "APIKEY"
-  url       = "https://cidaas.com/webhook-test"
-  events = [
-    "ACCOUNT_MODIFIED"
-  ]
-  apikey_placeholder = "api-test-placeholder"
-  apikey_placement   = "query"
-  apikey             = "api-test-key"
-}
+### Import Statement:
+
+Use the following command to import an existing `cidaas_webhook` into Terraform:
+
+```bash
+terraform import cidaas_webhook.resource_name webhook_id
 ```
 
-* TOTP
-```hcl
-resource "cidaas_webhook" "sample_webhook" {
-  auth_type = "TOTP"
-  url       = "https://cidaas.com/webhook-test"
-  events = [
-    "ACCOUNT_MODIFIED"
-  ]
-  totp_placeholder   = "test-totp-placeholder"
-  totp_placement     = "header"
-  totpkey            = "totp-key"
-}
-```
+## Hosted Page
 
-* CIDAAS_OAUTH2
-```hcl
-resource "cidaas_webhook" "sample_webhook" {
-  auth_type = "CIDAAS_OAUTH2"
-  url       = "https://cidaas.com/webhook-test"
-  events = [
-    "ACCOUNT_MODIFIED"
-  ]
-  client_id          = "jf1a884-8298-4431-a8k5-2f4130037i17"
-}
-```
+This Hosted Page resource in Terraform allows you to define and manage hosted pages within the Cidaas system. Ensure that the required scopes are set to work with hosted pages in your Cidaas instance.
 
-Use the command below to import an existing cidaas_webhook
+ - cidaas:hosted_pages_write
+ - cidaas:hosted_pages_read
+ - cidaas:hosted_pages_delete
 
-```ssh
-terraform import cidaas_webhook.<resource name> webhook_id
-```
+### Configuration Example:
 
-##### Cidaas Hosted Page Resource
-
-Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_hosted_page
-
-* cidaas:hosted_pages_write
-* cidaas:hosted_pages_read
-* cidaas:hosted_pages_delete
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_hosted_page" "sample" {
@@ -542,20 +681,45 @@ resource "cidaas_hosted_page" "sample" {
   }
 }
 ```
+Refer to the detailed parameter descriptions provided in the table below :
 
-Use the command below to import an existing cidaas_hosted_page
+| Key                    | Type    | Description                                                                   |
+|------------------------|---------|-------------------------------------------------------------------------------|
+| hosted_page_group_name| String  | The name of the hosted page group                                            |
+| default_locale        | String  | The default locale for hosted pages e.g. "en-US".                           |
+| hosted_pages          | List    | List of hosted pages with their respective attributes `hosted_page_id`, `locale`, `url` |
 
-```ssh
-terraform import cidaas_hosted_page.<resource name> hosted_page_group_name
+The parameter of the attribute `hosted_pages` described in the table below:
+
+| Key             | Type   | Description                                                   |
+|-----------------|--------|---------------------------------------------------------------|
+| hosted_page_id| String | The identifier for the hosted page, e.g., "register_success". |
+| locale        | String | The locale for the hosted page, e.g., "en-US".               |
+| url           | String | The URL for the hosted page                                  |
+
+### Import Statement:
+
+Use the following command to import an existing Hosted Page:
+
+```bash
+terraform import cidaas_hosted_page.resource_name hosted_page_group_name
 ```
 
-##### Cidaas User Group Category Resource
+## User Group Category
 
-Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_group_category
+The User Group Category, managed through the `cidaas_user_group_category` resource in Terraform, defines and configures categories for user groups within the Cidaas system.
 
-* cidaas:group_type_read
-* cidaas:group_type_write
-* cidaas:group_type_delete
+Ensure that the below scopes are assigned to the client with the specified `client_id` to perform the desired CRUD operations on user group categories using Terraform.
+
+1. **cidaas:group_type_read** : This scope provides read access to user group categories in Cidaas.
+
+2. **cidaas:group_type_write** :  This scope allows users to perform write operations on user group categories in Cidaas. Users with this scope can create and update user group categories.
+
+3. **cidaas:group_type_delete** :  This scope grants users the ability to delete user group categories in Cidaas.
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_user_group_category" "sample" {
@@ -565,49 +729,77 @@ resource "cidaas_user_group_category" "sample" {
   allowed_roles = []
 }
 ```
+Refer to the detailed parameter descriptions provided in the table below :
 
-Use the command below to import an existing cidaas_user_group_category
+| Key             | Type    | Description                                                   |
+|-----------------|---------|---------------------------------------------------------------|
+| role_mode     | String  | Determines the role mode for the user group category.          |
+| group_type    | String  | The identifier for the user group category, e.g., "TerraformUserGroupCategory". |
+| description   | String  | Description for the user group category.                       |
+| allowed_roles | List    | List of allowed roles for the user group category.             |
 
-```ssh
-terraform import cidaas_user_group_category.<resource name> user_group_category_name
+### Import Statement:
+
+Use the following command to import an existing User Group Category:
+
+```bash
+terraform import cidaas_user_group_category.resource_name user_group_category_name
 ```
 
-##### Cidaas Template Resource
+## Template
 
-An examples of Template resource configuration shown below.
+The Template resource in Terraform is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications. Below is an example configuration for the Cidaas Template resource, along with details of its attributes:
 
-Here is the details of the attribues
+### Configuration Example:
 
-| Attribute Name | Type | is optional | Description |
-| ------ | ------ | ----- | ------ |
-| locale | string | no | The local of the template. Example: en-us, en-uk. Please ensure thatt the local is set in lowercase |
-| template_key | string | no | The name of the template. The template_key is unique and can't be updated for an existing state |
-| template_type | string | no | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. template_types are case sensitive |
-| content | string | no | The content of the template |
-| subject | string | yes | The attribute subject is only applicable for the template_type EMAIL |
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_template" "sample" {
   locale        = "en-us"
   template_key  = "TERRAFORM_TEST"
   template_type = "SMS"
-  content       = "sample content for resource cidaas template"
+  content       = "Sample content for the Cidaas template resource."
 }
 ```
+Refer to the detailed parameter descriptions provided in the table below :
 
-Use the command below to import an existing cidaas_hosted_page
+| Attribute Name | Type    | Is Optional | Description |
+| -------------- | ------- | ----------- | ----------- |
+| locale       | String  | No          | The locale of the template. e.g. "en-us", "en-uk". Ensure the locale is set in lowercase. |
+| template_key | String  | No          | The unique name of the template. It cannot be updated for an existing state. |
+| template_type| String  | No          | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive |
+| content      | String  | No          | The content of the template. |
+| subject      | String  | Yes         | Applicable only for template_type EMAIL. it represents the subject of the email. |
 
-```ssh
-terraform import cidaas_temaplate.<resource name> <template_key>_<template_type>
+
+### Import Statement:
+
+Use the following command to import an existing Cidaas Template:
+
+```bash
+terraform import cidaas_template.resource_name template_key_template_type
 ```
 
-##### Cidaas User Groups Resource
+Here, `template_key_template_type` is a combination of `template_key` and `template_type`, joined by the special character "_". For example, if the resource name is "sample" with `template_key` as "foo" and `template_type` as "bar," the import statement would be:
 
-Please add the below scopes to the client with client_id set in the env in order to perform CRUD on cidaas_user_groups
+```bash
+terraform import cidaas_template.sample foo_bar
+```
 
-* cidaas:groups_write
-* cidaas:groups_read
-* cidaas:groups_delete
+## User Groups
+
+To enable CRUD operations on `cidaas_user_groups`, ensure the following scopes are added to the client with the specified `client_id` set in the environment:
+
+1. **cidaas:groups_write** :  This scope grants write access to user groups in Cidaas. Users with this scope can create and modify user groups.
+
+2. **cidaas:groups_read** :  This scope provides read access to user groups in Cidaas.
+
+3. **cidaas:groups_delete** :  This scope allows users to delete user groups in Cidaas. Users with this scope can remove existing user groups.
+
+### Configuration Example:
+
+Below is an example configuration in your Terraform files:
 
 ```hcl
 resource "cidaas_user_groups" "sample" {
@@ -615,7 +807,7 @@ resource "cidaas_user_groups" "sample" {
   group_id              = "sample-group-id"
   group_name            = "sample-group-name"
   logo_url              = "https://cidaas.de/logo"
-  description           = "sample user groups description"
+  description           = "Sample user groups description"
   make_first_user_admin = false
   custom_fields = {
     custom_field_name = "sample custom field"
@@ -626,14 +818,31 @@ resource "cidaas_user_groups" "sample" {
 }
 ```
 
-Use the command below to import an existing cidaas_user_groups
+Refer to the detailed parameter descriptions provided in the table below :
 
-```ssh
-terraform import cidaas_user_groups.<resource name> user_groups_name
+| Key                           | Type       | Description                                                                      |
+|-------------------------------|------------|----------------------------------------------------------------------------------|
+| group_type                  | String     | Type of the user group                                |
+| group_id                    | String     | Identifier for the user group                           |
+| group_name                  | String     | Name of the user group                                |
+| logo_url                    | String     | URL for the user group's logo                                                    |
+| description                 | String     | Description of the user group            |
+| make_first_user_admin       | Boolean    | Indicates whether the first user should be made an admin             |
+| custom_fields               | Map(String) | Custom fields for the user group |
+| member_profile_visibility   | String     | Visibility of member profiles. Allowed values `public` or `full`                              |
+| none_member_profile_visibility | String  | Visibility of non-member profiles. Allowed values `none` or `public`           |
+| parent_id                   | String     | Identifier of the parent user group |
+
+### Import Statement:
+
+Use the following command to import an existing `cidaas_user_groups` into Terraform:
+
+```bash
+terraform import cidaas_user_groups.resource_name user_groups_name
 ```
 
-##### To start using the provider run the Terraform commands below going inside the example directory where Terraform config files are available
+### Run these Terraform commands in the example directory to explore the provider:
 
-  1. terraform init : It will build the Terraform Cidaas Plugin/Provider.
-  2. terraform Plan : It will show the plan that Terraform has to execute from the current config file(main.tf) configurations.
-  3. terraform apply : The Terraform will execute the changes and the infrastructure will get provisioned.
+1. Run `terraform init`: This command builds the Terraform Cidaas Provider.
+2. Execute `terraform plan`: It reveals the execution plan based on the current configurations in the main Terraform file (`main.tf`).
+3. Use `terraform apply`: This command triggers Terraform to execute the planned changes, provisioning the infrastructure accordingly.
