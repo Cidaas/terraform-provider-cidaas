@@ -1,3 +1,12 @@
+## [2.5.2](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.5.1...v2.5.2) (2024-02-12)
+
+
+### Bug Fixes
+
+* add releaserc ([d0ff541](https://gitlab.widas.de/cidaas-management/terraform/commit/d0ff541e882cc54af9d4b21cc085a01eb17970aa))
+* readme, terraform doc enhanced ([4c08ed7](https://gitlab.widas.de/cidaas-management/terraform/commit/4c08ed772a851b8414c218d509348baa348a1360))
+* validation added for standard_type ([120dbfb](https://gitlab.widas.de/cidaas-management/terraform/commit/120dbfbff0f9c94789418f5ebdb9e3186c8c28cf))
+
 ## [2.3.2](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.3.1...v2.3.2) (2023-10-16)
 
 
