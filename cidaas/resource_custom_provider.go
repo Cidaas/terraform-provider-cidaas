@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceCustomProvider() *schema.Resource {
@@ -43,16 +44,18 @@ func resourceCustomProvider() *schema.Resource {
 				Optional: true,
 			},
 			"standard_type": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice([]string{"OPENID_CONNECT", "OAUTH2"}, false),
 			},
 			"client_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"client_secret": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"authorization_endpoint": {
 				Type:     schema.TypeString,
@@ -196,7 +199,7 @@ func resourceCPCreate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("error while creating custom provider payload"),
+			Summary:  fmt.Sprintln("failed to prepare custom provider payload"),
 			Detail:   err.Error(),
 		})
 	}
@@ -296,7 +299,7 @@ func resourceCPUpdate(ctx context.Context, d *schema.ResourceData, m interface{}
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to create custom provider payload"),
+			Summary:  fmt.Sprintln("failed to prepare custom provider payload"),
 			Detail:   err.Error(),
 		})
 	}
@@ -372,7 +375,7 @@ func flattenUserFields(userinfo map[string]interface{}) []interface{} {
 	}
 
 	for _, str := range keys {
-		if strings.HasPrefix(str, "customFields.") == true {
+		if strings.HasPrefix(str, "customFields.") {
 			result := strings.TrimPrefix(str, "customFields.")
 			temp = append(temp, map[string]interface{}{"key": result, "value": userinfo[str]})
 		}
