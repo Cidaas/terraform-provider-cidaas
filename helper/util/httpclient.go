@@ -46,7 +46,9 @@ func (h *HttpClient) Post(url string, body interface{}) (*http.Response, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request, %v", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+h.Token)
+	if h.Token != "" {
+		req.Header.Add("Authorization", "Bearer "+h.Token)
+	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json, text/plain, */*")
 	resp, err := client.Do(req)

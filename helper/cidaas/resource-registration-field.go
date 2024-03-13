@@ -39,15 +39,15 @@ type GetRegistrationFieldConfig struct {
 }
 
 type RegistrationFieldConfig struct {
-	Internal        bool            `json:"internal,omitempty"`
-	ReadOnly        bool            `json:"readOnly,omitempty"`
-	Claimable       bool            `json:"claimable,omitempty"`
-	Required        bool            `json:"required,omitempty"`
+	Internal        bool            `json:"internal"`
+	ReadOnly        bool            `json:"readOnly"`
+	Claimable       bool            `json:"claimable"`
+	Required        bool            `json:"required"`
 	Scopes          []string        `json:"scopes,omitempty"`
-	Enabled         bool            `json:"enabled,omitempty"`
+	Enabled         bool            `json:"enabled"`
 	LocaleText      LocaleText      `json:"localeText,omitempty"`
-	IsGroup         bool            `json:"is_group,omitempty"`
-	IsList          bool            `json:"is_list,omitempty"`
+	IsGroup         bool            `json:"is_group"`
+	IsList          bool            `json:"is_list"`
 	ParentGroupId   string          `json:"parent_group_id,omitempty"`
 	FieldType       string          `json:"fieldType,omitempty"`
 	Id              string          `json:"_id,omitempty"`
@@ -56,6 +56,7 @@ type RegistrationFieldConfig struct {
 	Order           int             `json:"order,omitempty"`
 	BaseDataType    string          `json:"baseDataType,omitempty"`
 	FieldDefinition FieldDefinition `json:"fieldDefinition,omitempty"`
+	ClassName       string          `json:"className,omitempty"`
 }
 
 type FieldDefinition struct {

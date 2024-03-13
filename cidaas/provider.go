@@ -60,6 +60,15 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		BaseUrl:      base_url,
 		ProvideUrl:   base_url + "/providers-srv/custom",
 	}
-	cidaas.InitializeAuth(&cidaas_client)
+	err := cidaas.InitializeAuth(&cidaas_client)
+
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  err.Error(),
+			Detail:   `please ensure that you have correctly set the environment variables TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID and TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET. double-check their values to ensure proper configuration.`,
+		})
+		return nil, diags
+	}
 	return cidaas_client, diags
 }
