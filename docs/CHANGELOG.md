@@ -1,3 +1,10 @@
+## [2.5.3](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.5.2...v2.5.3) (2024-03-13)
+
+
+### Bug Fixes
+
+* registration field className support ([e0effc5](https://gitlab.widas.de/cidaas-management/terraform/commit/e0effc5001b724e3b462f6bb0d472a4ce2411f58))
+
 ## [2.5.2](https://gitlab.widas.de/cidaas-management/terraform/compare/v2.5.1...v2.5.2) (2024-02-12)
 
 
