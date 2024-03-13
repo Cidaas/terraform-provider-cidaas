@@ -3,9 +3,7 @@ package cidaas
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
+	"terraform-provider-cidaas/helper/util"
 )
 
 type TokenRequestPayload struct {
@@ -19,41 +17,23 @@ type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func InitializeAuth(cidaas_client *CidaasClient) {
-	client := &http.Client{}
-
-	requestPayload := &TokenRequestPayload{
+func InitializeAuth(cidaas_client *CidaasClient) error {
+	payload := &TokenRequestPayload{
 		ClientId:     cidaas_client.ClientId,
 		ClientSecret: cidaas_client.ClientSecret,
 		GrantType:    cidaas_client.GrantType,
 	}
 
-	json_payload, err := json.Marshal(requestPayload)
+	httpClient := util.HttpClient{}
+	res, err := httpClient.Post(cidaas_client.AuthUrl, payload)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	payload_string := string(json_payload)
-	payload := strings.NewReader(payload_string)
-	req, err := http.NewRequest("POST", cidaas_client.AuthUrl, payload)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	req.Header.Add("Content-Type", "application/json")
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("failed to get token: %+v", err)
 	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
 	var response TokenResponse
-	json.Unmarshal([]byte(body), &response)
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		return fmt.Errorf("failed to decode token response: %+v", err)
+	}
 	cidaas_client.TokenData.AccessToken = response.AccessToken
+	return nil
 }

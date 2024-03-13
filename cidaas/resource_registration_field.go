@@ -298,5 +298,11 @@ func prepareRegistrationFieldConfig(d *schema.ResourceData) cidaas.RegistrationF
 	registrationFieldConfig.FieldDefinition.Language = d.Get("locale_text_language").(string)
 	registrationFieldConfig.FieldDefinition.MinLength = d.Get("locale_text_min_length").(int)
 	registrationFieldConfig.FieldDefinition.MaxLength = d.Get("locale_text_max_length").(int)
+
+	className := "FieldSetup"
+	if registrationFieldConfig.FieldType == "SYSTEM" {
+		className = "de.cidaas.core.db.RegistrationFieldSetup"
+	}
+	registrationFieldConfig.ClassName = className
 	return registrationFieldConfig
 }
