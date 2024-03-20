@@ -68,8 +68,19 @@ By following these steps, you integrate the Cidaas Terraform provider, enabling 
 
 The Terraform provider for Cidaas supports a variety of resources that enables you to manage and configure different aspects of your Cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your Cidaas resources as code.
 
-Explore the following resources to understand their attributes, functionalities and how to use them in your Terraform configurations:
+To prevent unintended changes to specific attributes of your Terraform resources, you can use the `ignore_changes` configuration within the `lifecycle` block. With this, Terraform ignores to update the attributes provided during `terraform apply`. For example, to avoid change in `client_id`, add the following block to the cidaas_app config file:
 
+```hcl
+resource "cidaas_app" "sample" {
+  lifecycle {
+    ignore_changes = [
+      client_id
+    ]
+  }
+}
+```
+
+Explore the following resources to understand their attributes, functionalities and how to use them in your Terraform configurations:
 
 ## Custom Provider
 
@@ -77,9 +88,9 @@ This example demonstrates the configuration of a custom provider resource for in
 
 ### Required Scopes:
 
-- **test:provider_read** : This scope grants read access. It is necessary for fetching data from the provider.
+- **cidaas:provider_read** : This scope grants read access. It is necessary for fetching data from the provider.
 
-- **test:provider_write** :  This scope is essential for write operations on the `cidaas_custom_provider`.
+- **cidaas:provider_write** :  This scope is essential for write operations on the `cidaas_custom_provider`.
 
 ### Configuration Example:
 
@@ -133,14 +144,14 @@ resource "cidaas_custom_provider" "sample" {
     profile            = "cp_profile"
     updated_at         = "01-01-01"
     website            = "https://cp-website.com"
-    zoneinfo           = "cp_zone_info",
+    zoneinfo           = "cp_zone_info"
     sub                = "bcb-4a6b-9777-8a64abe6af"
     custom_fields = [
       {
         key   = "terraform_test_cf"
         value = "key from the "
       }
-    ],
+    ]
   }
 }
 ```
