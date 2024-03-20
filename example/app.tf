@@ -1,4 +1,12 @@
 resource "cidaas_app" "terraform_app" {
+
+  # To prevent unintended updates to specific fields, incorporate the following lifecycle block. E.g. client_id will be ignored here
+  lifecycle {
+    ignore_changes = [
+      client_id
+    ]
+  }
+
   client_type                     = "SINGLE_PAGE"
   accent_color                    = "#ef4923"
   primary_color                   = "#ef4923"
@@ -59,12 +67,6 @@ resource "cidaas_app" "terraform_app" {
     provider_name = "sample-custom-provider"
     display_name  = "sample-custom-provider"
     type          = "CUSTOM_OPENID_CONNECT"
-  }
-  custom_providers {
-    logo_url      = cidaas_custom_provider.sample.logo_url
-    provider_name = cidaas_custom_provider.sample.provider_name
-    display_name  = cidaas_custom_provider.sample.display_name
-    type          = cidaas_custom_provider.sample.standard_type
   }
   saml_providers {
     logo_url      = "https://cidaas.com/logo-url"

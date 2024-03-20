@@ -1397,6 +1397,7 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 
 func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	d.Set("client_id", d.Id())
 	cidaas_client := m.(cidaas.CidaasClient)
 	appConfig := preparePayload(d)
 	_, err := cidaas_client.UpdateApp(appConfig)
@@ -1419,11 +1420,11 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 	client_id := d.Id()
 	var appConfig cidaas.AppConfig
 	appConfig.ClientId = client_id
-	resp, err := cidaas_client.DeleteApp(appConfig)
+	_, err := cidaas_client.DeleteApp(appConfig)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to delete client %+v with status %+v", client_id, resp.Status),
+			Summary:  fmt.Sprintf("failed to delete client %+v", client_id),
 			Detail:   err.Error(),
 		})
 		return diags
