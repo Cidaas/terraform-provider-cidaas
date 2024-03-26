@@ -45,10 +45,19 @@ Terraform pulls the version configured of the Cidaas provider for your infrastru
 
 To authenticate and authorize Terraform operations with Cidaas, set the necessary environment variables. These variables include your Cidaas client credentials, allowing the Terraform provider to complete the client credentials flow and generate an access_token. Execute the following commands in your terminal, replacing placeholders with your actual Cidaas client ID and client secret.
 
+### For Linux and MacOS:
 ```bash
 export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID="ENTER CIDAAS CLIENT ID"
 export TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET="ENTER CIDAAS CLIENT SECRET"
 ```
+
+### For Windows:
+```bash
+Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID -Value “ENTER CIDAAS CLIENT ID“
+Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET -Value “ENTER CIDAAS CLIENT SECRET“
+```
+
+You can get a set of client credentials from the Cidaas Admin UI by creating a new client. Simply go to the `Apps` > `App Settings` > `Create New App`. It's important to note that when creating the client, you must select the app type as **Non-Interactive**.
 
 ### 3. Add Cidaas Provider Configuration
 
@@ -761,6 +770,12 @@ terraform import cidaas_user_group_category.resource_name user_group_category_na
 ## Template
 
 The Template resource in Terraform is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications. Below is an example configuration for the Cidaas Template resource, along with details of its attributes:
+
+Ensure that the below scopes are assigned to the client with the specified `client_id`
+
+- cidaas:templates_read
+- cidaas:templates_write
+- cidaas:templates_delete
 
 ### Configuration Example:
 
