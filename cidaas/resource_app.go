@@ -494,8 +494,9 @@ func resourceApp() *schema.Resource {
 				},
 			},
 			"app_key": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:      schema.TypeList,
+				Sensitive: true,
+				Computed:  true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"_id": {

@@ -27,7 +27,7 @@ type AppConfig struct {
 	EnableDeduplication              bool                  `json:"enable_deduplication,omitempty"`
 	AutoLoginAfterRegister           bool                  `json:"auto_login_after_register,omitempty"`
 	EnablePasswordlessAuth           bool                  `json:"enable_passwordless_auth,omitempty"`
-	RegisterWithLoginInformation     bool                  `json:"register_with_login_information,omitempty"`
+	RegisterWithLoginInformation     bool                  `json:"register_with_login_information"`
 	AllowDisposableEmail             bool                  `json:"allow_disposable_email,omitempty"`
 	ValidatePhoneNumber              bool                  `json:"validate_phone_number,omitempty"`
 	FdsEnabled                       bool                  `json:"fds_enabled,omitempty"`
@@ -72,8 +72,8 @@ type AppConfig struct {
 	UserConsent                      bool                  `json:"user_consent,omitempty"`
 	AllowedGroups                    []IAllowedGroups      `json:"allowed_groups,omitempty"`
 	OperationsAllowedGroups          []IAllowedGroups      `json:"operations_allowed_groups,omitempty"`
-	Deleted                          bool                  `json:"deleted,omitempty"`
-	Enabled                          bool                  `json:"enabled,omitempty"`
+	Deleted                          bool                  `json:"deleted"`
+	Enabled                          bool                  `json:"enabled"`
 	AllowedFields                    []string              `json:"allowed_fields,omitempty"`
 	AlwaysAskMfa                     bool                  `json:"always_ask_mfa,omitempty"`
 	SmartMfa                         bool                  `json:"smart_mfa,omitempty"`
@@ -86,8 +86,8 @@ type AppConfig struct {
 	MobileNumberVerificationRequired bool                  `json:"mobile_number_verification_required,omitempty"`
 	AllowedRoles                     []string              `json:"allowed_roles,omitempty"`
 	DefaultRoles                     []string              `json:"default_roles,omitempty"`
-	EnableClassicalProvider          bool                  `json:"enable_classical_provider,omitempty"`
-	IsRememberMeSelected             bool                  `json:"is_remember_me_selected,omitempty"`
+	EnableClassicalProvider          bool                  `json:"enable_classical_provider"`
+	IsRememberMeSelected             bool                  `json:"is_remember_me_selected"`
 	EnableBotDetection               bool                  `json:"enable_bot_detection,omitempty"`
 	BotProvider                      string                `json:"bot_provider,omitempty"`
 	AllowGuestLoginGroups            []IAllowedGroups      `json:"allow_guest_login_groups,omitempty"`

@@ -80,7 +80,7 @@ resource "cidaas_app" "terraform_app" {
     display_name  = "sample-ad-provider"
     type          = "ADD_PROVIDER"
   }
-  app_owner    = "Cidaas"
+  app_owner    = "CLIENT"
   jwe_enabled  = false
   user_consent = false
   allowed_groups {
@@ -125,7 +125,6 @@ resource "cidaas_app" "terraform_app" {
     selectable_group_types = ["sample"]
   }
   group_types               = ["sample"]
-  backchannel_logout_uri    = "https://test.com/logout"
   post_logout_redirect_uris = ["sample"]
   logo_align                = "CENTER"
   mfa {

@@ -3,7 +3,6 @@ package cidaas
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"terraform-provider-cidaas/helper/cidaas"
 
@@ -75,12 +74,17 @@ func resourceTemplateUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	id := d.Id()
 	template.TemplateKey = d.Get("template_key").(string)
 	if id != "" {
-		split_id := strings.Split(id, "_")
-		template_type_suffix := "_" + split_id[len(split_id)-1]
-		if id != d.Get("template_key").(string)+template_type_suffix {
+		if d.HasChange("template_key") {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  fmt.Sprintf("template key can't be modified"),
+				Summary:  "template_key can't be modified",
+			})
+			return diags
+		}
+		if d.HasChange("template_type") {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "template_type can't be modified",
 			})
 			return diags
 		}
@@ -89,16 +93,14 @@ func resourceTemplateUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	template.Locale = d.Get("locale").(string)
 	template.TemplateType = d.Get("template_type").(string)
 	template.Content = d.Get("content").(string)
+	template.Subject = d.Get("subject").(string)
 
-	if template.TemplateType == "EMAIL" {
-		if template.Subject == "" {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("subject can not be empty for template_key EMAIL"),
-			})
-			return diags
-		}
-		template.Subject = d.Get("subject").(string)
+	if template.TemplateType == "EMAIL" && template.Subject == "" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "subject can not be empty for template_key EMAIL",
+		})
+		return diags
 	}
 
 	cidaas_client := m.(cidaas.CidaasClient)
@@ -141,7 +143,7 @@ func resourceTemplateRead(ctx context.Context, d *schema.ResourceData, m interfa
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("failed to read template"),
+			Summary:  "failed to read template",
 			Detail:   err.Error(),
 		})
 		return diags
