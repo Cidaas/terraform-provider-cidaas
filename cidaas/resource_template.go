@@ -3,7 +3,6 @@ package cidaas
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"terraform-provider-cidaas/helper/cidaas"
 
@@ -75,12 +74,17 @@ func resourceTemplateUpsert(ctx context.Context, d *schema.ResourceData, m inter
 	id := d.Id()
 	template.TemplateKey = d.Get("template_key").(string)
 	if id != "" {
-		split_id := strings.Split(id, "_")
-		template_type_suffix := "_" + split_id[len(split_id)-1]
-		if id != d.Get("template_key").(string)+template_type_suffix {
+		if d.HasChange("template_key") {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  "template key can't be modified",
+				Summary:  "template_key can't be modified",
+			})
+			return diags
+		}
+		if d.HasChange("template_type") {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "template_type can't be modified",
 			})
 			return diags
 		}
