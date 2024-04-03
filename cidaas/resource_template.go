@@ -187,7 +187,7 @@ func resourceTemplateDelete(ctx context.Context, d *schema.ResourceData, m inter
 	cidaas_client := m.(cidaas.CidaasClient)
 	id := d.Id()
 	template := cidaas.PrepareTemplate(id)
-	_, err := cidaas_client.DeleteTemplate(template)
+	err := cidaas_client.DeleteTemplate(template)
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

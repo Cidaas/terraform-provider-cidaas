@@ -26,12 +26,6 @@ type TemplateResponse struct {
 	Data    Template `json:"data,omitempty"`
 }
 
-type DeleteTemplateResponse struct {
-	Success bool `json:"success,omitempty"`
-	Status  int  `json:"status,omitempty"`
-	Data    bool `json:"data,omitempty"`
-}
-
 func (c *CidaasClient) UpsertTemplate(sc Template) (response *TemplateResponse, err error) {
 	url := c.BaseUrl + "/templates-srv/template/custom"
 	h := util.HttpClient{
@@ -67,20 +61,17 @@ func (c *CidaasClient) GetTemplate(template Template) (response *TemplateRespons
 	return response, nil
 }
 
-func (c *CidaasClient) DeleteTemplate(template Template) (response *DeleteScopeResponse, err error) {
+func (c *CidaasClient) DeleteTemplate(template Template) error {
 	url := c.BaseUrl + "/templates-srv/template/custom/" + strings.ToUpper(template.TemplateKey) + "/" + strings.ToUpper(template.TemplateType)
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
-	res, err := h.Delete(url)
+	_, err := h.Delete(url)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
-	}
-	return response, nil
+
+	return nil
 }
 
 func PrepareTemplate(id string) (template Template) {
