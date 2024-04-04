@@ -791,13 +791,14 @@ resource "cidaas_template" "sample" {
   content       = "Sample content for the Cidaas template resource."
 }
 ```
+
 Refer to the detailed parameter descriptions provided in the table below :
 
 | Attribute Name | Type    | Is Optional | Description |
 | -------------- | ------- | ----------- | ----------- |
-| locale       | String  | No          | The locale of the template. e.g. "en-us", "en-uk". Ensure the locale is set in lowercase. |
+| locale       | String  | No          | The locale of the template. e.g. "en-us", "en-uk". Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state. |
 | template_key | String  | No          | The unique name of the template. It cannot be updated for an existing state. |
-| template_type| String  | No          | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive |
+| template_type| String  | No          | The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state. |
 | content      | String  | No          | The content of the template. |
 | subject      | String  | Yes         | Applicable only for template_type EMAIL. it represents the subject of the email. |
 
@@ -807,13 +808,21 @@ Refer to the detailed parameter descriptions provided in the table below :
 Use the following command to import an existing Cidaas Template:
 
 ```bash
-terraform import cidaas_template.resource_name template_key_template_type
+terraform import cidaas_template.resource_name template_key_template_type_locale
 ```
 
-Here, `template_key_template_type` is a combination of `template_key` and `template_type`, joined by the special character "_". For example, if the resource name is "sample" with `template_key` as "foo" and `template_type` as "bar," the import statement would be:
+Here, `template_key_template_type_locale` is a combination of `template_key`, `template_type` and `locale`, joined by the special character "_". For example, if the resource name is "sample" with `template_key` as "TERRAFORM_TEMPLATE", `template_type` as "SMS" and `locale` as "de-de", the import statement would be:
 
 ```bash
-terraform import cidaas_template.sample foo_bar
+terraform import cidaas_template.sample TERRAFORM_TEMPLATE_SMS_de-de
+```
+
+### Allowed Locals
+
+```ssh
+[
+  "ar", "ar-ae", "ar-bh", "ar-dz", "ar-eg", "ar-iq", "ar-jo", "ar-kw", "ar-lb", "ar-ly", "ar-ma", "ar-om", "ar-qa", "ar-sa","ar-sd", "ar-sy", "ar-tn", "ar-ye", "be", "be-by", "bg", "bg-bg", "ca", "ca-es", "cs", "cs-cz", "da", "da-dk", "de", "de-at", "de-ch", "de-de", "de-lu", "el", "el-gr", "en", "en-au", "en-ca", "en-gb", "en-ie", "en-in", "en-nz", "en-us", "en-za", "es", "es-ar", "es-bo", "es-cl", "es-co", "es-cr", "es-do", "es-ec", "es-es", "es-gt", "es-hn", "es-mx", "es-ni", "es-pa","es-pe", "es-pr", "es-py", "es-sv", "es-uy", "es-ve", "et", "et-ee", "fi", "fi-fi", "fr", "fr-be", "fr-ca", "fr-ch", "fr-fr", "fr-lu", "hi-in", "hr", "hr-hr", "hu", "hu-hu", "is", "is-is", "it", "it-ch", "it-it", "iw", "iw-il", "ja", "ja-jp", "ko", "ko-kr", "lt", "lt-lt", "lv", "lv-lv", "mk", "mk-mk", "nl", "nl-be", "nl-nl", "no", "no-no", "no-no-ny", "pl", "pl-pl", "pt", "pt-br", "pt-pt", "ro", "ro-ro", "ru", "ru-ru", "sk", "sk-sk", "sl", "sl-si", "sq", "sq-al", "sr", "sr-ba", "sr-cs", "sv", "sv-se", "th", "th-th", "th-th-th", "tr", "tr-tr", "uk", "uk-ua", "vi", "vi-vn", "zh", "zh-cn", "zh-hk", "zh-tw"
+]
 ```
 
 ## User Groups
