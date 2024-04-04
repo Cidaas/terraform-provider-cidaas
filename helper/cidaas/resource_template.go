@@ -3,6 +3,7 @@ package cidaas
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"terraform-provider-cidaas/helper/util"
 )
@@ -26,18 +27,28 @@ type TemplateResponse struct {
 	Data    Template `json:"data,omitempty"`
 }
 
-func (c *CidaasClient) UpsertTemplate(sc Template) (response *TemplateResponse, err error) {
+func (c *CidaasClient) UpsertTemplate(template Template) (response *TemplateResponse, err error) {
 	url := c.BaseUrl + "/templates-srv/template/custom"
 	h := util.HttpClient{
 		Token: c.TokenData.AccessToken,
 	}
-	res, err := h.Post(url, sc)
+	res, err := h.Post(url, template)
 	if err != nil {
 		return nil, err
 	}
-	err = json.NewDecoder(res.Body).Decode(&response)
+	defer res.Body.Close()
+	// handle empty response body
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to read template response body")
+	}
+	bodyString := string(bodyBytes)
+	if bodyString == "" {
+		return nil, fmt.Errorf("response code %+v with empty response body", res.StatusCode)
+	}
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json body %s, status code %+v, error %s", bodyString, res.StatusCode, err.Error())
 	}
 	return response, nil
 }
@@ -48,15 +59,25 @@ func (c *CidaasClient) GetTemplate(template Template) (response *TemplateRespons
 		Token: c.TokenData.AccessToken,
 	}
 	res, err := h.Post(url, template)
-	if res.StatusCode == 204 {
-		return nil, fmt.Errorf("204 no content")
-	}
 	if err != nil {
 		return nil, err
 	}
-	err = json.NewDecoder(res.Body).Decode(&response)
+	defer res.Body.Close()
+	if res.StatusCode == 204 {
+		return nil, fmt.Errorf("template not found for the templateKey %s", template.TemplateKey)
+	}
+	// handle empty response body
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to read template response body")
+	}
+	bodyString := string(bodyBytes)
+	if bodyString == "" {
+		return nil, fmt.Errorf("response code %+v with empty response body", res.StatusCode)
+	}
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json body %s, status code %+v, error %s", bodyString, res.StatusCode, err.Error())
 	}
 	return response, nil
 }
@@ -75,19 +96,11 @@ func (c *CidaasClient) DeleteTemplate(template Template) error {
 }
 
 func PrepareTemplate(id string) (template Template) {
-	switch split_id := strings.Split(id, "_"); split_id[len(split_id)-1] {
-	case "EMAIL":
-		template.TemplateKey = strings.TrimSuffix(id, "_EMAIL")
-		template.TemplateType = "EMAIL"
-	case "SMS":
-		template.TemplateKey = strings.TrimSuffix(id, "_SMS")
-		template.TemplateType = "SMS"
-	case "IVR":
-		template.TemplateKey = strings.TrimSuffix(id, "_IVR")
-		template.TemplateType = "IVR"
-	case "PUSH":
-		template.TemplateKey = strings.TrimSuffix(id, "_PUSH")
-		template.TemplateType = "PUSH"
-	}
+	split_id := strings.Split(id, "_")
+
+	template.TemplateKey = strings.TrimSuffix(id, fmt.Sprintf("_%s_%s", split_id[len(split_id)-2], split_id[len(split_id)-1]))
+	template.TemplateType = split_id[len(split_id)-2]
+	template.Locale = split_id[len(split_id)-1]
+
 	return template
 }

@@ -1,10 +1,19 @@
 ## Changelog
 
 ### 2.5.6
-
 #### Additions
 
-- application_meta_data added to support custom fields in cidaas_app resource. 
+- `application_meta_data` added to support custom fields in cidaas_app resource.
+
+- Validations added to prevent users from updating the locale and template_type of an existing `cidaas_template` state. This ensures data integrity and consistency.
+
+- Enhanced error messages when users provide an incorrect locale,
+
+- Updated the format of the `cidaas_template` ID from `templateKey_templateType` to `templateKey_templateType_locale`. Added validation checks for incorrect format types.
+
+#### Bug Fixes
+
+- Resolved the issue causing the error message `failed to unmarshal JSON body, EOF` during template deletion.
 
 ### 2.5.5
 
