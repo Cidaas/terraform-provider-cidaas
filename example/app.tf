@@ -1,5 +1,4 @@
-resource "cidaas_app" "terraform_app" {
-
+resource "cidaas_app" "sample" {
   # To prevent unintended updates to specific fields, incorporate the following lifecycle block. E.g. client_id will be ignored here
   lifecycle {
     ignore_changes = [
@@ -23,8 +22,8 @@ resource "cidaas_app" "terraform_app" {
   validate_phone_number           = false
   fds_enabled                     = false
   hosted_page_group               = "default"
-  client_name                     = "Terraform Test App"
-  client_display_name             = "Test Test App Display Name"
+  client_name                     = "Terraform"
+  client_display_name             = "Sample Terraform App"
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
   company_website                 = "https://cidaas.com"
@@ -180,4 +179,8 @@ resource "cidaas_app" "terraform_app" {
   video_url       = "https://cidaas.com/video-url"
   bot_captcha_ref = "sample-bot-captcha-ref"
   background_uri  = "http://cidaas.com/background-uri"
+  application_meta_data = {
+    status : "active"
+    version : "1.0.0"
+  }
 }

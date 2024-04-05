@@ -959,6 +959,13 @@ func resourceApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"application_meta_data": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -1393,6 +1400,9 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	if err := d.Set("updated_at", response.Data.UpdatedTime); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("application_meta_data", response.Data.ApplicationMetaData); err != nil {
+		return diag.FromErr(err)
+	}
 	return diags
 }
 
@@ -1559,6 +1569,7 @@ func preparePayload(d *schema.ResourceData) cidaas.AppConfig {
 	appConfig.BackgroundUri = d.Get("background_uri").(string)
 	appConfig.VideoUrl = d.Get("video_url").(string)
 	appConfig.BotCaptchaRef = d.Get("bot_captcha_ref").(string)
+	appConfig.ApplicationMetaData = d.Get("application_meta_data").(map[string]interface{})
 
 	return appConfig
 }
