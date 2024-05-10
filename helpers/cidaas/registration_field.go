@@ -28,9 +28,9 @@ type GetRegistrationFieldConfig struct {
 	LocaleText      []map[string]interface{} `json:"localeText,omitempty"`
 	IsGroup         bool                     `json:"is_group,omitempty"`
 	IsList          bool                     `json:"is_list,omitempty"`
-	ParentGroupId   string                   `json:"parent_group_id,omitempty"`
+	ParentGroupID   string                   `json:"parent_group_id,omitempty"`
 	FieldType       string                   `json:"fieldType,omitempty"`
-	Id              string                   `json:"_id,omitempty"`
+	ID              string                   `json:"_id,omitempty"`
 	FieldKey        string                   `json:"fieldKey,omitempty"`
 	DataType        string                   `json:"dataType,omitempty"`
 	Order           int                      `json:"order,omitempty"`
@@ -48,9 +48,9 @@ type RegistrationFieldConfig struct {
 	LocaleText      LocaleText      `json:"localeText,omitempty"`
 	IsGroup         bool            `json:"is_group"`
 	IsList          bool            `json:"is_list"`
-	ParentGroupId   string          `json:"parent_group_id,omitempty"`
+	ParentGroupID   string          `json:"parent_group_id,omitempty"`
 	FieldType       string          `json:"fieldType,omitempty"`
-	Id              string          `json:"_id,omitempty"`
+	ID              string          `json:"_id,omitempty"`
 	FieldKey        string          `json:"fieldKey,omitempty"`
 	DataType        string          `json:"dataType,omitempty"`
 	Order           int             `json:"order,omitempty"`
@@ -83,6 +83,7 @@ func (c *Client) UpsertRegistrationField(rfg RegistrationFieldConfig) (response 
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -97,6 +98,7 @@ func (c *Client) GetRegistrationField(key string) (response *GetRegistrationFiel
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -112,6 +114,7 @@ func (c *Client) DeleteRegistrationField(key string) (response *RegistrationFiel
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

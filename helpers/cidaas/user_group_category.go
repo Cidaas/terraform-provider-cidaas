@@ -27,6 +27,7 @@ func (c *Client) CreateUserGroupCategory(ugc UserGroupCategory) (response *UserG
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -34,13 +35,14 @@ func (c *Client) CreateUserGroupCategory(ugc UserGroupCategory) (response *UserG
 	return response, nil
 }
 
-func (c *Client) GetUserGroupCategory(group_type string) (response *UserGroupCategoryResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s?groupType=%s", c.Config.BaseURL, "groups-srv/grouptypes", group_type)
+func (c *Client) GetUserGroupCategory(groupType string) (response *UserGroupCategoryResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s?groupType=%s", c.Config.BaseURL, "groups-srv/grouptypes", groupType)
 	c.HTTPClient.HTTPMethod = http.MethodGet
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -55,19 +57,21 @@ func (c *Client) UpdateUserGroupCategory(ugc UserGroupCategory) (response *UserG
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
 	}
 	return response, nil
 }
-func (c *Client) DeleteUserGroupCategory(group_type string) (response *UserGroupCategoryResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "groups-srv/grouptypes", group_type)
+func (c *Client) DeleteUserGroupCategory(groupType string) (response *UserGroupCategoryResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "groups-srv/grouptypes", groupType)
 	c.HTTPClient.HTTPMethod = http.MethodDelete
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

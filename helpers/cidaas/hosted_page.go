@@ -14,10 +14,10 @@ type HostedPagePayload struct {
 }
 
 type HostedPage struct {
-	HostedPageId string `json:"hosted_page_id,omitempty"`
+	HostedPageID string `json:"hosted_page_id,omitempty"`
 	Content      string `json:"content,omitempty"`
 	Locale       string `json:"locale,omitempty"`
-	Url          string `json:"url,omitempty"`
+	URL          string `json:"url,omitempty"`
 }
 
 type HostedPageResponse struct {
@@ -34,6 +34,7 @@ func (c *Client) UpsertHostedPage(sc HostedPagePayload) (response *HostedPageRes
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -41,13 +42,14 @@ func (c *Client) UpsertHostedPage(sc HostedPagePayload) (response *HostedPageRes
 	return response, nil
 }
 
-func (c *Client) GetHostedPage(hp_group_name string) (response *HostedPageResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "hostedpages-srv/hpgroup", hp_group_name)
+func (c *Client) GetHostedPage(hpGroupName string) (response *HostedPageResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
 	c.HTTPClient.HTTPMethod = http.MethodGet
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -55,13 +57,14 @@ func (c *Client) GetHostedPage(hp_group_name string) (response *HostedPageRespon
 	return response, nil
 }
 
-func (c *Client) DeleteHostedPage(hp_group_name string) (response *HostedPageResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "hostedpages-srv/hpgroup", hp_group_name)
+func (c *Client) DeleteHostedPage(hpGroupName string) (response *HostedPageResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
 	c.HTTPClient.HTTPMethod = http.MethodDelete
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

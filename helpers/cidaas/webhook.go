@@ -11,15 +11,15 @@ var AllowedKeyPlacementValue = []string{"query", "header"}
 
 type WebhookRequestPayload struct {
 	AuthType          string            `json:"auth_type,omitempty"`
-	Url               string            `json:"url,omitempty"`
+	URL               string            `json:"url,omitempty"`
 	Events            []string          `json:"events,omitempty"`
 	ID                string            `json:"_id,omitempty"`
-	ApiKeyDetails     ApiKeyDetails     `json:"apikeyDetails,omitempty"`
+	APIKeyDetails     APIKeyDetails     `json:"apikeyDetails,omitempty"`
 	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
 	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
 }
 
-type ApiKeyDetails struct {
+type APIKeyDetails struct {
 	ApikeyPlaceholder string `json:"apikey_placeholder,omitempty"`
 	ApikeyPlacement   string `json:"apikey_placement,omitempty"`
 	Apikey            string `json:"apikey,omitempty"`
@@ -35,9 +35,9 @@ type WebhookResponse struct {
 type ResponseData struct {
 	ID                string            `json:"_id,omitempty"`
 	AuthType          string            `json:"auth_type,omitempty"`
-	Url               string            `json:"url,omitempty"`
+	URL               string            `json:"url,omitempty"`
 	Events            []string          `json:"events,omitempty"`
-	ApiKeyDetails     ApiKeyDetails     `json:"apikeyDetails,omitempty"`
+	APIKeyDetails     APIKeyDetails     `json:"apikeyDetails,omitempty"`
 	Disable           bool              `json:"disable,omitempty"`
 	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
 	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
@@ -49,7 +49,7 @@ type TotpDetails struct {
 	TotpKey         string `json:"totpkey,omitempty"`
 }
 type CidaasAuthDetails struct {
-	ClientId string `json:"client_id,omitempty"`
+	ClientID string `json:"client_id,omitempty"`
 }
 
 func (c *Client) CreateOrUpdateWebhook(wb *WebhookRequestPayload) (response *WebhookResponse, err error) {
@@ -59,6 +59,7 @@ func (c *Client) CreateOrUpdateWebhook(wb *WebhookRequestPayload) (response *Web
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -73,6 +74,7 @@ func (c *Client) GetWebhook(id string) (response *WebhookResponse, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -87,6 +89,7 @@ func (c *Client) DeleteWebhook(id string) (response *WebhookResponse, err error)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

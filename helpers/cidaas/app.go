@@ -49,14 +49,14 @@ type AppConfig struct {
 	MobileSettings                   IAppMobileSettings     `json:"mobile_settings,omitempty"`
 	DefaultMaxAge                    int                    `json:"default_max_age,omitempty"`
 	TokenLifetimeInSeconds           int                    `json:"token_lifetime_in_seconds,omitempty"`
-	IdTokenLifetimeInSeconds         int                    `json:"id_token_lifetime_in_seconds,omitempty"`
+	IDTokenLifetimeInSeconds         int                    `json:"id_token_lifetime_in_seconds,omitempty"`
 	RefreshTokenLifetimeInSeconds    int                    `json:"refresh_token_lifetime_in_seconds,omitempty"`
-	TemplateGroupId                  string                 `json:"template_group_id,omitempty"`
-	ClientId                         string                 `json:"client_id,omitempty"`
+	TemplateGroupID                  string                 `json:"template_group_id,omitempty"`
+	ClientID                         string                 `json:"client_id,omitempty"`
 	ClientSecret                     string                 `json:"client_secret,omitempty"`
-	PolicyUri                        string                 `json:"policy_uri,omitempty"`
-	TosUri                           string                 `json:"tos_uri,omitempty"`
-	ImprintUri                       string                 `json:"imprint_uri,omitempty"`
+	PolicyURI                        string                 `json:"policy_uri,omitempty"`
+	TosURI                           string                 `json:"tos_uri,omitempty"`
+	ImprintURI                       string                 `json:"imprint_uri,omitempty"`
 	Contacts                         []string               `json:"contacts,omitempty"`
 	TokenEndpointAuthMethod          string                 `json:"token_endpoint_auth_method,omitempty"`
 	TokenEndpointAuthSigningAlg      string                 `json:"token_endpoint_auth_signing_alg,omitempty"`
@@ -98,27 +98,27 @@ type AppConfig struct {
 	IsGroupLoginSelectionEnabled     bool                   `json:"isGroupLoginSelectionEnabled,omitempty"`
 	GroupSelection                   IGroupSelection        `json:"groupSelection,omitempty"`
 	GroupTypes                       []string               `json:"groupTypes,omitempty"`
-	BackchannelLogoutUri             string                 `json:"backchannel_logout_uri,omitempty"`
+	BackchannelLogoutURI             string                 `json:"backchannel_logout_uri,omitempty"`
 	PostLogoutRedirectUris           []string               `json:"post_logout_redirect_uris,omitempty"`
 	LogoAlign                        string                 `json:"logoAlign,omitempty"`
 	Mfa                              IMfaOption             `json:"mfa,omitempty"`
 	PushConfig                       IPushConfig            `json:"push_config,omitempty"`
 	Webfinger                        string                 `json:"webfinger,omitempty"`
 	ApplicationType                  string                 `json:"application_type,omitempty"`
-	LogoUri                          string                 `json:"logo_uri,omitempty"`
-	InitiateLoginUri                 string                 `json:"initiate_login_uri,omitempty"`
+	LogoURI                          string                 `json:"logo_uri,omitempty"`
+	InitiateLoginURI                 string                 `json:"initiate_login_uri,omitempty"`
 	ClientSecretExpiresAt            int                    `json:"client_secret_expires_at,omitempty"`
-	ClientIdIssuedAt                 int                    `json:"client_id_issued_at,omitempty"`
-	RegistrationClientUri            string                 `json:"registration_client_uri,omitempty"`
+	ClientIDIssuedAt                 int                    `json:"client_id_issued_at,omitempty"`
+	RegistrationClientURI            string                 `json:"registration_client_uri,omitempty"`
 	RegistrationAccessToken          string                 `json:"registration_access_token,omitempty"`
-	ClientUri                        string                 `json:"client_uri,omitempty"`
-	JwksUri                          string                 `json:"jwks_uri,omitempty"`
+	ClientURI                        string                 `json:"client_uri,omitempty"`
+	JwksURI                          string                 `json:"jwks_uri,omitempty"`
 	Jwks                             string                 `json:"jwks,omitempty"`
-	SectorIdentifierUri              string                 `json:"sector_identifier_uri,omitempty"`
+	SectorIdentifierURI              string                 `json:"sector_identifier_uri,omitempty"`
 	SubjectType                      string                 `json:"subject_type,omitempty"`
-	IdTokenSignedResponseAlg         string                 `json:"id_token_signed_response_alg,omitempty"`
-	IdTokenEncryptedResponseAlg      string                 `json:"id_token_encrypted_response_alg,omitempty"`
-	IdTokenEncryptedResponseEnc      string                 `json:"id_token_encrypted_response_enc,omitempty"`
+	IDTokenSignedResponseAlg         string                 `json:"id_token_signed_response_alg,omitempty"`
+	IDTokenEncryptedResponseAlg      string                 `json:"id_token_encrypted_response_alg,omitempty"`
+	IDTokenEncryptedResponseEnc      string                 `json:"id_token_encrypted_response_enc,omitempty"`
 	UserinfoSignedResponseAlg        string                 `json:"userinfo_signed_response_alg,omitempty"`
 	UserinfoEncryptedResponseAlg     string                 `json:"userinfo_encrypted_response_alg,omitempty"`
 	UserinfoEncryptedResponseEnc     string                 `json:"userinfo_encrypted_response_enc,omitempty"`
@@ -128,8 +128,8 @@ type AppConfig struct {
 	RequestUris                      []string               `json:"request_uris,omitempty"`
 	RequireAuthTime                  bool                   `json:"require_auth_time,omitempty"`
 	BackchannelLogoutSessionRequired bool                   `json:"backchannel_logout_session_required,omitempty"`
-	TappId                           string                 `json:"tapp_id,omitempty"`
-	ClientGroupId                    string                 `json:"client_group_id,omitempty"`
+	TappID                           string                 `json:"tapp_id,omitempty"`
+	ClientGroupID                    string                 `json:"client_group_id,omitempty"`
 	LegalEntity                      string                 `json:"legal_entity,omitempty"`
 	Tenant                           string                 `json:"tenant,omitempty"`
 	DeviceCode                       bool                   `json:"device_code,omitempty"`
@@ -149,8 +149,8 @@ type AppConfig struct {
 	AllowGuestLogin                  bool                   `json:"allow_guest_login,omitempty"`
 	LoginSpi                         ILoginSPI              `json:"login_spi,omitempty"`
 	EnableLoginSpi                   bool                   `json:"enable_login_spi,omitempty"`
-	BackgroundUri                    string                 `json:"backgroundUri,omitempty"`
-	VideoUrl                         string                 `json:"videoUrl,omitempty"`
+	BackgroundURI                    string                 `json:"backgroundUri,omitempty"`
+	VideoURL                         string                 `json:"videoUrl,omitempty"`
 	BotCaptchaRef                    string                 `json:"bot_captcha_ref,omitempty"`
 	CreatedTime                      string                 `json:"createdTime,omitempty"`
 	UpdatedTime                      string                 `json:"UpdatedTime,omitempty"`
@@ -158,26 +158,26 @@ type AppConfig struct {
 }
 
 type IAllowedGroups struct {
-	Id           string   `json:"id,omitempty"`
-	SecondaryId  string   `json:"_id,omitempty"`
-	GroupId      string   `json:"groupId,omitempty"`
+	ID           string   `json:"id,omitempty"`
+	SecondaryID  string   `json:"_id,omitempty"`
+	GroupID      string   `json:"groupId,omitempty"`
 	Roles        []string `json:"roles,omitempty"`
 	DefaultRoles []string `json:"default_roles,omitempty"`
 }
 type ILoginSPI struct {
-	OauthClientId string `json:"oauth_client_id,omitempty"`
-	SpiUrl        string `json:"spi_url,omitempty"`
+	OauthClientID string `json:"oauth_client_id,omitempty"`
+	SpiURL        string `json:"spi_url,omitempty"`
 }
 type IAppMobileSettings struct {
-	Id          string `json:"id,omitempty"`
-	SecondaryId string `json:"_id,omitempty"`
-	TeamId      string `json:"teamId,omitempty"`
-	BundleId    string `json:"bundleId,omitempty"`
+	ID          string `json:"id,omitempty"`
+	SecondaryID string `json:"_id,omitempty"`
+	TeamID      string `json:"teamId,omitempty"`
+	BundleID    string `json:"bundleId,omitempty"`
 	PackageName string `json:"packageName,omitempty"`
 	KeyHash     string `json:"keyHash,omitempty"`
 }
 type IAppKeySettings struct {
-	Id           string      `json:"_id,omitempty"`
+	ID           string      `json:"_id,omitempty"`
 	KeyType      string      `json:"keyType,omitempty"`
 	PublicKey    string      `json:"publicKey,omitempty"`
 	PublicKeyJWK interface{} `json:"publicKeyJWK,omitempty"`
@@ -196,8 +196,8 @@ type IMfaOption struct {
 }
 
 type IPushConfig struct {
-	Id          string `json:"id,omitempty"`
-	SecondaryId string `json:"_id,omitempty"`
+	ID          string `json:"id,omitempty"`
+	SecondaryID string `json:"_id,omitempty"`
 	TenantKey   string `json:"tenantKey,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Vendor      string `json:"vendor,omitempty"`
@@ -212,11 +212,11 @@ type IPushConfig struct {
 
 type ISocialProviderData struct {
 	ProviderName string `json:"provider_name,omitempty"`
-	SocialId     string `json:"social_id,omitempty"`
+	SocialID     string `json:"social_id,omitempty"`
 	DisplayName  string `json:"display_name,omitempty"`
 }
 type IProviderMetadData struct {
-	LogoUrl      string `json:"logo_url,omitempty"`
+	LogoURL      string `json:"logo_url,omitempty"`
 	ProviderName string `json:"provider_name,omitempty"`
 	DisplayName  string `json:"display_name,omitempty"`
 	Type         string `json:"type,omitempty"`
@@ -229,6 +229,7 @@ func (c *Client) CreateApp(app AppConfig) (response *AppResponse, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -243,6 +244,7 @@ func (c *Client) UpdateApp(app AppConfig) (response *AppResponse, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -251,12 +253,13 @@ func (c *Client) UpdateApp(app AppConfig) (response *AppResponse, err error) {
 }
 
 func (c *Client) DeleteApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientId)
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientID)
 	c.HTTPClient.HTTPMethod = http.MethodDelete
 	res, err := c.HTTPClient.MakeRequest(app)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -265,12 +268,13 @@ func (c *Client) DeleteApp(app AppConfig) (response *AppResponse, err error) {
 }
 
 func (c *Client) GetApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientId)
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientID)
 	c.HTTPClient.HTTPMethod = http.MethodGet
 	res, err := c.HTTPClient.MakeRequest(app)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

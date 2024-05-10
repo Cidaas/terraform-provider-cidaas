@@ -45,6 +45,7 @@ func (c *Client) UpsertScope(sc Scope) (response *ScopeResponse, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -52,13 +53,14 @@ func (c *Client) UpsertScope(sc Scope) (response *ScopeResponse, err error) {
 	return response, nil
 }
 
-func (c *Client) GetScope(scope_key string) (response *ScopeResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s?scopekey=%s", c.Config.BaseURL, "scopes-srv/scope", strings.ToLower(scope_key))
+func (c *Client) GetScope(scopeKey string) (response *ScopeResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s?scopekey=%s", c.Config.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
 	c.HTTPClient.HTTPMethod = http.MethodGet
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -66,13 +68,14 @@ func (c *Client) GetScope(scope_key string) (response *ScopeResponse, err error)
 	return response, nil
 }
 
-func (c *Client) DeleteScope(scope_key string) (response *DeleteScopeResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "scopes-srv/scope", strings.ToLower(scope_key))
+func (c *Client) DeleteScope(scopeKey string) (response *DeleteScopeResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
 	c.HTTPClient.HTTPMethod = http.MethodDelete
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

@@ -7,7 +7,7 @@ import (
 )
 
 type ScopeGroupConfig struct {
-	//ID          string `json:"_id,omitempty"`
+	// ID          string `json:"_id,omitempty"`
 	GroupName   string `json:"group_name,omitempty"`
 	Description string `json:"description,omitempty"`
 }
@@ -25,6 +25,7 @@ func (c *Client) UpsertScopeGroup(scopeGroup ScopeGroupConfig) (response *ScopeG
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -39,6 +40,7 @@ func (c *Client) GetScopeGroup(scopeGroupName string) (response *ScopeGroupRespo
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -53,6 +55,7 @@ func (c *Client) DeleteScopeGroup(scopeGroup string) (response *DeleteScopeRespo
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

@@ -5,11 +5,16 @@ NAME=cidaas
 BINARY=terraform-provider-${NAME}
 VERSION=1.0.0
 OS_ARCH=linux_amd64
+GO_LINT ?= golangci-lint
+GO_LINT_CONFIG_PATH ?= ./golangci-config.yml
 
 default: install
 
 build:
 	go build -o ${BINARY}
+
+deps:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3
 
 release:
 	GOOS=darwin GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_darwin_amd64
@@ -30,9 +35,24 @@ install: build
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
-test:
-	go test -i $(TEST) || exit 1
-	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
+# test:
+# 	go test -i $(TEST) || exit 1
+# 	echo $(TEST) | xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+
+fmt:
+	@echo "==> Fixing source code with gofmt..."
+	gofmt -s -w ./internal
+
+fmtcheck: deps
+	@./scripts/gofmtcheck.sh
+	$(GO_LINT) run --config $(GO_LINT_CONFIG_PATH) $(GO_LINT_ARGS)
+
+test: fmtcheck
+	go test $(TEST) $(TESTARGS) -timeout=5m -parallel=4
+
+test-ci: fmtcheck
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html

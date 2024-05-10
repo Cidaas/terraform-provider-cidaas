@@ -13,20 +13,21 @@ type Scopes struct {
 }
 
 type ScopesChild struct {
-	ScopeName  string `json:"scope_name,omitempty"`
-	Required   bool   `json:"required,omitempty"`
-	Recommened bool   `json:"recommened,omitempty"`
+	ScopeName string `json:"scope_name,omitempty"`
+	Required  bool   `json:"required,omitempty"`
+	// golint ignored as the api definition has the wrong spelling of the same attribute
+	Recommended bool `json:"recommened,omitempty"` //nolint:misspell
 }
 type CustomProvider struct {
 	ID                    string                 `json:"_id,omitempty"`
-	ClientId              string                 `json:"client_id,omitempty"`
+	ClientID              string                 `json:"client_id,omitempty"`
 	ClientSecret          string                 `json:"client_secret,omitempty"`
 	DisplayName           string                 `json:"display_name,omitempty"`
 	StandardType          string                 `json:"standard_type,omitempty"`
 	AuthorizationEndpoint string                 `json:"authorization_endpoint,omitempty"`
 	TokenEndpoint         string                 `json:"token_endpoint,omitempty"`
 	ProviderName          string                 `json:"provider_name,omitempty"`
-	LogoUrl               string                 `json:"logo_url,omitempty"`
+	LogoURL               string                 `json:"logo_url,omitempty"`
 	UserinfoEndpoint      string                 `json:"userinfo_endpoint,omitempty"`
 	UserinfoFields        map[string]interface{} `json:"userinfo_fields,omitempty"`
 	Scopes                Scopes                 `json:"scopes,omitempty"`
@@ -46,7 +47,7 @@ type UserInfo struct {
 	Birthdate         string        `json:"birthdate,omitempty"`
 	Zoneinfo          string        `json:"zoneinfo,omitempty"`
 	Locale            string        `json:"locale,omitempty"`
-	Updated_at        string        `json:"updated_at,omitempty"`
+	UpdatedAt         string        `json:"updated_at,omitempty"`
 	Email             string        `json:"email,omitempty"`
 	EmailVerified     string        `json:"email_verified,omitempty"`
 	PhoneNumber       string        `json:"phone_number,omitempty"`
@@ -67,7 +68,7 @@ type CustomProviderResponse struct {
 }
 
 type CustomProviderConfigPayload struct {
-	ClientId    string `json:"client_id,omitempty"`
+	ClientID    string `json:"client_id,omitempty"`
 	Test        bool   `json:"deleted"`
 	Type        string `json:"type,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
@@ -88,6 +89,7 @@ func (c *Client) CreateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -102,6 +104,7 @@ func (c *Client) UpdateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -109,13 +112,14 @@ func (c *Client) UpdateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	return response, nil
 }
 
-func (c *Client) GetCustomProvider(provider_name string) (response *CustomProviderResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "providers-srv/custom", provider_name)
+func (c *Client) GetCustomProvider(providerName string) (response *CustomProviderResponse, err error) {
+	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "providers-srv/custom", providerName)
 	c.HTTPClient.HTTPMethod = http.MethodGet
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -130,6 +134,7 @@ func (c *Client) DeleteCustomProvider(provider string) (response *CustomProvider
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
@@ -144,6 +149,7 @@ func (c *Client) ConfigureCustomProvider(cp CustomProviderConfigPayload) (respon
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)

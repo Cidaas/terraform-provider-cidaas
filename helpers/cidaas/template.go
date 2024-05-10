@@ -18,7 +18,7 @@ type Template struct {
 	TemplateOwner string `json:"templateOwner,omitempty"`
 	UsageType     string `json:"usageType,omitempty"`
 	Language      string `json:"language,omitempty"`
-	GroupId       string `json:"group_id,omitempty"`
+	GroupID       string `json:"group_id,omitempty"`
 }
 
 type TemplateResponse struct {
@@ -81,19 +81,20 @@ func (c *Client) GetTemplate(template Template) (response *TemplateResponse, err
 func (c *Client) DeleteTemplate(template Template) error {
 	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s/%s", c.Config.BaseURL, "templates-srv/template/custom", strings.ToUpper(template.TemplateKey), strings.ToUpper(template.TemplateType))
 	c.HTTPClient.HTTPMethod = http.MethodDelete
-	_, err := c.HTTPClient.MakeRequest(nil)
+	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	return nil
 }
 
 func PrepareTemplate(id string) (template Template) {
-	split_id := strings.Split(id, "_")
+	splitID := strings.Split(id, "_")
 
-	template.TemplateKey = strings.TrimSuffix(id, fmt.Sprintf("_%s_%s", split_id[len(split_id)-2], split_id[len(split_id)-1]))
-	template.TemplateType = split_id[len(split_id)-2]
-	template.Locale = split_id[len(split_id)-1]
+	template.TemplateKey = strings.TrimSuffix(id, fmt.Sprintf("_%s_%s", splitID[len(splitID)-2], splitID[len(splitID)-1]))
+	template.TemplateType = splitID[len(splitID)-2]
+	template.Locale = splitID[len(splitID)-1]
 
 	return template
 }
