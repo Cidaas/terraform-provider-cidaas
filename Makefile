@@ -57,4 +57,4 @@ test: fmtcheck
 test-ci:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m -coverprofile .coverage.txt ./...
 	go tool cover -func .coverage.txt
-	go tool cover -html=coverage.out -o coverage.html
+	go tool cover -html=coverage.txt -o coverage.html
