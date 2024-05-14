@@ -18,7 +18,7 @@ type cidaasProvider struct {
 	version string
 }
 
-type ProviderModel struct {
+type Model struct {
 	BaseURL types.String `tfsdk:"base_url"`
 }
 
@@ -59,7 +59,7 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 }
 
 func (p *cidaasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data ProviderModel
+	var data Model
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 

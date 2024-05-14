@@ -6,17 +6,19 @@ import (
 	"net/http"
 )
 
-var AllowedAuthType = []string{"APIKEY", "TOTP", "CIDAAS_OAUTH2"}
-var AllowedKeyPlacementValue = []string{"query", "header"}
+var (
+	AllowedAuthType          = []string{"APIKEY", "TOTP", "CIDAAS_OAUTH2"}
+	AllowedKeyPlacementValue = []string{"query", "header"}
+)
 
 type WebhookRequestPayload struct {
-	AuthType          string            `json:"auth_type,omitempty"`
-	URL               string            `json:"url,omitempty"`
-	Events            []string          `json:"events,omitempty"`
-	ID                string            `json:"_id,omitempty"`
-	APIKeyDetails     APIKeyDetails     `json:"apikeyDetails,omitempty"`
-	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
-	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
+	AuthType          string        `json:"auth_type,omitempty"`
+	URL               string        `json:"url,omitempty"`
+	Events            []string      `json:"events,omitempty"`
+	ID                string        `json:"_id,omitempty"`
+	APIKeyDetails     APIKeyDetails `json:"apikeyDetails,omitempty"`
+	TotpDetails       TotpDetails   `json:"totpDetails,omitempty"`
+	CidaasAuthDetails AuthDetails   `json:"cidaasAuthDetails,omitempty"`
 }
 
 type APIKeyDetails struct {
@@ -33,14 +35,14 @@ type WebhookResponse struct {
 }
 
 type ResponseData struct {
-	ID                string            `json:"_id,omitempty"`
-	AuthType          string            `json:"auth_type,omitempty"`
-	URL               string            `json:"url,omitempty"`
-	Events            []string          `json:"events,omitempty"`
-	APIKeyDetails     APIKeyDetails     `json:"apikeyDetails,omitempty"`
-	Disable           bool              `json:"disable,omitempty"`
-	TotpDetails       TotpDetails       `json:"totpDetails,omitempty"`
-	CidaasAuthDetails CidaasAuthDetails `json:"cidaasAuthDetails,omitempty"`
+	ID                string        `json:"_id,omitempty"`
+	AuthType          string        `json:"auth_type,omitempty"`
+	URL               string        `json:"url,omitempty"`
+	Events            []string      `json:"events,omitempty"`
+	APIKeyDetails     APIKeyDetails `json:"apikeyDetails,omitempty"`
+	Disable           bool          `json:"disable,omitempty"`
+	TotpDetails       TotpDetails   `json:"totpDetails,omitempty"`
+	CidaasAuthDetails AuthDetails   `json:"cidaasAuthDetails,omitempty"`
 }
 
 type TotpDetails struct {
@@ -48,7 +50,7 @@ type TotpDetails struct {
 	TotpPlacement   string `json:"totp_placement,omitempty"`
 	TotpKey         string `json:"totpkey,omitempty"`
 }
-type CidaasAuthDetails struct {
+type AuthDetails struct {
 	ClientID string `json:"client_id,omitempty"`
 }
 
@@ -62,7 +64,7 @@ func (c *Client) CreateOrUpdateWebhook(wb *WebhookRequestPayload) (response *Web
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -77,7 +79,7 @@ func (c *Client) GetWebhook(id string) (response *WebhookResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -92,7 +94,7 @@ func (c *Client) DeleteWebhook(id string) (response *WebhookResponse, err error)
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }

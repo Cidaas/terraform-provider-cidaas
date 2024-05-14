@@ -93,7 +93,7 @@ type AppConfig struct {
 	AllowGuestLoginGroups            []IAllowedGroups       `json:"allow_guest_login_groups,omitempty"`
 	IsLoginSuccessPageEnabled        bool                   `json:"is_login_success_page_enabled,omitempty"`
 	IsRegisterSuccessPageEnabled     bool                   `json:"is_register_success_page_enabled,omitempty"`
-	GroupIds                         []string               `json:"groupIds,omitempty"`
+	GroupIDs                         []string               `json:"groupIds,omitempty"`
 	AdminClient                      bool                   `json:"adminClient,omitempty"`
 	IsGroupLoginSelectionEnabled     bool                   `json:"isGroupLoginSelectionEnabled,omitempty"`
 	GroupSelection                   IGroupSelection        `json:"groupSelection,omitempty"`
@@ -232,7 +232,7 @@ func (c *Client) CreateApp(app AppConfig) (response *AppResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -247,7 +247,7 @@ func (c *Client) UpdateApp(app AppConfig) (response *AppResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -262,7 +262,7 @@ func (c *Client) DeleteApp(app AppConfig) (response *AppResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -277,7 +277,7 @@ func (c *Client) GetApp(app AppConfig) (response *AppResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }

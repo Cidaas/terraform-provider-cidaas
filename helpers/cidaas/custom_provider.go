@@ -92,7 +92,7 @@ func (c *Client) CreateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -107,7 +107,7 @@ func (c *Client) UpdateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -122,7 +122,7 @@ func (c *Client) GetCustomProvider(providerName string) (response *CustomProvide
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -137,7 +137,7 @@ func (c *Client) DeleteCustomProvider(provider string) (response *CustomProvider
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -152,7 +152,7 @@ func (c *Client) ConfigureCustomProvider(cp CustomProviderConfigPayload) (respon
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }

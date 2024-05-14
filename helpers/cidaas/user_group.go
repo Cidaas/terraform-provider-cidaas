@@ -44,7 +44,7 @@ func (c *Client) CreateUserGroup(ug UserGroup) (response *UserGroupResponse, err
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -59,7 +59,7 @@ func (c *Client) GetUserGroup(groupID string) (response *UserGroupResponse, err 
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -74,7 +74,7 @@ func (c *Client) UpdateUserGroup(ug UserGroup) (response *UserGroupResponse, err
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -89,7 +89,7 @@ func (c *Client) DeleteUserGroup(groupID string) (response *DeleteUserGroupRespo
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }

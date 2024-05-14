@@ -45,7 +45,7 @@ func (c *Role) UpsertRole(role RoleModel) (*RoleResponse, error) {
 	var response RoleResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode response body, %v", err)
+		return nil, fmt.Errorf("failed to decode response body, %w", err)
 	}
 	return &response, nil
 }
@@ -61,7 +61,7 @@ func (c *Role) GetRole(role string) (*RoleResponse, error) {
 	var response RoleResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode response body, %v", err)
+		return nil, fmt.Errorf("failed to decode response body, %w", err)
 	}
 	return &response, nil
 }

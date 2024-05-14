@@ -48,7 +48,7 @@ func (c *Client) UpsertScope(sc Scope) (response *ScopeResponse, err error) {
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -63,7 +63,7 @@ func (c *Client) GetScope(scopeKey string) (response *ScopeResponse, err error) 
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
@@ -78,7 +78,7 @@ func (c *Client) DeleteScope(scopeKey string) (response *DeleteScopeResponse, er
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %v", err)
+		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }

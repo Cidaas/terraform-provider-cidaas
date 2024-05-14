@@ -30,7 +30,7 @@ func (r *RoleResource) Metadata(_ context.Context, req resource.MetadataRequest,
 	resp.TypeName = req.ProviderTypeName + "_role"
 }
 
-func (r *RoleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RoleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
