@@ -7,6 +7,7 @@ VERSION=1.0.0
 OS_ARCH=linux_amd64
 GO_LINT ?= golangci-lint
 GO_LINT_CONFIG_PATH ?= ./golangci-config.yml
+TEST?=./internal/...
 
 default: install
 
@@ -54,5 +55,5 @@ test: fmtcheck
 	go test $(TEST) $(TESTARGS) -timeout=5m -parallel=4
 
 test-ci: fmtcheck
-	go test -coverprofile=coverage.out ./...
+	TF_ACC=1 go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html

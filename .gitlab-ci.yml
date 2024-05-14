@@ -1,0 +1,26 @@
+include:
+  - project: "widas/software-quality/gitlab-template-projects/widas-customer-ci-templates"
+    file: "golang/go-lib.yml"
+
+stages:
+  - prepare
+  - test
+  - release
+
+# the parent job uses old image 1.19. update
+test:
+  extends: .test
+
+acceptance_test:
+  image: golang:1.21.0
+  stage: test
+  before_script:
+    - echo "machine gitlab.widas.de login $GITLAB_LOGIN password $GITLAB_TOKEN" > ~/.netrc
+  script:
+    - make testacc
+    - COVERAGE=$(cat .coverage.out | grep -P '\d+\.\d+(?=%)' -o | tail -1)
+    - if awk "BEGIN {exit !($COVERAGE < $MIN_COVERAGE)}"; then echo "coverage [$COVERAGE%] doesn't meet the minimum requirement of [$MIN_COVERAGE%]" && exit 1; fi
+  coverage: '/total:\s+\(statements\)\s+(\d+(?:\.\d+)?%)/'
+  artifacts:
+    paths:
+      - coverage.html
