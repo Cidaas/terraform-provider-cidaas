@@ -1,17 +1,18 @@
-package provider
+package resources_test
 
 import (
 	"fmt"
 	"testing"
 
+	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccRoleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -42,12 +43,12 @@ func TestAccRoleResource(t *testing.T) {
 }
 
 func TestAccRoleResource_Validation(t *testing.T) {
-	roleName := RandString(16)
-	description := RandString(16)
-	description2 := RandString(16)
+	roleName := acctest.RandString(16)
+	description := acctest.RandString(16)
+	description2 := acctest.RandString(16)
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				Config: testAccExampleResourceConfig(roleName, description),

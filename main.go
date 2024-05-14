@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Cidaas/terraform-provider-cidaas/internal/provider"
+	provider "github.com/Cidaas/terraform-provider-cidaas/internal"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -25,7 +25,7 @@ func main() {
 		Debug:   debug,
 	}
 
-	err := providerserver.Serve(context.Background(), provider.Provider("1.0.0"), opts)
+	err := providerserver.Serve(context.Background(), provider.Cidaas("1.0.0"), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())

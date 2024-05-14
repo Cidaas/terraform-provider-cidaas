@@ -1,17 +1,18 @@
-package provider
+package datasources_test
 
 import (
 	"fmt"
 	"testing"
 
+	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func TestAccRoleDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
@@ -40,8 +41,8 @@ data "cidaas_role" "example" {
 
 func TestAccRoleDataSourceExample(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				Config: testAccExampleDataSourceConfig,

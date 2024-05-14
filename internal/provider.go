@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	cidaasDataSources "github.com/Cidaas/terraform-provider-cidaas/internal/datasources"
+	cidaasResource "github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -22,7 +24,7 @@ type Model struct {
 	BaseURL types.String `tfsdk:"base_url"`
 }
 
-func Provider(version string) func() provider.Provider {
+func Cidaas(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &cidaasProvider{
 			version: version,
@@ -48,13 +50,13 @@ func (p *cidaasProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 
 func (p *cidaasProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewRoleDataSource,
+		cidaasDataSources.NewRoleDataSource,
 	}
 }
 
 func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		NewRoleResource,
+		cidaasResource.NewRoleResource,
 	}
 }
 
