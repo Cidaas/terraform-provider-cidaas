@@ -15,6 +15,7 @@ acceptance_test:
   script:
     - export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID=$CI_ID TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET=$CI_SECRET
     - make test-ci
+  coverage: '/total:\s+\(statements\)\s+(\d+(?:\.\d+)?%)/'
   artifacts:
     paths:
       - coverage.html
