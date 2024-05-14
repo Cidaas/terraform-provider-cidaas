@@ -36,7 +36,7 @@ func TestAccPreCheck(t *testing.T) {
 
 // RandString generates a random string with the given length.
 func RandString(length int) string {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec
 	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
 
 	b := make([]byte, length)

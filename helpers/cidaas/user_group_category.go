@@ -64,6 +64,7 @@ func (c *Client) UpdateUserGroupCategory(ugc UserGroupCategory) (response *UserG
 	}
 	return response, nil
 }
+
 func (c *Client) DeleteUserGroupCategory(groupType string) (response *UserGroupCategoryResponse, err error) {
 	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "groups-srv/grouptypes", groupType)
 	c.HTTPClient.HTTPMethod = http.MethodDelete

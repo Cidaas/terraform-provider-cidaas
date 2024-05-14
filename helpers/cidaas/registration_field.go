@@ -104,7 +104,6 @@ func (c *Client) GetRegistrationField(key string) (response *GetRegistrationFiel
 		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
-
 }
 
 func (c *Client) DeleteRegistrationField(key string) (response *RegistrationFieldResponse, err error) {

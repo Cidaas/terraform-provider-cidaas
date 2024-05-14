@@ -7,6 +7,7 @@ import (
 
 func InterfaceArray2StringArray(interfaceArray []interface{}) []string {
 	result := make([]string, 0)
+	//nolint:forcetypeassert
 	for _, txt := range interfaceArray {
 		if txt != nil {
 			result = append(result, txt.(string))

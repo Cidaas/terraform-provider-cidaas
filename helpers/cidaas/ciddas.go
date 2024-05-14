@@ -40,7 +40,6 @@ func NewClient(config ClientConfig) (*Client, error) {
 	res, err := httpClient.MakeRequest(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token %s", err.Error())
-
 	}
 	defer res.Body.Close()
 	var response TokenResponse
