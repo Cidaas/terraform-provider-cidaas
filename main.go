@@ -26,7 +26,6 @@ func main() {
 	}
 
 	err := providerserver.Serve(context.Background(), provider.Cidaas("1.0.0"), opts)
-
 	if err != nil {
 		log.Fatal(err.Error())
 	}

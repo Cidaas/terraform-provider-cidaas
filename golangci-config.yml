@@ -1,25 +1,33 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
 run:
   timeout: 10m
   tests: true
 
 linters:
   enable:
-  - errcheck
-  - govet
-  - ineffassign
-  - unused
-  - bodyclose
-  - gocritic
-  - misspell
-  - unconvert
-  - staticcheck
-  - gosimple
-  - stylecheck
-  - goimports
-  - depguard
+    - errcheck
+    - govet
+    - ineffassign
+    - unused
+    - bodyclose
+    - gocritic
+    - misspell
+    - unconvert
+    - staticcheck
+    - gosimple
+    - stylecheck
+    - goimports
+    - depguard
+    - gofumpt
+    - asciicheck
+    - dupl
+    - durationcheck
+    - errorlint
+    - forcetypeassert
+    - goconst
+    - goimports
+    - gosec
+    - mirror
+    - revive
 
 linters-settings:
   depguard:
@@ -34,15 +42,14 @@ linters-settings:
 
 issues:
   exclude:
-  - ifElseChain
+    - ifElseChain
   exclude-rules:
-  - path: _test\.go
-    linters:
-    - bodyclose
-  - text: "SA1019: package github.com/golang/protobuf"
-    linters:
-      - staticcheck
-  - text: "SA1019: d.GetOkExists"
-    linters:
-      - staticcheck
-    
+    - path: _test\.go
+      linters:
+        - bodyclose
+    - text: "SA1019: package github.com/golang/protobuf"
+      linters:
+        - staticcheck
+    - text: "SA1019: d.GetOkExists"
+      linters:
+        - staticcheck
