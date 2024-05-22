@@ -5,66 +5,41 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
 
 type Scopes struct {
-	DisplayLabel string        `json:"display_label,omitempty"`
-	Scopes       []ScopesChild `json:"scopes,omitempty"`
+	DisplayLabel string       `json:"display_label,omitempty"`
+	Scopes       []ScopeChild `json:"scopes,omitempty"`
 }
 
-type ScopesChild struct {
+type ScopeChild struct {
 	ScopeName string `json:"scope_name,omitempty"`
 	Required  bool   `json:"required,omitempty"`
 	// golint ignored as the api definition has the wrong spelling of the same attribute
 	Recommended bool `json:"recommened,omitempty"` //nolint:misspell
 }
-type CustomProvider struct {
-	ID                    string                 `json:"_id,omitempty"`
-	ClientID              string                 `json:"client_id,omitempty"`
-	ClientSecret          string                 `json:"client_secret,omitempty"`
-	DisplayName           string                 `json:"display_name,omitempty"`
-	StandardType          string                 `json:"standard_type,omitempty"`
-	AuthorizationEndpoint string                 `json:"authorization_endpoint,omitempty"`
-	TokenEndpoint         string                 `json:"token_endpoint,omitempty"`
-	ProviderName          string                 `json:"provider_name,omitempty"`
-	LogoURL               string                 `json:"logo_url,omitempty"`
-	UserinfoEndpoint      string                 `json:"userinfo_endpoint,omitempty"`
-	UserinfoFields        map[string]interface{} `json:"userinfo_fields,omitempty"`
-	Scopes                Scopes                 `json:"scopes,omitempty"`
+type CustomProviderModel struct {
+	ID                    string            `json:"_id,omitempty"`
+	ClientID              string            `json:"client_id,omitempty"`
+	ClientSecret          string            `json:"client_secret,omitempty"`
+	DisplayName           string            `json:"display_name,omitempty"`
+	StandardType          string            `json:"standard_type,omitempty"`
+	AuthorizationEndpoint string            `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint         string            `json:"token_endpoint,omitempty"`
+	ProviderName          string            `json:"provider_name,omitempty"`
+	LogoURL               string            `json:"logo_url,omitempty"`
+	UserinfoEndpoint      string            `json:"userinfo_endpoint,omitempty"`
+	UserinfoFields        map[string]string `json:"userinfo_fields,omitempty"`
+	Scopes                Scopes            `json:"scopes,omitempty"`
+	Domains               []string          `json:"domains,omitempty"`
 }
 
-type UserInfo struct {
-	Name              string        `json:"name,omitempty"`
-	FamilyName        string        `json:"family_name,omitempty"`
-	GivenName         string        `json:"given_name,omitempty"`
-	MiddleName        string        `json:"middle_name,omitempty"`
-	Nickname          string        `json:"nickname,omitempty"`
-	PreferredUsername string        `json:"preferred_username,omitempty"`
-	Profile           string        `json:"profile,omitempty"`
-	Picture           string        `json:"picture,omitempty"`
-	Website           string        `json:"website,omitempty"`
-	Gender            string        `json:"gender,omitempty"`
-	Birthdate         string        `json:"birthdate,omitempty"`
-	Zoneinfo          string        `json:"zoneinfo,omitempty"`
-	Locale            string        `json:"locale,omitempty"`
-	UpdatedAt         string        `json:"updated_at,omitempty"`
-	Email             string        `json:"email,omitempty"`
-	EmailVerified     string        `json:"email_verified,omitempty"`
-	PhoneNumber       string        `json:"phone_number,omitempty"`
-	MobileNumber      string        `json:"mobile_number,omitempty"`
-	Address           string        `json:"address,omitempty"`
-	Sub               string        `json:"sub,omitempty"`
-	CustomFields      []interface{} `json:"custom_fields,omitempty"`
-}
-
-type CustomFields struct {
-	Key   string `json:"key,omitempty"`
-	Value string `json:"value,omitempty"`
-}
 type CustomProviderResponse struct {
-	Success bool           `json:"success,omitempty"`
-	Status  int            `json:"status,omitempty"`
-	Data    CustomProvider `json:"data,omitempty"`
+	Success bool                `json:"success,omitempty"`
+	Status  int                 `json:"status,omitempty"`
+	Data    CustomProviderModel `json:"data,omitempty"`
 }
 
 type CustomProviderConfigPayload struct {
@@ -82,9 +57,24 @@ type CustomProviderConfigureResponse struct {
 	} `json:"data,omitempty"`
 }
 
-func (c *Client) CreateCustomProvider(cp *CustomProvider) (response *CustomProviderResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s", c.Config.BaseURL, "providers-srv/custom")
-	c.HTTPClient.HTTPMethod = http.MethodPost
+type CustomProvider struct {
+	HTTPClient util.HTTPClientInterface
+}
+type CustomProvideService interface {
+	CreateCustomProvider(cp *CustomProviderModel) (response *CustomProviderResponse, err error)
+	UpdateCustomProvider(cp *CustomProviderModel) (response *CustomProviderResponse, err error)
+	GetCustomProvider(providerName string) (response *CustomProviderResponse, err error)
+	DeleteCustomProvider(provider string) (response *CustomProviderResponse, err error)
+	ConfigureCustomProvider(cp CustomProviderConfigPayload) (response *CustomProviderConfigureResponse, err error)
+}
+
+func NewCustomProvider(httpClient util.HTTPClientInterface) CustomProvideService {
+	return &CustomProvider{HTTPClient: httpClient}
+}
+
+func (c *CustomProvider) CreateCustomProvider(cp *CustomProviderModel) (response *CustomProviderResponse, err error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom"))
+	c.HTTPClient.SetMethod(http.MethodPost)
 	res, err := c.HTTPClient.MakeRequest(cp)
 	if err != nil {
 		return nil, err
@@ -97,9 +87,9 @@ func (c *Client) CreateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	return response, nil
 }
 
-func (c *Client) UpdateCustomProvider(cp *CustomProvider) (response *CustomProviderResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s", c.Config.BaseURL, "providers-srv/custom")
-	c.HTTPClient.HTTPMethod = http.MethodPut
+func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) (response *CustomProviderResponse, err error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom"))
+	c.HTTPClient.SetMethod(http.MethodPut)
 	res, err := c.HTTPClient.MakeRequest(cp)
 	if err != nil {
 		return nil, err
@@ -112,9 +102,9 @@ func (c *Client) UpdateCustomProvider(cp *CustomProvider) (response *CustomProvi
 	return response, nil
 }
 
-func (c *Client) GetCustomProvider(providerName string) (response *CustomProviderResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "providers-srv/custom", providerName)
-	c.HTTPClient.HTTPMethod = http.MethodGet
+func (c *CustomProvider) GetCustomProvider(providerName string) (response *CustomProviderResponse, err error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom", providerName))
+	c.HTTPClient.SetMethod(http.MethodGet)
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
@@ -127,9 +117,9 @@ func (c *Client) GetCustomProvider(providerName string) (response *CustomProvide
 	return response, nil
 }
 
-func (c *Client) DeleteCustomProvider(provider string) (response *CustomProviderResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "providers-srv/custom", strings.ToLower(provider))
-	c.HTTPClient.HTTPMethod = http.MethodDelete
+func (c *CustomProvider) DeleteCustomProvider(provider string) (response *CustomProviderResponse, err error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom", strings.ToLower(provider)))
+	c.HTTPClient.SetMethod(http.MethodDelete)
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
@@ -142,9 +132,9 @@ func (c *Client) DeleteCustomProvider(provider string) (response *CustomProvider
 	return response, nil
 }
 
-func (c *Client) ConfigureCustomProvider(cp CustomProviderConfigPayload) (response *CustomProviderConfigureResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/loginproviders/update", cp.DisplayName)
-	c.HTTPClient.HTTPMethod = http.MethodPut
+func (c *CustomProvider) ConfigureCustomProvider(cp CustomProviderConfigPayload) (response *CustomProviderConfigureResponse, err error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "apps-srv/loginproviders/update", cp.DisplayName))
+	c.HTTPClient.SetMethod(http.MethodPut)
 	res, err := c.HTTPClient.MakeRequest(cp)
 	if err != nil {
 		return nil, err

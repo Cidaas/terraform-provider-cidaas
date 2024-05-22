@@ -11,9 +11,10 @@ import (
 )
 
 type Client struct {
-	Config     ClientConfig
-	Role       RoleService
-	HTTPClient util.HTTPClient
+	Config         ClientConfig
+	Role           RoleService
+	CustomProvider CustomProvideService
+	HTTPClient     util.HTTPClient
 }
 
 type ClientConfig struct {
@@ -50,8 +51,9 @@ func NewClient(config ClientConfig) (*Client, error) {
 	host := re.ReplaceAllString(config.BaseURL, "")
 	ht := util.HTTPClient{Token: response.AccessToken, Host: host}
 	client := &Client{
-		Config: config,
-		Role:   NewRole(&ht),
+		Config:         config,
+		Role:           NewRole(&ht),
+		CustomProvider: NewCustomProvider(&ht),
 	}
 	return client, nil
 }

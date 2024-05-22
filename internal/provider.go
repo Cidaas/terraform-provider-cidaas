@@ -57,6 +57,7 @@ func (p *cidaasProvider) DataSources(_ context.Context) []func() datasource.Data
 func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		cidaasResource.NewRoleResource,
+		cidaasResource.NewCustomProvider,
 	}
 }
 
