@@ -344,6 +344,11 @@ func resourceApp() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"is_provider_visible": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 					},
 				},
 			},
@@ -368,6 +373,11 @@ func resourceApp() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"is_provider_visible": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 					},
 				},
 			},
@@ -391,6 +401,11 @@ func resourceApp() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+						"is_provider_visible": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 					},
 				},
