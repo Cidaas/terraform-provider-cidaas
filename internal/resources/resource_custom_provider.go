@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -37,7 +39,7 @@ type ProviderConfig struct {
 	Domains               types.Set    `tfsdk:"domains"`
 	// Scopes                []Scope       `tfsdk:"scopes"`
 	// UserinfoFields        UserInfoField `tfsdk:"userinfo_fields"`
-	Scopes         types.Set    `tfsdk:"scopes"`
+	Scopes         types.List   `tfsdk:"scopes"`
 	UserinfoFields types.Object `tfsdk:"userinfo_fields"`
 	scopes         []*Scope
 	userinfoFields *UserInfoField
@@ -114,6 +116,9 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"provider_name": schema.StringAttribute{
 				Required: true,
@@ -136,9 +141,6 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"client_secret": schema.StringAttribute{
 				Required:  true,
 				Sensitive: true,
-				// PlanModifiers: []planmodifier.String{
-				// 	stringplanmodifier.UseStateForUnknown(),
-				// },
 			},
 			"authorization_endpoint": schema.StringAttribute{
 				Required: true,
@@ -167,7 +169,8 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 					),
 				},
 			},
-			"scopes": schema.SetNestedAttribute{
+			// In plan Set deletes an existing record and create a whole new one, so preferred list. However, to allow only unique values use set
+			"scopes": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"scope_name": schema.StringAttribute{
@@ -188,8 +191,7 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Required: true,
 			},
 			"userinfo_fields": schema.SingleNestedAttribute{
-				Description: "A binding associates a set of principals to a role.",
-				Optional:    true,
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						Optional: true,
@@ -269,28 +271,25 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 	var plan ProviderConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
-	customProvider := prepareCpRequestPayload(plan)
-	resp.Diagnostics.Append(plan.Domains.ElementsAs(ctx, &customProvider.Domains, false)...)
-	// customFields can be unmarshalled the below way but we need to add cusomFields prefix to all the key so done separately
-	// resp.Diagnostics.Append(plan.UserinfoFields.CustomFields.ElementsAs(ctx, &customProvider.UserinfoFields.CustomFields, false)...)
-
+	customProvider, d := prepareCpRequestPayload(ctx, plan)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(customProvider)
 	if err != nil {
-		// move fmt.Sprintf("Error: %s", err.Error()) in all to a util function
+		// TODO: move fmt.Sprintf("Error: %s", err.Error()) in all to a util function
 		resp.Diagnostics.AddError("failed to create custom provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ProviderName)
+	plan.ID = types.StringValue(res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(state.ID.ValueString())
+	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(state.ProviderName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read custom provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -302,7 +301,7 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.DisplayName = types.StringValue(res.Data.DisplayName)
 	state.LogoURL = types.StringValue(res.Data.LogoURL)
 	state.UserinfoEndpoint = types.StringValue(res.Data.UserinfoEndpoint)
-	state.ID = types.StringValue(res.Data.ProviderName)
+	state.ID = types.StringValue(res.Data.ID)
 	state.ScopeDisplayLabel = types.StringValue(res.Data.Scopes.DisplayLabel)
 	state.ClientID = types.StringValue(res.Data.ClientID)
 	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
@@ -314,13 +313,6 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// alternate way to assign the domains without diag
-	// state.Domains = types.SetValueMust(state.Domains.ElementType(ctx), []attr.Value{
-	//  run a for loop here
-	// 	types.StringValue(res.Data.Domains[0]),
-	// 	types.StringValue(res.Data.Domains[1]),
-	// })
 
 	var objectValues []attr.Value
 	scopeObjectType := types.ObjectType{
@@ -340,7 +332,7 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		objectValues = append(objectValues, objValue)
 	}
 
-	state.Scopes, d = types.SetValueFrom(ctx, scopeObjectType, objectValues)
+	state.Scopes, d = types.ListValueFrom(ctx, scopeObjectType, objectValues)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,12 +362,29 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 
 func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state ProviderConfig
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.extract(ctx)...)
+
+	if !plan.ProviderName.Equal(state.ProviderName) {
+		resp.Diagnostics.AddError("Unexpected Resource Configuration",
+			fmt.Sprintf("Attribute provider_name can't be modified. Expected %s, got: %s", state.ProviderName, plan.ProviderName))
+		return
+	}
+
+	customProvider, d := prepareCpRequestPayload(ctx, plan)
+	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	customProvider.ID = state.ID.ValueString()
+	res, err := r.cidaasClient.CustomProvider.UpdateCustomProvider(customProvider)
+	if err != nil {
+		resp.Diagnostics.AddError("failed to update custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		return
+	}
+	plan.ID = types.StringValue(res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -385,13 +394,18 @@ func (r *CustomProvider) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	err := r.cidaasClient.CustomProvider.DeleteCustomProvider(state.ProviderName.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("failed to delete custom provier", fmt.Sprintf("Error: %s", err.Error()))
+		return
+	}
 }
 
 func (r *CustomProvider) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("provider_name"), req, resp)
 }
 
-func prepareCpRequestPayload(pc ProviderConfig) *cidaas.CustomProviderModel {
+func prepareCpRequestPayload(ctx context.Context, pc ProviderConfig) (*cidaas.CustomProviderModel, diag.Diagnostics) {
 	var cp cidaas.CustomProviderModel
 
 	cp.StandardType = pc.StandardType.ValueString()
@@ -404,10 +418,10 @@ func prepareCpRequestPayload(pc ProviderConfig) *cidaas.CustomProviderModel {
 	cp.ClientID = pc.ClientID.ValueString()
 	cp.ClientSecret = pc.ClientSecret.ValueString()
 
-	if !pc.ID.IsNull() {
-		cp.ID = pc.ID.ValueString()
+	diag := pc.Domains.ElementsAs(ctx, &cp.Domains, false)
+	if diag.HasError() {
+		return nil, diag
 	}
-
 	var childScopes []cidaas.ScopeChild
 	for _, v := range pc.scopes {
 		childScopes = append(childScopes, cidaas.ScopeChild{
@@ -442,10 +456,14 @@ func prepareCpRequestPayload(pc ProviderConfig) *cidaas.CustomProviderModel {
 	userInfoFields["address"] = pc.userinfoFields.Address.ValueString()
 	userInfoFields["sub"] = pc.userinfoFields.Sub.ValueString()
 
-	for k, v := range pc.userinfoFields.CustomFields.Elements() {
-		userInfoFields["customFields."+k] = v.String()
+	var cfMap map[string]string
+	diag = pc.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
+	if diag.HasError() {
+		return nil, diag
 	}
-
+	for k, v := range cfMap {
+		userInfoFields["customFields."+k] = v
+	}
 	cp.UserinfoFields = userInfoFields
-	return &cp
+	return &cp, nil
 }
