@@ -216,10 +216,11 @@ type ISocialProviderData struct {
 	DisplayName  string `json:"display_name,omitempty"`
 }
 type IProviderMetadData struct {
-	LogoUrl      string `json:"logo_url,omitempty"`
-	ProviderName string `json:"provider_name,omitempty"`
-	DisplayName  string `json:"display_name,omitempty"`
-	Type         string `json:"type,omitempty"`
+	LogoUrl           string `json:"logo_url,omitempty"`
+	ProviderName      string `json:"provider_name,omitempty"`
+	DisplayName       string `json:"display_name,omitempty"`
+	Type              string `json:"type,omitempty"`
+	IsProviderVisible bool   `json:"isProviderVisible"`
 }
 
 func (c *CidaasClient) CreateApp(app AppConfig) (response *AppResponse, err error) {
@@ -315,10 +316,11 @@ func SerializeProviders(providers []interface{}) (resp []IProviderMetadData) {
 	for _, v := range providers {
 		if m, ok := v.(map[string]interface{}); ok {
 			resp = append(resp, IProviderMetadData{
-				LogoUrl:      m["logo_url"].(string),
-				ProviderName: m["provider_name"].(string),
-				DisplayName:  m["display_name"].(string),
-				Type:         m["type"].(string),
+				LogoUrl:           m["logo_url"].(string),
+				ProviderName:      m["provider_name"].(string),
+				DisplayName:       m["display_name"].(string),
+				Type:              m["type"].(string),
+				IsProviderVisible: m["is_provider_visible"].(bool),
 			})
 		}
 	}
@@ -451,6 +453,7 @@ func FlattenProviders(pmds *[]IProviderMetadData) []interface{} {
 			temp["provider_name"] = pmd.ProviderName
 			temp["display_name"] = pmd.DisplayName
 			temp["type"] = pmd.Type
+			temp["is_provider_visible"] = pmd.IsProviderVisible
 			result[i] = temp
 		}
 		return result
