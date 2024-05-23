@@ -10,31 +10,36 @@ import (
 )
 
 func TestAccRoleResource(t *testing.T) {
+	resourceName := "cidaas_role.example"
+	role := "terraform_admin_role"
+	name := "Test Terraform Admin Role"
+	description := "This is a test terraform admin role"
+	updatedDescription := "This is a test terraform admin updated role"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccExampleResourceConfig("terraform-acceptance-test-role", "terraform-acceptance-test-role-desciption"),
+				Config: testAccRoleResourceConfig(role, name, description),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("cidaas_role.example", "name", "terraform-acceptance-test-role-name"),
-					resource.TestCheckResourceAttr("cidaas_role.example", "role", "terraform-acceptance-test-role"),
-					resource.TestCheckResourceAttr("cidaas_role.example", "description", "terraform-acceptance-test-role-desciption"),
-					resource.TestCheckResourceAttr("cidaas_role.example", "id", "terraform-acceptance-test-role"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "role", role),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "id", role),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "cidaas_role.example",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			// Update and Read testing
 			{
-				Config: testAccExampleResourceConfig("terraform-acceptance-test-role", "terraform-acceptance-test-role-updated-desciption"),
+				Config: testAccRoleResourceConfig(role, name, updatedDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("cidaas_role.example", "description", "terraform-acceptance-test-role-updated-desciption"),
+					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
@@ -43,7 +48,9 @@ func TestAccRoleResource(t *testing.T) {
 }
 
 func TestAccRoleResource_Validation(t *testing.T) {
-	roleName := acctest.RandString(16)
+	resourceName := "cidaas_role.example"
+	role := "terraform_admin_role"
+	name := "Test Terraform Admin Role"
 	description := acctest.RandString(16)
 	description2 := acctest.RandString(16)
 	resource.Test(t, resource.TestCase{
@@ -51,43 +58,43 @@ func TestAccRoleResource_Validation(t *testing.T) {
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
-				Config: testAccExampleResourceConfig(roleName, description),
+				Config: testAccRoleResourceConfig(role, name, description),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "role"),
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "name"),
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "description"),
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "role"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 			{
-				ResourceName:                         "cidaas_role.example",
+				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerifyIdentifierAttribute: "id",
 				ImportStateIdFunc:                    testAccProjectImportID,
 				ImportStateVerify:                    true,
 			},
 			{
-				Config: testAccExampleResourceConfig(roleName, description2),
+				Config: testAccRoleResourceConfig(role, name, description2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "role"),
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "name"),
-					resource.TestCheckResourceAttrSet("cidaas_role.example", "description"),
+					resource.TestCheckResourceAttrSet(resourceName, "role"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "description"),
 				),
 			},
 		},
 	})
 }
 
-func testAccExampleResourceConfig(role string, description string) string {
+func testAccRoleResourceConfig(role, name, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
 		base_url = "https://kube-nightlybuild-dev.cidaas.de"
 	}
 	resource "cidaas_role" "example" {
-		role = %[1]q
-		name = "terraform-acceptance-test-role-name"
-		description = %[2]q
-	}`, role, description)
+		role = "%s"
+		name = "%s"
+		description = "%s"
+	}`, role, name, description)
 }
 
 func testAccProjectImportID(s *terraform.State) (string, error) {
