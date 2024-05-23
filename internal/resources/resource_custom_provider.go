@@ -271,12 +271,12 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 	var plan ProviderConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
-	customProvider, d := prepareCpRequestPayload(ctx, plan)
+	cp, d := prepareCpRequestPayload(ctx, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(customProvider)
+	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(cp)
 	if err != nil {
 		// TODO: move fmt.Sprintf("Error: %s", err.Error()) in all to a util function
 		resp.Diagnostics.AddError("failed to create custom provider", fmt.Sprintf("Error: %s", err.Error()))
@@ -373,18 +373,17 @@ func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	customProvider, d := prepareCpRequestPayload(ctx, plan)
+	cp, d := prepareCpRequestPayload(ctx, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	customProvider.ID = state.ID.ValueString()
-	res, err := r.cidaasClient.CustomProvider.UpdateCustomProvider(customProvider)
+	cp.ID = state.ID.ValueString()
+	err := r.cidaasClient.CustomProvider.UpdateCustomProvider(cp)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update custom provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -433,28 +432,28 @@ func prepareCpRequestPayload(ctx context.Context, pc ProviderConfig) (*cidaas.Cu
 	cp.Scopes.Scopes = childScopes
 	cp.Scopes.DisplayLabel = pc.ScopeDisplayLabel.ValueString()
 
-	userInfoFields := map[string]string{}
+	uf := map[string]string{}
 
-	userInfoFields["name"] = pc.userinfoFields.Name.ValueString()
-	userInfoFields["family_name"] = pc.userinfoFields.FamilyName.ValueString()
-	userInfoFields["given_name"] = pc.userinfoFields.GivenName.ValueString()
-	userInfoFields["middle_name"] = pc.userinfoFields.MiddleName.ValueString()
-	userInfoFields["nickname"] = pc.userinfoFields.Nickname.ValueString()
-	userInfoFields["preferred_username"] = pc.userinfoFields.PreferredUsername.ValueString()
-	userInfoFields["profile"] = pc.userinfoFields.Profile.ValueString()
-	userInfoFields["picture"] = pc.userinfoFields.Picture.ValueString()
-	userInfoFields["website"] = pc.userinfoFields.Website.ValueString()
-	userInfoFields["gender"] = pc.userinfoFields.Gender.ValueString()
-	userInfoFields["birthdate"] = pc.userinfoFields.Birthdate.ValueString()
-	userInfoFields["zoneinfo"] = pc.userinfoFields.Zoneinfo.ValueString()
-	userInfoFields["locale"] = pc.userinfoFields.Locale.ValueString()
-	userInfoFields["updated_at"] = pc.userinfoFields.UpdatedAt.ValueString()
-	userInfoFields["email"] = pc.userinfoFields.Email.ValueString()
-	userInfoFields["email_verified"] = pc.userinfoFields.EmailVerified.ValueString()
-	userInfoFields["phone_number"] = pc.userinfoFields.PhoneNumber.ValueString()
-	userInfoFields["mobile_number"] = pc.userinfoFields.MobileNumber.ValueString()
-	userInfoFields["address"] = pc.userinfoFields.Address.ValueString()
-	userInfoFields["sub"] = pc.userinfoFields.Sub.ValueString()
+	uf["name"] = pc.userinfoFields.Name.ValueString()
+	uf["family_name"] = pc.userinfoFields.FamilyName.ValueString()
+	uf["given_name"] = pc.userinfoFields.GivenName.ValueString()
+	uf["middle_name"] = pc.userinfoFields.MiddleName.ValueString()
+	uf["nickname"] = pc.userinfoFields.Nickname.ValueString()
+	uf["preferred_username"] = pc.userinfoFields.PreferredUsername.ValueString()
+	uf["profile"] = pc.userinfoFields.Profile.ValueString()
+	uf["picture"] = pc.userinfoFields.Picture.ValueString()
+	uf["website"] = pc.userinfoFields.Website.ValueString()
+	uf["gender"] = pc.userinfoFields.Gender.ValueString()
+	uf["birthdate"] = pc.userinfoFields.Birthdate.ValueString()
+	uf["zoneinfo"] = pc.userinfoFields.Zoneinfo.ValueString()
+	uf["locale"] = pc.userinfoFields.Locale.ValueString()
+	uf["updated_at"] = pc.userinfoFields.UpdatedAt.ValueString()
+	uf["email"] = pc.userinfoFields.Email.ValueString()
+	uf["email_verified"] = pc.userinfoFields.EmailVerified.ValueString()
+	uf["phone_number"] = pc.userinfoFields.PhoneNumber.ValueString()
+	uf["mobile_number"] = pc.userinfoFields.MobileNumber.ValueString()
+	uf["address"] = pc.userinfoFields.Address.ValueString()
+	uf["sub"] = pc.userinfoFields.Sub.ValueString()
 
 	var cfMap map[string]string
 	diag = pc.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
@@ -462,8 +461,8 @@ func prepareCpRequestPayload(ctx context.Context, pc ProviderConfig) (*cidaas.Cu
 		return nil, diag
 	}
 	for k, v := range cfMap {
-		userInfoFields["customFields."+k] = v
+		uf["customFields."+k] = v
 	}
-	cp.UserinfoFields = userInfoFields
+	cp.UserinfoFields = uf
 	return &cp, nil
 }

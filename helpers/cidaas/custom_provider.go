@@ -61,7 +61,7 @@ type CustomProvider struct {
 }
 type CustomProvideService interface {
 	CreateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error)
-	UpdateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error)
+	UpdateCustomProvider(cp *CustomProviderModel) error
 	GetCustomProvider(providerName string) (*CustomProviderResponse, error)
 	DeleteCustomProvider(providerName string) error
 	ConfigureCustomProvider(cp CustomProviderConfigPayload) (*CustomProviderConfigureResponse, error)
@@ -87,20 +87,15 @@ func (c *CustomProvider) CreateCustomProvider(cp *CustomProviderModel) (*CustomP
 	return &response, nil
 }
 
-func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error) {
+func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) error {
 	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom"))
 	c.HTTPClient.SetMethod(http.MethodPut)
 	res, err := c.HTTPClient.MakeRequest(cp)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer res.Body.Close()
-	var response CustomProviderResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
-	}
-	return &response, nil
+	return nil
 }
 
 func (c *CustomProvider) GetCustomProvider(providerName string) (*CustomProviderResponse, error) {
