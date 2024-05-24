@@ -6,7 +6,7 @@ BINARY=terraform-provider-${NAME}
 VERSION=1.0.0
 OS_ARCH=linux_amd64
 GO_LINT ?= golangci-lint
-GO_LINT_CONFIG_PATH ?= ./golangci-config.yml
+GO_LINT_CONFIG_PATH ?= ./lint.yml
 TEST?=./internal/...
 
 default: install
