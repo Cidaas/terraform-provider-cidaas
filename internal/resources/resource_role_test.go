@@ -113,7 +113,7 @@ func TestAccRoleResource_updateRoleFails(t *testing.T) {
 			},
 			{
 				Config:      testAccRoleResourceConfig(updatedRole, name, description),
-				ExpectError: regexp.MustCompile("param role cannot be modified"),
+				ExpectError: regexp.MustCompile("Attribute role can't be modified"),
 			},
 		},
 	})
