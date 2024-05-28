@@ -157,7 +157,7 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 	response, err := r.cidaasClient.Scope.Upsert(*scopePayload)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create scope", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
 	plan.ScopeOwner = types.StringValue(response.Data.ScopeOwner)
