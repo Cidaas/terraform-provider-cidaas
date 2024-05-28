@@ -14,7 +14,9 @@ type Client struct {
 	Config         ClientConfig
 	Role           RoleService
 	CustomProvider CustomProvideService
-	HTTPClient     util.HTTPClient
+	Scope          ScopeService
+	// remove HTTPClient after migrated all the resources to framework
+	HTTPClient util.HTTPClient
 }
 
 type ClientConfig struct {
@@ -54,6 +56,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		Config:         config,
 		Role:           NewRole(&ht),
 		CustomProvider: NewCustomProvider(&ht),
+		Scope:          NewScope(&ht),
 	}
 	return client, nil
 }

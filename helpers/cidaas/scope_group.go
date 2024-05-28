@@ -18,6 +18,13 @@ type ScopeGroupResponse struct {
 	Data    ScopeGroupConfig `json:"data,omitempty"`
 }
 
+type DeleteScopeResponse struct {
+	Success bool   `json:"success,omitempty"`
+	Status  int    `json:"status,omitempty"`
+	Data    bool   `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
 func (c *Client) UpsertScopeGroup(scopeGroup ScopeGroupConfig) (response *ScopeGroupResponse, err error) {
 	c.HTTPClient.URL = fmt.Sprintf("%s/%s", c.Config.BaseURL, "scopes-srv/group")
 	c.HTTPClient.HTTPMethod = http.MethodPost

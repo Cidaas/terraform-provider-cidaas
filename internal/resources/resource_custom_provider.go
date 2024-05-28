@@ -41,11 +41,11 @@ type ProviderConfig struct {
 	// UserinfoFields        UserInfoField `tfsdk:"userinfo_fields"`
 	Scopes         types.List   `tfsdk:"scopes"`
 	UserinfoFields types.Object `tfsdk:"userinfo_fields"`
-	scopes         []*Scope
+	scopes         []*CpScope
 	userinfoFields *UserInfoField
 }
 
-type Scope struct {
+type CpScope struct {
 	ScopeName   types.String `tfsdk:"scope_name"`
 	Required    types.Bool   `tfsdk:"required"`
 	Recommended types.Bool   `tfsdk:"recommended"`
@@ -86,7 +86,7 @@ func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 		diags = pc.UserinfoFields.As(ctx, pc.userinfoFields, basetypes.ObjectAsOptions{})
 	}
 	if !pc.Scopes.IsNull() {
-		pc.scopes = make([]*Scope, 0, len(pc.Scopes.Elements()))
+		pc.scopes = make([]*CpScope, 0, len(pc.Scopes.Elements()))
 		diags = pc.Scopes.ElementsAs(ctx, &pc.scopes, false)
 	}
 	return diags
@@ -128,6 +128,12 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			},
 			"logo_url": schema.StringAttribute{
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https://.+$`),
+						"must be a valid URL starting with https://",
+					),
+				},
 			},
 			"standard_type": schema.StringAttribute{
 				Optional: true,
@@ -163,6 +169,7 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"userinfo_endpoint": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
+					// hcpvalidator.URL(),
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
 						"must be a valid URL starting with https://",
@@ -178,7 +185,6 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 						},
 						"required": schema.BoolAttribute{
 							Optional: true,
-							// Default:  booldefault.StaticBool(true),
 						},
 						"recommended": schema.BoolAttribute{
 							Optional: true,
@@ -306,12 +312,14 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.ClientID = types.StringValue(res.Data.ClientID)
 	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
 
-	domainsSetValue, d := types.SetValueFrom(ctx, types.StringType, res.Data.Domains)
-	resp.Diagnostics.Append(d...)
-	state.Domains, d = domainsSetValue.ToSetValue(ctx)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
+	var d diag.Diagnostics
+
+	if len(res.Data.Domains) > 0 {
+		state.Domains, d = types.SetValueFrom(ctx, types.StringType, res.Data.Domains)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	var objectValues []attr.Value

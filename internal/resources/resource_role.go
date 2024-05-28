@@ -107,7 +107,8 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 	if !plan.Role.Equal(state.Role) {
-		resp.Diagnostics.AddError("failed to update role", "param role cannot be modified")
+		resp.Diagnostics.AddError("Unexpected Resource Configuration",
+			fmt.Sprintf("Attribute role can't be modified. Expected %s, got: %s", state.Role, plan.Role))
 		return
 	}
 	role := cidaas.RoleModel{
