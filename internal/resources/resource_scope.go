@@ -25,14 +25,14 @@ type ScopeResource struct {
 }
 
 type ScopeConfig struct {
-	ID                     types.String `tfsdk:"id"`
-	SecurityLevel          types.String `tfsdk:"security_level"`
-	ScopeKey               types.String `tfsdk:"scope_key"`
-	GroupName              types.Set    `tfsdk:"group_name"`
-	RequiredUserConsent    types.Bool   `tfsdk:"required_user_consent"`
-	LocalizedDescription   types.List   `tfsdk:"localized_descriptions"`
-	localized_descriptions []*LocalDescription
-	ScopeOwner             types.String `tfsdk:"scope_owner"`
+	ID                    types.String `tfsdk:"id"`
+	SecurityLevel         types.String `tfsdk:"security_level"`
+	ScopeKey              types.String `tfsdk:"scope_key"`
+	GroupName             types.Set    `tfsdk:"group_name"`
+	RequiredUserConsent   types.Bool   `tfsdk:"required_user_consent"`
+	LocalizedDescription  types.List   `tfsdk:"localized_descriptions"`
+	localizedDescriptions []*LocalDescription
+	ScopeOwner            types.String `tfsdk:"scope_owner"`
 }
 
 type LocalDescription struct {
@@ -49,8 +49,8 @@ func (sc *ScopeConfig) extractLocalizedDescription(ctx context.Context) diag.Dia
 	var diags diag.Diagnostics
 
 	if !sc.LocalizedDescription.IsNull() {
-		sc.localized_descriptions = make([]*LocalDescription, 0, len(sc.LocalizedDescription.Elements()))
-		diags = sc.LocalizedDescription.ElementsAs(ctx, &sc.localized_descriptions, false)
+		sc.localizedDescriptions = make([]*LocalDescription, 0, len(sc.LocalizedDescription.Elements()))
+		diags = sc.LocalizedDescription.ElementsAs(ctx, &sc.localizedDescriptions, false)
 	}
 	return diags
 }
@@ -121,7 +121,7 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
-										var validLocals = make([]string, len(util.Locals))
+										var validLocals = make([]string, len(util.Locals)) //nolint:gofumpt
 										for i, locale := range util.Locals {
 											validLocals[i] = locale.LocaleString
 										}
@@ -269,14 +269,13 @@ func generateScopeModel(ctx context.Context, plan ScopeConfig) (*cidaas.ScopeMod
 		return nil, diag
 	}
 
-	for _, ld := range plan.localized_descriptions {
+	for _, ld := range plan.localizedDescriptions {
 		scope.LocaleWiseDescription = append(scope.LocaleWiseDescription, cidaas.ScopeLocalDescription{
 			Locale:      ld.Locale.ValueString(),
 			Language:    getLanguageForLocale(ld.Locale.ValueString()),
 			Title:       ld.Title.ValueString(),
 			Description: ld.Description.ValueString(),
 		})
-
 	}
 	return &scope, nil
 }
