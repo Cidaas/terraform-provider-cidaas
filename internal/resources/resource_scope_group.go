@@ -87,11 +87,11 @@ func (r *ScopeGroupResource) Schema(_ context.Context, _ resource.SchemaRequest,
 func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ScopeGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	scopeGroup := &cidaas.ScopeGroupConfig{
+	scopeGroup := cidaas.ScopeGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	res, err := r.cidaasClient.ScopeGroup.Upsert(*scopeGroup)
+	res, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create scope group", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -134,11 +134,11 @@ func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequ
 			fmt.Sprintf("Attribute group_name can't be modified. Expected %s, got: %s", state.GroupName, plan.GroupName))
 		return
 	}
-	scopeGroup := &cidaas.ScopeGroupConfig{
+	scopeGroup := cidaas.ScopeGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	_, err := r.cidaasClient.ScopeGroup.Upsert(*scopeGroup)
+	_, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update scope group", fmt.Sprintf("Error: %s", err.Error()))
 		return
