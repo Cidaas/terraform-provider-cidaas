@@ -17,6 +17,7 @@ type Client struct {
 	Scope          ScopeService
 	ScopeGroup     ScopeGroupService
 	GroupType      GroupTypeService
+	UserGroup      UserGroupService
 	// remove HTTPClient after migrated all the resources to framework
 	HTTPClient util.HTTPClient
 }
@@ -61,6 +62,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		Scope:          NewScope(&ht),
 		ScopeGroup:     NewScopeGroup(&ht),
 		GroupType:      NewGroupType(&ht),
+		UserGroup:      NewUserGroup(&ht),
 	}
 	return client, nil
 }
