@@ -261,7 +261,7 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 					},
 					"custom_fields": schema.MapAttribute{
 						ElementType: types.StringType,
-						Required:    true,
+						Optional:    true,
 					},
 				},
 			},
