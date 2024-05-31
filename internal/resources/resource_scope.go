@@ -117,6 +117,7 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 			},
 			"localized_descriptions": schema.ListNestedAttribute{
+				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"locale": schema.StringAttribute{
@@ -135,7 +136,7 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 							},
 						},
 						"title": schema.StringAttribute{
-							Optional: true,
+							Required: true,
 						},
 						"description": schema.StringAttribute{
 							Optional: true,
@@ -145,7 +146,6 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 						},
 					},
 				},
-				Optional: true,
 			},
 		},
 	}
@@ -220,7 +220,7 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
 	var plan, state ScopeConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)

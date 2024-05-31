@@ -62,6 +62,7 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewScopeGroupResource,
 		cidaasResource.NewGroupTypeResource,
 		cidaasResource.NewUserGroupResource,
+		cidaasResource.NewHostedPageResource,
 	}
 }
 
