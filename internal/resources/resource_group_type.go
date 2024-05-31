@@ -7,6 +7,7 @@ import (
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -79,6 +80,9 @@ func (r *GroupTypeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
+				},
+				PlanModifiers: []planmodifier.String{
+					&validators.UniqueIdentifier{},
 				},
 			},
 			"allowed_roles": schema.SetAttribute{
@@ -159,11 +163,6 @@ func (r *GroupTypeResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !plan.GroupType.Equal(state.GroupType) {
-		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute group_type can't be modified. Expected %s, got: %s", state.GroupType, plan.GroupType))
 		return
 	}
 	groupType := cidaas.GroupTypeData{
