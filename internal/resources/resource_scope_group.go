@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -63,6 +64,9 @@ func (r *ScopeGroupResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Required: true,
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
+				},
+				PlanModifiers: []planmodifier.String{
+					&validators.UniqueIdentifier{},
 				},
 			},
 			"description": schema.StringAttribute{
@@ -127,11 +131,6 @@ func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !plan.GroupName.Equal(state.GroupName) {
-		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute group_name can't be modified. Expected %s, got: %s", state.GroupName, plan.GroupName))
 		return
 	}
 	scopeGroup := cidaas.ScopeGroupConfig{

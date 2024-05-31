@@ -6,6 +6,7 @@ import (
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -93,6 +94,10 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"scope_key": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					// the destroy will throw the error too
+					validators.UniqueIdentifier{},
+				},
 			},
 			"group_name": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -221,11 +226,6 @@ func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(plan.extractLocalizedDescription(ctx)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !plan.ScopeKey.Equal(state.ScopeKey) {
-		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute scope_key can't be modified. Expected %s, got: %s", state.ScopeKey, plan.ScopeKey))
 		return
 	}
 	scopePayload, d := generateScopeModel(ctx, plan)

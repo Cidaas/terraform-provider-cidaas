@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -122,6 +123,9 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			},
 			"provider_name": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					&validators.UniqueIdentifier{},
+				},
 			},
 			"display_name": schema.StringAttribute{
 				Required: true,
@@ -374,12 +378,6 @@ func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
-
-	if !plan.ProviderName.Equal(state.ProviderName) {
-		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute provider_name can't be modified. Expected %s, got: %s", state.ProviderName, plan.ProviderName))
-		return
-	}
 
 	cp, d := prepareCpRequestPayload(ctx, plan)
 	resp.Diagnostics.Append(d...)

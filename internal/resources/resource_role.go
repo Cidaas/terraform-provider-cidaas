@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -53,6 +55,9 @@ func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			},
 			"role": schema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					&validators.UniqueIdentifier{},
+				},
 			},
 			"name": schema.StringAttribute{
 				Required: true,
@@ -102,13 +107,7 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	var plan, state Role
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
-		return
-	}
-	if !plan.Role.Equal(state.Role) {
-		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute role can't be modified. Expected %s, got: %s", state.Role, plan.Role))
 		return
 	}
 	role := cidaas.RoleModel{
