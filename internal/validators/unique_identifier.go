@@ -10,9 +10,7 @@ import (
 
 var _ planmodifier.String = UniqueIdentifier{}
 
-type UniqueIdentifier struct {
-	AttrName string
-}
+type UniqueIdentifier struct{}
 
 func (v UniqueIdentifier) Description(_ context.Context) string {
 	return "Checks if a unique identifier has been changed"

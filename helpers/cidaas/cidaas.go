@@ -19,6 +19,7 @@ type Client struct {
 	GroupType      GroupTypeService
 	UserGroup      UserGroupService
 	HostedPage     HostedPageService
+	Webhook        WebhookService
 	// remove HTTPClient after migrated all the resources to framework
 	HTTPClient util.HTTPClient
 }
@@ -65,6 +66,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		GroupType:      NewGroupType(&ht),
 		UserGroup:      NewUserGroup(&ht),
 		HostedPage:     NewHostedPage(&ht),
+		Webhook:        NewWebhook(&ht),
 	}
 	return client, nil
 }

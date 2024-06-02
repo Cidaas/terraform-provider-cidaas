@@ -410,25 +410,25 @@ func (r *CustomProvider) ImportState(ctx context.Context, req resource.ImportSta
 	resource.ImportStatePassthroughID(ctx, path.Root("provider_name"), req, resp)
 }
 
-func prepareCpRequestPayload(ctx context.Context, pc ProviderConfig) (*cidaas.CustomProviderModel, diag.Diagnostics) {
+func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.CustomProviderModel, diag.Diagnostics) {
 	var cp cidaas.CustomProviderModel
 
-	cp.StandardType = pc.StandardType.ValueString()
-	cp.AuthorizationEndpoint = pc.AuthorizationEndpoint.ValueString()
-	cp.TokenEndpoint = pc.TokenEndpoint.ValueString()
-	cp.ProviderName = pc.ProviderName.ValueString()
-	cp.DisplayName = pc.DisplayName.ValueString()
-	cp.LogoURL = pc.LogoURL.ValueString()
-	cp.UserinfoEndpoint = pc.UserinfoEndpoint.ValueString()
-	cp.ClientID = pc.ClientID.ValueString()
-	cp.ClientSecret = pc.ClientSecret.ValueString()
+	cp.StandardType = plan.StandardType.ValueString()
+	cp.AuthorizationEndpoint = plan.AuthorizationEndpoint.ValueString()
+	cp.TokenEndpoint = plan.TokenEndpoint.ValueString()
+	cp.ProviderName = plan.ProviderName.ValueString()
+	cp.DisplayName = plan.DisplayName.ValueString()
+	cp.LogoURL = plan.LogoURL.ValueString()
+	cp.UserinfoEndpoint = plan.UserinfoEndpoint.ValueString()
+	cp.ClientID = plan.ClientID.ValueString()
+	cp.ClientSecret = plan.ClientSecret.ValueString()
 
-	diag := pc.Domains.ElementsAs(ctx, &cp.Domains, false)
+	diag := plan.Domains.ElementsAs(ctx, &cp.Domains, false)
 	if diag.HasError() {
 		return nil, diag
 	}
 	var childScopes []cidaas.ScopeChild
-	for _, v := range pc.scopes {
+	for _, v := range plan.scopes {
 		childScopes = append(childScopes, cidaas.ScopeChild{
 			ScopeName:   v.ScopeName.ValueString(),
 			Required:    v.Required.ValueBool(),
@@ -436,38 +436,40 @@ func prepareCpRequestPayload(ctx context.Context, pc ProviderConfig) (*cidaas.Cu
 		})
 	}
 	cp.Scopes.Scopes = childScopes
-	cp.Scopes.DisplayLabel = pc.ScopeDisplayLabel.ValueString()
+	cp.Scopes.DisplayLabel = plan.ScopeDisplayLabel.ValueString()
 
 	uf := map[string]string{}
 
-	uf["name"] = pc.userinfoFields.Name.ValueString()
-	uf["family_name"] = pc.userinfoFields.FamilyName.ValueString()
-	uf["given_name"] = pc.userinfoFields.GivenName.ValueString()
-	uf["middle_name"] = pc.userinfoFields.MiddleName.ValueString()
-	uf["nickname"] = pc.userinfoFields.Nickname.ValueString()
-	uf["preferred_username"] = pc.userinfoFields.PreferredUsername.ValueString()
-	uf["profile"] = pc.userinfoFields.Profile.ValueString()
-	uf["picture"] = pc.userinfoFields.Picture.ValueString()
-	uf["website"] = pc.userinfoFields.Website.ValueString()
-	uf["gender"] = pc.userinfoFields.Gender.ValueString()
-	uf["birthdate"] = pc.userinfoFields.Birthdate.ValueString()
-	uf["zoneinfo"] = pc.userinfoFields.Zoneinfo.ValueString()
-	uf["locale"] = pc.userinfoFields.Locale.ValueString()
-	uf["updated_at"] = pc.userinfoFields.UpdatedAt.ValueString()
-	uf["email"] = pc.userinfoFields.Email.ValueString()
-	uf["email_verified"] = pc.userinfoFields.EmailVerified.ValueString()
-	uf["phone_number"] = pc.userinfoFields.PhoneNumber.ValueString()
-	uf["mobile_number"] = pc.userinfoFields.MobileNumber.ValueString()
-	uf["address"] = pc.userinfoFields.Address.ValueString()
-	uf["sub"] = pc.userinfoFields.Sub.ValueString()
+	if !plan.UserinfoFields.IsNull() {
+		uf["name"] = plan.userinfoFields.Name.ValueString()
+		uf["family_name"] = plan.userinfoFields.FamilyName.ValueString()
+		uf["given_name"] = plan.userinfoFields.GivenName.ValueString()
+		uf["middle_name"] = plan.userinfoFields.MiddleName.ValueString()
+		uf["nickname"] = plan.userinfoFields.Nickname.ValueString()
+		uf["preferred_username"] = plan.userinfoFields.PreferredUsername.ValueString()
+		uf["profile"] = plan.userinfoFields.Profile.ValueString()
+		uf["picture"] = plan.userinfoFields.Picture.ValueString()
+		uf["website"] = plan.userinfoFields.Website.ValueString()
+		uf["gender"] = plan.userinfoFields.Gender.ValueString()
+		uf["birthdate"] = plan.userinfoFields.Birthdate.ValueString()
+		uf["zoneinfo"] = plan.userinfoFields.Zoneinfo.ValueString()
+		uf["locale"] = plan.userinfoFields.Locale.ValueString()
+		uf["updated_at"] = plan.userinfoFields.UpdatedAt.ValueString()
+		uf["email"] = plan.userinfoFields.Email.ValueString()
+		uf["email_verified"] = plan.userinfoFields.EmailVerified.ValueString()
+		uf["phone_number"] = plan.userinfoFields.PhoneNumber.ValueString()
+		uf["mobile_number"] = plan.userinfoFields.MobileNumber.ValueString()
+		uf["address"] = plan.userinfoFields.Address.ValueString()
+		uf["sub"] = plan.userinfoFields.Sub.ValueString()
 
-	var cfMap map[string]string
-	diag = pc.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
-	if diag.HasError() {
-		return nil, diag
-	}
-	for k, v := range cfMap {
-		uf["customFields."+k] = v
+		var cfMap map[string]string
+		diag = plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
+		if diag.HasError() {
+			return nil, diag
+		}
+		for k, v := range cfMap {
+			uf["customFields."+k] = v
+		}
 	}
 	cp.UserinfoFields = uf
 	return &cp, nil
