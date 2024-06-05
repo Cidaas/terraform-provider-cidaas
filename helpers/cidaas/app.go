@@ -171,24 +171,24 @@ type IAllowedGroups struct {
 	DefaultRoles []string `json:"default_roles,omitempty"`
 }
 type ILoginSPI struct {
-	OauthClientID *string `json:"oauth_client_id,omitempty"`
-	SpiURL        *string `json:"spi_url,omitempty"`
+	OauthClientID string `json:"oauth_client_id,omitempty"`
+	SpiURL        string `json:"spi_url,omitempty"`
 }
 type IAppMobileSettings struct {
-	TeamID      *string `json:"teamId,omitempty"`
-	BundleID    *string `json:"bundleId,omitempty"`
-	PackageName *string `json:"packageName,omitempty"`
-	KeyHash     *string `json:"keyHash,omitempty"`
+	TeamID      string `json:"teamId,omitempty"`
+	BundleID    string `json:"bundleId,omitempty"`
+	PackageName string `json:"packageName,omitempty"`
+	KeyHash     string `json:"keyHash,omitempty"`
 }
 
 type IGroupSelection struct {
-	AlwaysShowGroupSelection *bool    `json:"alwaysShowGroupSelection,omitempty"`
+	AlwaysShowGroupSelection bool     `json:"alwaysShowGroupSelection,omitempty"`
 	SelectableGroups         []string `json:"selectableGroups,omitempty"`
 	SelectableGroupTypes     []string `json:"selectableGroupTypes,omitempty"`
 }
 
 type IMfaOption struct {
-	Setting               *string  `json:"setting,omitempty"`
+	Setting               string   `json:"setting,omitempty"`
 	TimeIntervalInSeconds *int64   `json:"time_interval_in_seconds,omitempty"`
 	AllowedMethods        []string `json:"allowed_methods,omitempty"`
 }

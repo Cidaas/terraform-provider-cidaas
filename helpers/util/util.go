@@ -45,6 +45,9 @@ func Int64ValueOrNull(value *int64) types.Int64 {
 
 func StringValueOrNull(value *string) types.String {
 	if value != nil {
+		if *value == "" {
+			return types.StringNull()
+		}
 		return types.StringValue(*value)
 	}
 	return types.StringNull()

@@ -462,13 +462,13 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 
 	if !plan.LoginSpi.IsNull() {
 		app.LoginSpi = &cidaas.ILoginSPI{
-			OauthClientID: plan.loginSpi.OauthClientID.ValueStringPointer(),
-			SpiURL:        plan.loginSpi.SpiURL.ValueStringPointer(),
+			OauthClientID: plan.loginSpi.OauthClientID.ValueString(),
+			SpiURL:        plan.loginSpi.SpiURL.ValueString(),
 		}
 	}
 	if !plan.GroupSelection.IsNull() {
 		app.GroupSelection = &cidaas.IGroupSelection{
-			AlwaysShowGroupSelection: plan.groupSelection.AlwaysShowGroupSelection.ValueBoolPointer(),
+			AlwaysShowGroupSelection: plan.groupSelection.AlwaysShowGroupSelection.ValueBool(),
 		}
 		diags := plan.groupSelection.SelectableGroups.ElementsAs(ctx, &app.GroupSelection.SelectableGroups, false)
 		if diags.HasError() {
@@ -481,7 +481,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	}
 	if !plan.Mfa.IsNull() {
 		app.Mfa = &cidaas.IMfaOption{
-			Setting:               plan.mfa.Setting.ValueStringPointer(),
+			Setting:               plan.mfa.Setting.ValueString(),
 			TimeIntervalInSeconds: plan.mfa.TimeIntervalInSeconds.ValueInt64Pointer(),
 		}
 		diags := plan.mfa.AllowedMethods.ElementsAs(ctx, &app.Mfa.AllowedMethods, false)
@@ -491,10 +491,10 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	}
 	if !plan.MobileSettings.IsNull() {
 		app.MobileSettings = &cidaas.IAppMobileSettings{
-			TeamID:      plan.mobileSettings.TeamID.ValueStringPointer(),
-			BundleID:    plan.mobileSettings.BundleID.ValueStringPointer(),
-			PackageName: plan.mobileSettings.PackageName.ValueStringPointer(),
-			KeyHash:     plan.mobileSettings.KeyHash.ValueStringPointer(),
+			TeamID:      plan.mobileSettings.TeamID.ValueString(),
+			BundleID:    plan.mobileSettings.BundleID.ValueString(),
+			PackageName: plan.mobileSettings.PackageName.ValueString(),
+			KeyHash:     plan.mobileSettings.KeyHash.ValueString(),
 		}
 	}
 
@@ -605,12 +605,12 @@ func updateSetValues(ctx context.Context, src basetypes.SetValue, dest *[]string
 func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppConfig) resource.ReadResponse {
 	resp := resource.ReadResponse{}
 
-	state.ID = types.StringValue(res.Data.ID)
-	state.ClientType = types.StringValue(res.Data.ClientType)
-	state.AccentColor = types.StringValue(res.Data.AccentColor)
-	state.PrimaryColor = types.StringValue(res.Data.PrimaryColor)
-	state.MediaType = types.StringValue(res.Data.MediaType)
-	state.ContentAlign = types.StringValue(res.Data.ContentAlign)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.ClientType = util.StringValueOrNull(&res.Data.ClientType)
+	state.AccentColor = util.StringValueOrNull(&res.Data.AccentColor)
+	state.PrimaryColor = util.StringValueOrNull(&res.Data.PrimaryColor)
+	state.MediaType = util.StringValueOrNull(&res.Data.MediaType)
+	state.ContentAlign = util.StringValueOrNull(&res.Data.ContentAlign)
 	state.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
 	state.AutoLoginAfterRegister = types.BoolValue(res.Data.AutoLoginAfterRegister)
 	state.EnablePasswordlessAuth = types.BoolValue(res.Data.EnablePasswordlessAuth)
@@ -618,85 +618,85 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 	state.AllowDisposableEmail = types.BoolValue(res.Data.AllowDisposableEmail)
 	state.ValidatePhoneNumber = types.BoolValue(res.Data.ValidatePhoneNumber)
 	state.FdsEnabled = types.BoolValue(res.Data.FdsEnabled)
-	state.HostedPageGroup = types.StringValue(res.Data.HostedPageGroup)
-	state.ClientName = types.StringValue(res.Data.ClientName)
-	state.ClientDisplayName = types.StringValue(res.Data.ClientDisplayName)
-	state.CompanyName = types.StringValue(res.Data.CompanyName)
-	state.CompanyAddress = types.StringValue(res.Data.CompanyAddress)
-	state.CompanyWebsite = types.StringValue(res.Data.CompanyWebsite)
+	state.HostedPageGroup = util.StringValueOrNull(&res.Data.HostedPageGroup)
+	state.ClientName = util.StringValueOrNull(&res.Data.ClientName)
+	state.ClientDisplayName = util.StringValueOrNull(&res.Data.ClientDisplayName)
+	state.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
+	state.CompanyAddress = util.StringValueOrNull(&res.Data.CompanyAddress)
+	state.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
 	state.IsHybridApp = types.BoolValue(res.Data.IsHybridApp)
 	state.DefaultMaxAge = types.Int64Value(res.Data.DefaultMaxAge)
 	state.TokenLifetimeInSeconds = types.Int64Value(res.Data.TokenLifetimeInSeconds)
 	state.IDTokenLifetimeInSeconds = types.Int64Value(res.Data.IDTokenLifetimeInSeconds)
 	state.RefreshTokenLifetimeInSeconds = types.Int64Value(res.Data.RefreshTokenLifetimeInSeconds)
-	state.TemplateGroupID = types.StringValue(res.Data.TemplateGroupID)
-	state.ClientID = types.StringValue(res.Data.ClientID)
-	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
-	state.PolicyURI = types.StringValue(res.Data.PolicyURI)
-	state.TosURI = types.StringValue(res.Data.TosURI)
-	state.ImprintURI = types.StringValue(res.Data.ImprintURI)
-	state.TokenEndpointAuthMethod = types.StringValue(res.Data.TokenEndpointAuthMethod)
-	state.TokenEndpointAuthSigningAlg = types.StringValue(res.Data.TokenEndpointAuthSigningAlg)
+	state.TemplateGroupID = util.StringValueOrNull(&res.Data.TemplateGroupID)
+	state.ClientID = util.StringValueOrNull(&res.Data.ClientID)
+	state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	state.PolicyURI = util.StringValueOrNull(&res.Data.PolicyURI)
+	state.TosURI = util.StringValueOrNull(&res.Data.TosURI)
+	state.ImprintURI = util.StringValueOrNull(&res.Data.ImprintURI)
+	state.TokenEndpointAuthMethod = util.StringValueOrNull(&res.Data.TokenEndpointAuthMethod)
+	state.TokenEndpointAuthSigningAlg = util.StringValueOrNull(&res.Data.TokenEndpointAuthSigningAlg)
 	state.Editable = types.BoolValue(res.Data.Editable)
-	state.AppOwner = types.StringValue(res.Data.AppOwner)
+	state.AppOwner = util.StringValueOrNull(&res.Data.AppOwner)
 	state.JweEnabled = types.BoolValue(res.Data.JweEnabled)
 	state.UserConsent = types.BoolValue(res.Data.UserConsent)
 	state.Deleted = types.BoolValue(res.Data.Deleted)
 	state.Enabled = types.BoolValue(res.Data.Enabled)
 	state.AlwaysAskMfa = types.BoolValue(res.Data.AlwaysAskMfa)
 	state.SmartMfa = types.BoolValue(res.Data.SmartMfa)
-	state.CaptchaRef = types.StringValue(res.Data.CaptchaRef)
-	state.CommunicationMediumVerification = types.StringValue(res.Data.CommunicationMediumVerification)
+	state.CaptchaRef = util.StringValueOrNull(&res.Data.CaptchaRef)
+	state.CommunicationMediumVerification = util.StringValueOrNull(&res.Data.CommunicationMediumVerification)
 	state.EmailVerificationRequired = types.BoolValue(res.Data.EmailVerificationRequired)
 	state.MobileNumberVerificationRequired = types.BoolValue(res.Data.MobileNumberVerificationRequired)
 	state.EnableClassicalProvider = types.BoolValue(res.Data.EnableClassicalProvider)
 	state.IsRememberMeSelected = types.BoolValue(res.Data.IsRememberMeSelected)
 	state.EnableBotDetection = types.BoolValue(res.Data.EnableBotDetection)
-	state.BotProvider = types.StringValue(res.Data.BotProvider)
+	state.BotProvider = util.StringValueOrNull(&res.Data.BotProvider)
 	state.IsLoginSuccessPageEnabled = types.BoolValue(res.Data.IsLoginSuccessPageEnabled)
 	state.IsRegisterSuccessPageEnabled = types.BoolValue(res.Data.IsRegisterSuccessPageEnabled)
 	state.AdminClient = types.BoolValue(res.Data.AdminClient)
 	state.IsGroupLoginSelectionEnabled = types.BoolValue(res.Data.IsGroupLoginSelectionEnabled)
-	state.BackchannelLogoutURI = types.StringValue(res.Data.BackchannelLogoutURI)
-	state.LogoAlign = types.StringValue(res.Data.LogoAlign)
-	state.Webfinger = types.StringValue(res.Data.Webfinger)
-	state.ApplicationType = types.StringValue(res.Data.ApplicationType)
-	state.LogoURI = types.StringValue(res.Data.LogoURI)
-	state.InitiateLoginURI = types.StringValue(res.Data.InitiateLoginURI)
-	state.RegistrationClientURI = types.StringValue(res.Data.RegistrationClientURI)
-	state.RegistrationAccessToken = types.StringValue(res.Data.RegistrationAccessToken)
-	state.ClientURI = types.StringValue(res.Data.ClientURI)
-	state.JwksURI = types.StringValue(res.Data.JwksURI)
-	state.Jwks = types.StringValue(res.Data.Jwks)
-	state.SectorIdentifierURI = types.StringValue(res.Data.SectorIdentifierURI)
-	state.SubjectType = types.StringValue(res.Data.SubjectType)
-	state.IDTokenSignedResponseAlg = types.StringValue(res.Data.IDTokenSignedResponseAlg)
-	state.IDTokenEncryptedResponseAlg = types.StringValue(res.Data.IDTokenEncryptedResponseAlg)
-	state.IDTokenEncryptedResponseEnc = types.StringValue(res.Data.IDTokenEncryptedResponseEnc)
-	state.UserinfoSignedResponseAlg = types.StringValue(res.Data.UserinfoSignedResponseAlg)
-	state.UserinfoEncryptedResponseAlg = types.StringValue(res.Data.UserinfoEncryptedResponseAlg)
-	state.UserinfoEncryptedResponseEnc = types.StringValue(res.Data.UserinfoEncryptedResponseEnc)
-	state.RequestObjectSigningAlg = types.StringValue(res.Data.RequestObjectSigningAlg)
-	state.RequestObjectEncryptionAlg = types.StringValue(res.Data.RequestObjectEncryptionAlg)
-	state.RequestObjectEncryptionEnc = types.StringValue(res.Data.RequestObjectEncryptionEnc)
-	state.Description = types.StringValue(res.Data.Description)
-	state.ConsentPageGroup = types.StringValue(res.Data.ConsentPageGroup)
-	state.PasswordPolicyRef = types.StringValue(res.Data.PasswordPolicyRef)
-	state.BlockingMechanismRef = types.StringValue(res.Data.BlockingMechanismRef)
-	state.Sub = types.StringValue(res.Data.Sub)
-	state.Role = types.StringValue(res.Data.Role)
-	state.MfaConfiguration = types.StringValue(res.Data.MfaConfiguration)
+	state.BackchannelLogoutURI = util.StringValueOrNull(&res.Data.BackchannelLogoutURI)
+	state.LogoAlign = util.StringValueOrNull(&res.Data.LogoAlign)
+	state.Webfinger = util.StringValueOrNull(&res.Data.Webfinger)
+	state.ApplicationType = util.StringValueOrNull(&res.Data.ApplicationType)
+	state.LogoURI = util.StringValueOrNull(&res.Data.LogoURI)
+	state.InitiateLoginURI = util.StringValueOrNull(&res.Data.InitiateLoginURI)
+	state.RegistrationClientURI = util.StringValueOrNull(&res.Data.RegistrationClientURI)
+	state.RegistrationAccessToken = util.StringValueOrNull(&res.Data.RegistrationAccessToken)
+	state.ClientURI = util.StringValueOrNull(&res.Data.ClientURI)
+	state.JwksURI = util.StringValueOrNull(&res.Data.JwksURI)
+	state.Jwks = util.StringValueOrNull(&res.Data.Jwks)
+	state.SectorIdentifierURI = util.StringValueOrNull(&res.Data.SectorIdentifierURI)
+	state.SubjectType = util.StringValueOrNull(&res.Data.SubjectType)
+	state.IDTokenSignedResponseAlg = util.StringValueOrNull(&res.Data.IDTokenSignedResponseAlg)
+	state.IDTokenEncryptedResponseAlg = util.StringValueOrNull(&res.Data.IDTokenEncryptedResponseAlg)
+	state.IDTokenEncryptedResponseEnc = util.StringValueOrNull(&res.Data.IDTokenEncryptedResponseEnc)
+	state.UserinfoSignedResponseAlg = util.StringValueOrNull(&res.Data.UserinfoSignedResponseAlg)
+	state.UserinfoEncryptedResponseAlg = util.StringValueOrNull(&res.Data.UserinfoEncryptedResponseAlg)
+	state.UserinfoEncryptedResponseEnc = util.StringValueOrNull(&res.Data.UserinfoEncryptedResponseEnc)
+	state.RequestObjectSigningAlg = util.StringValueOrNull(&res.Data.RequestObjectSigningAlg)
+	state.RequestObjectEncryptionAlg = util.StringValueOrNull(&res.Data.RequestObjectEncryptionAlg)
+	state.RequestObjectEncryptionEnc = util.StringValueOrNull(&res.Data.RequestObjectEncryptionEnc)
+	state.Description = util.StringValueOrNull(&res.Data.Description)
+	state.ConsentPageGroup = util.StringValueOrNull(&res.Data.ConsentPageGroup)
+	state.PasswordPolicyRef = util.StringValueOrNull(&res.Data.PasswordPolicyRef)
+	state.BlockingMechanismRef = util.StringValueOrNull(&res.Data.BlockingMechanismRef)
+	state.Sub = util.StringValueOrNull(&res.Data.Sub)
+	state.Role = util.StringValueOrNull(&res.Data.Role)
+	state.MfaConfiguration = util.StringValueOrNull(&res.Data.MfaConfiguration)
 	state.AllowGuestLogin = types.BoolValue(res.Data.AllowGuestLogin)
-	state.BackgroundURI = types.StringValue(res.Data.BackgroundURI)
-	state.VideoURL = types.StringValue(res.Data.VideoURL)
-	state.BotCaptchaRef = types.StringValue(res.Data.BotCaptchaRef)
-	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	state.BackgroundURI = util.StringValueOrNull(&res.Data.BackgroundURI)
+	state.VideoURL = util.StringValueOrNull(&res.Data.VideoURL)
+	state.BotCaptchaRef = util.StringValueOrNull(&res.Data.BotCaptchaRef)
+	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 
 	var d diag.Diagnostics
 	metaData := map[string]attr.Value{}
 	for key, value := range res.Data.ApplicationMetaData {
-		metaData[key] = types.StringValue(value)
+		metaData[key] = util.StringValueOrNull(&value)
 	}
 
 	if len(res.Data.ApplicationMetaData) > 0 {
@@ -747,8 +747,8 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 				"spi_url":         types.StringType,
 			},
 			map[string]attr.Value{
-				"oauth_client_id": util.StringValueOrNull(res.Data.LoginSpi.OauthClientID),
-				"spi_url":         util.StringValueOrNull(res.Data.LoginSpi.SpiURL),
+				"oauth_client_id": util.StringValueOrNull(&res.Data.LoginSpi.OauthClientID),
+				"spi_url":         util.StringValueOrNull(&res.Data.LoginSpi.SpiURL),
 			})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -765,7 +765,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 				"selectable_group_types":      types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"always_show_group_selection": util.BoolValueOrNull(res.Data.GroupSelection.AlwaysShowGroupSelection),
+				"always_show_group_selection": util.BoolValueOrNull(&res.Data.GroupSelection.AlwaysShowGroupSelection),
 				"selectable_groups":           util.SetValueOrNull(res.Data.GroupSelection.SelectableGroups),
 				"selectable_group_types":      util.SetValueOrNull(res.Data.GroupSelection.SelectableGroupTypes),
 			})
@@ -784,7 +784,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 				"allowed_methods":          types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"setting":                  util.StringValueOrNull(res.Data.Mfa.Setting),
+				"setting":                  util.StringValueOrNull(&res.Data.Mfa.Setting),
 				"time_interval_in_seconds": util.Int64ValueOrNull(res.Data.Mfa.TimeIntervalInSeconds),
 				"allowed_methods":          util.SetValueOrNull(res.Data.Mfa.AllowedMethods),
 			})
@@ -804,10 +804,10 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 				"key_hash":     types.StringType,
 			},
 			map[string]attr.Value{
-				"team_id":      util.StringValueOrNull(res.Data.MobileSettings.BundleID),
-				"bundle_id":    util.StringValueOrNull(res.Data.MobileSettings.BundleID),
-				"package_name": util.StringValueOrNull(res.Data.MobileSettings.PackageName),
-				"key_hash":     util.StringValueOrNull(res.Data.MobileSettings.KeyHash),
+				"team_id":      util.StringValueOrNull(&res.Data.MobileSettings.BundleID),
+				"bundle_id":    util.StringValueOrNull(&res.Data.MobileSettings.BundleID),
+				"package_name": util.StringValueOrNull(&res.Data.MobileSettings.PackageName),
+				"key_hash":     util.StringValueOrNull(&res.Data.MobileSettings.KeyHash),
 			})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -828,9 +828,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			spObjectType.AttrTypes,
 			map[string]attr.Value{
-				"provider_name": types.StringValue(sp.ProviderName),
-				"social_id":     types.StringValue(sp.SocialID),
-				"display_name":  types.StringValue(sp.DisplayName),
+				"provider_name": util.StringValueOrNull(&sp.ProviderName),
+				"social_id":     util.StringValueOrNull(&sp.SocialID),
+				"display_name":  util.StringValueOrNull(&sp.DisplayName),
 			})
 		spObjectValues = append(spObjectValues, objValue)
 	}
@@ -856,15 +856,15 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			providerObjectType.AttrTypes,
 			map[string]attr.Value{
-				"provider_name":       types.StringValue(cp.ProviderName),
-				"display_name":        types.StringValue(cp.DisplayName),
-				"logo_url":            types.StringValue(cp.LogoURL),
-				"type":                types.StringValue(cp.Type),
+				"provider_name":       util.StringValueOrNull(&cp.ProviderName),
+				"display_name":        util.StringValueOrNull(&cp.DisplayName),
+				"logo_url":            util.StringValueOrNull(&cp.LogoURL),
+				"type":                util.StringValueOrNull(&cp.Type),
 				"is_provider_visible": types.BoolValue(cp.IsProviderVisible),
 				"domains": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range cp.Domains {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
@@ -883,15 +883,15 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			providerObjectType.AttrTypes,
 			map[string]attr.Value{
-				"provider_name":       types.StringValue(saml.ProviderName),
-				"display_name":        types.StringValue(saml.DisplayName),
-				"logo_url":            types.StringValue(saml.LogoURL),
-				"type":                types.StringValue(saml.Type),
+				"provider_name":       util.StringValueOrNull(&saml.ProviderName),
+				"display_name":        util.StringValueOrNull(&saml.DisplayName),
+				"logo_url":            util.StringValueOrNull(&saml.LogoURL),
+				"type":                util.StringValueOrNull(&saml.Type),
 				"is_provider_visible": types.BoolValue(saml.IsProviderVisible),
 				"domains": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range saml.Domains {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
@@ -910,15 +910,15 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			providerObjectType.AttrTypes,
 			map[string]attr.Value{
-				"provider_name":       types.StringValue(ad.ProviderName),
-				"display_name":        types.StringValue(ad.DisplayName),
-				"logo_url":            types.StringValue(ad.LogoURL),
-				"type":                types.StringValue(ad.Type),
+				"provider_name":       util.StringValueOrNull(&ad.ProviderName),
+				"display_name":        util.StringValueOrNull(&ad.DisplayName),
+				"logo_url":            util.StringValueOrNull(&ad.LogoURL),
+				"type":                util.StringValueOrNull(&ad.Type),
 				"is_provider_visible": types.BoolValue(ad.IsProviderVisible),
 				"domains": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range ad.Domains {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
@@ -945,18 +945,18 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			allowedGroupsObjectType.AttrTypes,
 			map[string]attr.Value{
-				"group_id": types.StringValue(ag.GroupID),
+				"group_id": util.StringValueOrNull(&ag.GroupID),
 				"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range ag.Roles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
 				"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range ag.DefaultRoles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
@@ -975,18 +975,18 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			allowedGroupsObjectType.AttrTypes,
 			map[string]attr.Value{
-				"group_id": types.StringValue(oag.GroupID),
+				"group_id": util.StringValueOrNull(&oag.GroupID),
 				"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range oag.Roles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
 				"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range oag.DefaultRoles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
@@ -1005,18 +1005,18 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state *AppCo
 		objValue := types.ObjectValueMust(
 			allowedGroupsObjectType.AttrTypes,
 			map[string]attr.Value{
-				"group_id": types.StringValue(aglg.GroupID),
+				"group_id": util.StringValueOrNull(&aglg.GroupID),
 				"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range aglg.Roles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
 				"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range aglg.DefaultRoles {
-						temp = append(temp, types.StringValue(role))
+						temp = append(temp, util.StringValueOrNull(&role))
 					}
 					return temp
 				}()),
