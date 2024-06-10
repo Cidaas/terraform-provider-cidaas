@@ -3,25 +3,11 @@ package resources
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"os"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type AppResource struct {
@@ -51,868 +37,13 @@ func (r *AppResource) Configure(_ context.Context, req resource.ConfigureRequest
 	r.cidaasClient = client
 }
 
-func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"client_type": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
-						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY"}...),
-				},
-			},
-			"accent_color": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("#ef4923"),
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
-						"accent_color must be a valid hex color",
-					),
-				},
-			},
-			"primary_color": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("#f7941d"),
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
-						"must be a valid hex color",
-					),
-				},
-			},
-			"media_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"VIDEO", "IMAGE"}...),
-				},
-				Default: stringdefault.StaticString("IMAGE"),
-			},
-			"content_align": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
-				},
-				Default: stringdefault.StaticString("CENTER"),
-			},
-			"allow_login_with": schema.SetAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
-				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
-					),
-				},
-				Default: setdefault.StaticValue(basetypes.NewSetValueMust(types.StringType, []attr.Value{
-					types.StringValue("EMAIL"), types.StringValue("MOBILE"), types.StringValue("USER_NAME"),
-				})),
-			},
-			"redirect_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
-			},
-			"allowed_logout_urls": schema.SetAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
-			},
-			"enable_deduplication": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"auto_login_after_register": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"enable_passwordless_auth": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"register_with_login_information": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"allow_disposable_email": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"validate_phone_number": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"fds_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"hosted_page_group": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("default"),
-			},
-			"client_name": schema.StringAttribute{
-				Required: true,
-			},
-			"client_display_name": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"company_name": schema.StringAttribute{
-				Required: true,
-			},
-			"company_address": schema.StringAttribute{
-				Required: true,
-			},
-			"company_website": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"allowed_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-			},
-			"response_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
-				Default: setdefault.StaticValue(basetypes.NewSetValueMust(types.StringType, []attr.Value{
-					types.StringValue("code"), types.StringValue("token"), types.StringValue("id_token"),
-				})),
-			},
-			"grant_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
-				Default: setdefault.StaticValue(basetypes.NewSetValueMust(types.StringType, []attr.Value{
-					types.StringValue("implicit"), types.StringValue("authorization_code"), types.StringValue("password"), types.StringValue("refresh_token"),
-				})),
-			},
-			"login_providers": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"additional_access_token_payload": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"required_fields": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"is_hybrid_app": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"allowed_web_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"mobile_settings": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"team_id": schema.StringAttribute{
-						Optional: true,
-					},
-					"bundle_id": schema.StringAttribute{
-						Optional: true,
-					},
-					"package_name": schema.StringAttribute{
-						Optional: true,
-					},
-					"key_hash": schema.StringAttribute{
-						Optional: true,
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"team_id":      types.StringType,
-						"bundle_id":    types.StringType,
-						"package_name": types.StringType,
-						"key_hash":     types.StringType,
-					},
-					map[string]attr.Value{
-						"team_id":      types.StringNull(),
-						"bundle_id":    types.StringNull(),
-						"package_name": types.StringNull(),
-						"key_hash":     types.StringNull(),
-					})),
-			},
-			"default_max_age": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
-			},
-			"token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
-			},
-			"id_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
-			},
-			"refresh_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(15780000),
-			},
-			"template_group_id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("default"),
-			},
-			"client_id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"client_secret": schema.StringAttribute{
-				Optional:  true,
-				Computed:  true,
-				Sensitive: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"policy_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"tos_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"imprint_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"contacts": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"token_endpoint_auth_method": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("client_secret_post"),
-			},
-			"token_endpoint_auth_signing_alg": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("RS256"),
-			},
-			"default_acr_values": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"editable": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"web_message_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
-			},
-			"social_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Required: true,
-						},
-						"social_id": schema.StringAttribute{
-							Required: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-					},
-				},
-			},
-			"custom_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Required: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Required: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"saml_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Required: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Required: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"ad_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Required: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Required: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"app_owner": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"jwe_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"user_consent": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Required: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"operations_allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Required: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"deleted": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"allowed_fields": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"always_ask_mfa": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"smart_mfa": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"allowed_mfa": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"captcha_ref": schema.StringAttribute{
-				Optional: true,
-			},
-			"captcha_refs": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"consent_refs": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"communication_medium_verification": schema.StringAttribute{
-				Optional: true,
-			},
-			"email_verification_required": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"mobile_number_verification_required": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"allowed_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"default_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"enable_classical_provider": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"is_remember_me_selected": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
-			},
-			"enable_bot_detection": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"bot_provider": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("CIDAAS"),
-			},
-			"allow_guest_login_groups": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Required: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"is_login_success_page_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"is_register_success_page_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"group_ids": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"admin_client": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"is_group_login_selection_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"group_selection": schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"always_show_group_selection": schema.BoolAttribute{
-						Optional: true,
-					},
-					"selectable_groups": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-					"selectable_group_types": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-			},
-			"group_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"backchannel_logout_uri": schema.StringAttribute{
-				Optional: true,
-			},
-			"post_logout_redirect_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"logo_align": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
-				},
-				Default: stringdefault.StaticString("CENTER"),
-			},
-			"mfa": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"setting": schema.StringAttribute{
-						Optional: true,
-						Validators: []validator.String{
-							stringvalidator.OneOf([]string{"OFF", "ALWAYS", "SMART", "TIME_BASED", "SMART_PLUS_TIME_BASED"}...),
-						},
-					},
-					"time_interval_in_seconds": schema.Int64Attribute{
-						Optional: true,
-					},
-					"allowed_methods": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"setting":                  types.StringType,
-						"time_interval_in_seconds": types.Int64Type,
-						"allowed_methods": types.SetType{
-							ElemType: types.StringType,
-						},
-					},
-					map[string]attr.Value{
-						"setting":                  types.StringValue("OFF"),
-						"time_interval_in_seconds": types.Int64Null(),
-						"allowed_methods":          types.SetNull(types.StringType),
-					})),
-			},
-			"webfinger": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("no_redirection"),
-			},
-			"application_type": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"logo_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"initiate_login_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"registration_client_uri": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"registration_access_token": schema.StringAttribute{
-				Optional: true,
-			},
-			"client_uri": schema.StringAttribute{
-				Optional: true,
-			},
-			"jwks_uri": schema.StringAttribute{
-				Optional: true,
-			},
-			"jwks": schema.StringAttribute{
-				Optional: true,
-			},
-			"sector_identifier_uri": schema.StringAttribute{
-				Optional: true,
-			},
-			"subject_type": schema.StringAttribute{
-				Optional: true,
-			},
-			"id_token_signed_response_alg": schema.StringAttribute{
-				Optional: true,
-			},
-			"id_token_encrypted_response_alg": schema.StringAttribute{
-				Optional: true,
-			},
-			"id_token_encrypted_response_enc": schema.StringAttribute{
-				Optional: true,
-			},
-			"userinfo_signed_response_alg": schema.StringAttribute{
-				Optional: true,
-			},
-			"userinfo_encrypted_response_alg": schema.StringAttribute{
-				Optional: true,
-			},
-			"userinfo_encrypted_response_enc": schema.StringAttribute{
-				Optional: true,
-			},
-			"request_object_signing_alg": schema.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"request_object_encryption_alg": schema.StringAttribute{
-				Optional: true,
-			},
-			"request_object_encryption_enc": schema.StringAttribute{
-				Optional: true,
-			},
-			"request_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"description": schema.StringAttribute{
-				Optional: true,
-			},
-			"default_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"pending_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"consent_page_group": schema.StringAttribute{
-				Optional: true,
-			},
-			"password_policy_ref": schema.StringAttribute{
-				Optional: true,
-			},
-			"blocking_mechanism_ref": schema.StringAttribute{
-				Optional: true,
-			},
-			"sub": schema.StringAttribute{
-				Optional: true,
-			},
-			"role": schema.StringAttribute{
-				Optional: true,
-			},
-			"mfa_configuration": schema.StringAttribute{
-				Optional: true,
-			},
-			"suggest_mfa": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"login_spi": schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					"oauth_client_id": schema.StringAttribute{
-						Optional: true,
-					},
-					"spi_url": schema.StringAttribute{
-						Optional: true,
-					},
-				},
-			},
-			"background_uri": schema.StringAttribute{
-				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"video_url": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
-			},
-			"bot_captcha_ref": schema.StringAttribute{
-				Optional: true,
-			},
-			"application_meta_data": schema.MapAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allow_guest_login": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			"created_at": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-		},
-	}
-}
-
 func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan AppConfig
+	var plan, config AppConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
+	resp.Diagnostics.Append(config.ExtractAppConfigs(ctx)...)
+
 	appModel, diags := prepareAppModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -923,7 +54,7 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 		resp.Diagnostics.AddError("failed to create app", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	resp.Diagnostics.Append(updateStateModel(ctx, res, &plan).Diagnostics...)
+	resp.Diagnostics.Append(updateStateModel(ctx, res, &plan, &config).Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -933,22 +64,32 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state AppConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.App.Get(state.ClientID.ValueString())
-	resp.Diagnostics.Append(updateStateModel(ctx, res, &state).Diagnostics...)
+	resp.Diagnostics.Append(state.ExtractAppConfigs(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	_, err := r.cidaasClient.App.Get(state.ClientID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read app", fmt.Sprintf("Error: %s", err.Error()))
+		return
+	}
+	// resp.Diagnostics.Append(updateStateModel(ctx, res, &state, &state).Diagnostics...)
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
+
+	if true {
+		resp.Diagnostics.AddError("failed to read app", fmt.Sprintf("Error: %+v", state))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state AppConfig
+	var plan, state, config AppConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
 	appModel, diags := prepareAppModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -966,6 +107,7 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 func (r *AppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state AppConfig
+	os.Exit(1)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -979,4 +121,186 @@ func (r *AppResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 func (r *AppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("client_id"), req, resp)
+}
+
+func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	var plan, config AppConfig
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(config.ExtractAppConfigs(ctx)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if false {
+		// default check
+		// 	if config.AccentColor.IsNull() || plan.AccentColor.Equal(types.StringValue("#ef4923")) {
+		// 		if !config.commonConfigs.AccentColor.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("accent_color"), config.commonConfigs.AccentColor)
+		// 		}
+		// 	}
+		// 	if config.PrimaryColor.IsNull() || plan.PrimaryColor.Equal(types.StringValue("#f7941d")) {
+		// 		if !config.commonConfigs.PrimaryColor.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("primary_color"), config.commonConfigs.PrimaryColor)
+		// 		}
+		// 	}
+		// 	if config.MediaType.IsNull() || plan.MediaType.Equal(types.StringValue("IMAGE")) {
+		// 		if !config.commonConfigs.MediaType.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("media_type"), config.commonConfigs.MediaType)
+		// 		}
+		// 	}
+		// 	if config.HostedPageGroup.IsNull() || plan.HostedPageGroup.Equal(types.StringValue("default")) {
+		// 		if !config.commonConfigs.HostedPageGroup.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("hosted_page_group"), config.commonConfigs.HostedPageGroup)
+		// 		}
+		// 	}
+		// 	if config.TemplateGroupID.IsNull() || plan.TemplateGroupID.Equal(types.StringValue("default")) {
+		// 		if !config.commonConfigs.TemplateGroupID.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("template_group_id"), config.commonConfigs.TemplateGroupID)
+		// 		}
+		// 	}
+		// 	if config.BotProvider.IsNull() || plan.BotProvider.Equal(types.StringValue("CIDAAS")) {
+		// 		if !config.commonConfigs.BotProvider.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("bot_provider"), config.commonConfigs.BotProvider)
+		// 		}
+		// 	}
+		// 	if config.LogoAlign.IsNull() || plan.LogoAlign.Equal(types.StringValue("CENTER")) {
+		// 		if !config.commonConfigs.LogoAlign.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("logo_align"), config.commonConfigs.LogoAlign)
+		// 		}
+		// 	}
+		// 	if config.Webfinger.IsNull() || plan.Webfinger.Equal(types.StringValue("no_redirection")) {
+		// 		if !config.commonConfigs.Webfinger.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("webfinger"), config.commonConfigs.Webfinger)
+		// 		}
+		// 	}
+		// 	if config.DefaultMaxAge.IsNull() || plan.DefaultMaxAge.Equal(types.Int64Value(86400)) {
+		// 		if !config.commonConfigs.DefaultMaxAge.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("default_max_age"), config.commonConfigs.DefaultMaxAge)
+		// 		}
+		// 	}
+		// 	if config.TokenLifetimeInSeconds.IsNull() || plan.TokenLifetimeInSeconds.Equal(types.Int64Value(86400)) {
+		// 		if !config.commonConfigs.TokenLifetimeInSeconds.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("token_lifetime_in_seconds"), config.commonConfigs.TokenLifetimeInSeconds)
+		// 		}
+		// 	}
+		// 	if config.IDTokenLifetimeInSeconds.IsNull() || plan.IDTokenLifetimeInSeconds.Equal(types.Int64Value(86400)) {
+		// 		if !config.commonConfigs.IDTokenLifetimeInSeconds.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("id_token_lifetime_in_seconds"), config.commonConfigs.IDTokenLifetimeInSeconds)
+		// 		}
+		// 	}
+		// 	if config.RefreshTokenLifetimeInSeconds.IsNull() || plan.RefreshTokenLifetimeInSeconds.Equal(types.Int64Value(15780000)) {
+		// 		if !config.commonConfigs.RefreshTokenLifetimeInSeconds.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("refresh_token_lifetime_in_seconds"), config.commonConfigs.RefreshTokenLifetimeInSeconds)
+		// 		}
+		// 	}
+		// 	if config.AllowGuestLogin.IsNull() || plan.AllowGuestLogin.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.AllowGuestLogin.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("allow_guest_login"), config.commonConfigs.AllowGuestLogin)
+		// 		}
+		// 	}
+		// 	if config.EnableDeduplication.IsNull() || plan.EnableDeduplication.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.EnableDeduplication.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("enable_deduplication"), config.commonConfigs.EnableDeduplication)
+		// 		}
+		// 	}
+		// 	if config.AutoLoginAfterRegister.IsNull() || plan.AutoLoginAfterRegister.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.AutoLoginAfterRegister.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("auto_login_after_register"), config.commonConfigs.AutoLoginAfterRegister)
+		// 		}
+		// 	}
+		// 	if config.EnablePasswordlessAuth.IsNull() || plan.EnablePasswordlessAuth.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.EnablePasswordlessAuth.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("enable_passwordless_auth"), config.commonConfigs.EnablePasswordlessAuth)
+		// 		}
+		// 	}
+		// 	if config.RegisterWithLoginInformation.IsNull() || plan.RegisterWithLoginInformation.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.RegisterWithLoginInformation.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("register_with_login_information"), config.commonConfigs.RegisterWithLoginInformation)
+		// 		}
+		// 	}
+		// 	if config.FdsEnabled.IsNull() || plan.FdsEnabled.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.FdsEnabled.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("fds_enabled"), config.commonConfigs.FdsEnabled)
+		// 		}
+		// 	}
+		// 	if config.IsHybridApp.IsNull() || plan.IsHybridApp.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.IsHybridApp.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("is_hybrid_app"), config.commonConfigs.IsHybridApp)
+		// 		}
+		// 	}
+		// 	if config.Editable.IsNull() || plan.Editable.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.Editable.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("editable"), config.commonConfigs.Editable)
+		// 		}
+		// 	}
+		// 	if config.Enabled.IsNull() || plan.Enabled.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.Enabled.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("enabled"), config.commonConfigs.Enabled)
+		// 		}
+		// 	}
+		// 	if config.AlwaysAskMfa.IsNull() || plan.AlwaysAskMfa.Equal(types.BoolValue(false)) {
+		// 		if !config.commonConfigs.AlwaysAskMfa.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("always_ask_mfa"), config.commonConfigs.AlwaysAskMfa)
+		// 		}
+		// 	}
+		// 	if config.EmailVerificationRequired.IsNull() || plan.EmailVerificationRequired.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.EmailVerificationRequired.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("email_verification_required"), config.commonConfigs.EmailVerificationRequired)
+		// 		}
+		// 	}
+		// 	if config.EnableClassicalProvider.IsNull() || plan.EnableClassicalProvider.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.EnableClassicalProvider.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("enable_classical_provider"), config.commonConfigs.EnableClassicalProvider)
+		// 		}
+		// 	}
+		// 	if config.IsRememberMeSelected.IsNull() || plan.IsRememberMeSelected.Equal(types.BoolValue(true)) {
+		// 		if !config.commonConfigs.IsRememberMeSelected.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("is_remember_me_selected"), config.commonConfigs.IsRememberMeSelected)
+		// 		}
+		// 	}
+		// 	if config.ResponseTypes.IsNull() || plan.ResponseTypes.Equal(
+		// 		basetypes.NewSetValueMust(types.StringType, []attr.Value{
+		// 			types.StringValue("code"), types.StringValue("token"), types.StringValue("id_token"),
+		// 		})) {
+		// 		if !config.commonConfigs.ResponseTypes.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("response_types"), config.commonConfigs.ResponseTypes)
+		// 		}
+		// 	}
+		// 	if config.GrantTypes.IsNull() || plan.GrantTypes.Equal(
+		// 		basetypes.NewSetValueMust(types.StringType, []attr.Value{
+		// 			types.StringValue("implicit"), types.StringValue("authorization_code"), types.StringValue("password"), types.StringValue("refresh_token"),
+		// 		})) {
+		// 		if !config.commonConfigs.GrantTypes.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("grant_types"), config.commonConfigs.GrantTypes)
+		// 		}
+		// 	}
+		// 	if config.AllowLoginWith.IsNull() || plan.AllowLoginWith.Equal(
+		// 		basetypes.NewSetValueMust(types.StringType, []attr.Value{
+		// 			types.StringValue("EMAIL"), types.StringValue("MOBILE"), types.StringValue("USER_NAME"),
+		// 		})) {
+		// 		if !config.commonConfigs.AllowLoginWith.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("allow_login_with"), config.commonConfigs.AllowLoginWith)
+		// 		}
+		// 	}
+		// 	if config.Mfa.IsNull() || plan.Mfa.Equal(types.ObjectValueMust(
+		// 		map[string]attr.Type{
+		// 			"setting":                  types.StringType,
+		// 			"time_interval_in_seconds": types.Int64Type,
+		// 			"allowed_methods": types.SetType{
+		// 				ElemType: types.StringType,
+		// 			},
+		// 		},
+		// 		map[string]attr.Value{
+		// 			"setting":                  types.StringValue("OFF"),
+		// 			"time_interval_in_seconds": types.Int64Null(),
+		// 			"allowed_methods":          types.SetNull(types.StringType),
+		// 		})) {
+		// 		if !config.commonConfigs.Mfa.IsNull() {
+		// 			resp.Plan.SetAttribute(ctx, path.Root("mfa"), config.commonConfigs.Mfa)
+		// 		}
+		// 	}
+	}
 }

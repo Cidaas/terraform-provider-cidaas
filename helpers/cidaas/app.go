@@ -211,7 +211,6 @@ type IPushConfig struct {
 type ISocialProviderData struct {
 	ProviderName string `json:"provider_name,omitempty"`
 	SocialID     string `json:"social_id,omitempty"`
-	DisplayName  string `json:"display_name,omitempty"`
 }
 type IProviderMetadData struct {
 	LogoURL           string   `json:"logo_url,omitempty"`
