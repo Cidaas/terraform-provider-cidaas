@@ -386,9 +386,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						"social_id": schema.StringAttribute{
 							Required: true,
 						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
 					},
 				},
 			},
@@ -878,7 +875,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
-			// "common_configs": getCommonConfig(),
+			"common_configs": getCommonConfig(),
 			"created_at": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{

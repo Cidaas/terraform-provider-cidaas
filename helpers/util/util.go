@@ -54,7 +54,7 @@ func StringValueOrNull(value *string) types.String {
 }
 
 func SetValueOrNull(values []string) types.Set {
-	if values != nil {
+	if len(values) > 0 {
 		var temp []attr.Value
 		for _, v := range values {
 			temp = append(temp, types.StringValue(v))

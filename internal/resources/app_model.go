@@ -142,7 +142,7 @@ type AppConfig struct {
 	GroupSelection          types.Object `tfsdk:"group_selection"`
 	Mfa                     types.Object `tfsdk:"mfa"`
 	MobileSettings          types.Object `tfsdk:"mobile_settings"`
-	// CommonConfigs           types.Object `tfsdk:"common_configs"`
+	CommonConfigs           types.Object `tfsdk:"common_configs"`
 
 	socialProviders         []*SocialProviderData
 	customProviders         []*ProviderMetadData
@@ -156,7 +156,7 @@ type AppConfig struct {
 	groupSelection *GroupSelection
 	mfa            *MfaOption
 	mobileSettings *AppMobileSettings
-	// commonConfigs  *CommonConfigs
+	commonConfigs  *CommonConfigs
 }
 
 type AllowedGroups struct {
@@ -277,10 +277,10 @@ func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 		w.mobileSettings = &AppMobileSettings{}
 		diags = w.MobileSettings.As(ctx, w.mobileSettings, basetypes.ObjectAsOptions{})
 	}
-	// if !w.CommonConfigs.IsNull() {
-	// 	w.commonConfigs = &CommonConfigs{}
-	// 	diags = w.CommonConfigs.As(ctx, w.commonConfigs, basetypes.ObjectAsOptions{})
-	// }
+	if !w.CommonConfigs.IsNull() {
+		w.commonConfigs = &CommonConfigs{}
+		diags = w.CommonConfigs.As(ctx, w.commonConfigs, basetypes.ObjectAsOptions{})
+	}
 	if !w.SocialProviders.IsNull() {
 		w.socialProviders = make([]*SocialProviderData, 0, len(w.SocialProviders.Elements()))
 		diags = w.SocialProviders.ElementsAs(ctx, &w.socialProviders, false)
@@ -363,9 +363,9 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	}
 
 	commonConfigs := &CommonConfigs{}
-	// if plan.commonConfigs != nil {
-	// 	commonConfigs = plan.commonConfigs
-	// }
+	if plan.commonConfigs != nil {
+		commonConfigs = plan.commonConfigs
+	}
 
 	app := cidaas.AppModel{}
 
@@ -641,7 +641,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 	resp := resource.ReadResponse{}
 
 	// only applicable for the required varaibles
-	if false {
+	if config.CommonConfigs.IsNull() {
 		state.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
 		state.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
 		state.ClientType = util.StringValueOrNull(&res.Data.ClientType)
@@ -904,293 +904,291 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 	} else {
-		// to remove
-		// config.commonConfigs = &CommonConfigs{}
-		// if !config.commonConfigs.CompanyName.IsNull() {
-		// 	state.commonConfigs.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
-		// }
+		if !config.commonConfigs.CompanyName.IsNull() {
+			state.commonConfigs.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
+		}
 		if !config.CompanyName.IsNull() {
 			state.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
 		}
-		// if !config.commonConfigs.CompanyWebsite.IsNull() {
-		// 	state.commonConfigs.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
-		// }
+		if !config.commonConfigs.CompanyWebsite.IsNull() {
+			state.commonConfigs.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
+		}
 		if !config.CompanyWebsite.IsNull() {
 			state.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
 		}
 
-		// if !config.commonConfigs.ClientType.IsNull() {
-		// 	state.commonConfigs.ClientType = util.StringValueOrNull(&res.Data.ClientType)
-		// }
+		if !config.commonConfigs.ClientType.IsNull() {
+			state.commonConfigs.ClientType = util.StringValueOrNull(&res.Data.ClientType)
+		}
 		if !config.ClientType.IsNull() {
 			state.ClientType = util.StringValueOrNull(&res.Data.ClientType)
 		}
 
-		// if !config.commonConfigs.CompanyAddress.IsNull() {
-		// 	state.commonConfigs.CompanyAddress = util.StringValueOrNull(&res.Data.CompanyAddress)
-		// }
+		if !config.commonConfigs.CompanyAddress.IsNull() {
+			state.commonConfigs.CompanyAddress = util.StringValueOrNull(&res.Data.CompanyAddress)
+		}
 		if !config.CompanyAddress.IsNull() {
 			state.CompanyAddress = util.StringValueOrNull(&res.Data.CompanyAddress)
 		}
-		// if !config.commonConfigs.AllowedScopes.IsNull() {
-		// 	state.commonConfigs.AllowedScopes = util.SetValueOrNull(res.Data.AllowedScopes)
-		// }
+		if !config.commonConfigs.AllowedScopes.IsNull() {
+			state.commonConfigs.AllowedScopes = util.SetValueOrNull(res.Data.AllowedScopes)
+		}
 		if !config.AllowedScopes.IsNull() {
 			state.AllowedScopes = util.SetValueOrNull(res.Data.AllowedScopes)
 		}
-		// if !config.commonConfigs.RedirectUris.IsNull() {
-		// 	state.commonConfigs.RedirectUris = util.SetValueOrNull(res.Data.RedirectURIS)
-		// }
+		if !config.commonConfigs.RedirectUris.IsNull() {
+			state.commonConfigs.RedirectUris = util.SetValueOrNull(res.Data.RedirectURIS)
+		}
 		if !config.RedirectURIS.IsNull() {
 			state.RedirectURIS = util.SetValueOrNull(res.Data.RedirectURIS)
 		}
-		// if !config.commonConfigs.AllowedLogoutUrls.IsNull() {
-		// 	state.commonConfigs.AllowedLogoutUrls = util.SetValueOrNull(res.Data.AllowedLogoutUrls)
-		// }
+		if !config.commonConfigs.AllowedLogoutUrls.IsNull() {
+			state.commonConfigs.AllowedLogoutUrls = util.SetValueOrNull(res.Data.AllowedLogoutUrls)
+		}
 		if !config.AllowedLogoutUrls.IsNull() {
 			state.AllowedLogoutUrls = util.SetValueOrNull(res.Data.AllowedLogoutUrls)
 		}
-		// if !config.commonConfigs.AllowedWebOrigins.IsNull() {
-		// 	state.commonConfigs.AllowedWebOrigins = util.SetValueOrNull(res.Data.AllowedWebOrigins)
-		// }
+		if !config.commonConfigs.AllowedWebOrigins.IsNull() {
+			state.commonConfigs.AllowedWebOrigins = util.SetValueOrNull(res.Data.AllowedWebOrigins)
+		}
 		if !config.AllowedWebOrigins.IsNull() {
 			state.AllowedWebOrigins = util.SetValueOrNull(res.Data.AllowedWebOrigins)
 		}
-		// if !config.commonConfigs.AllowedOrigins.IsNull() {
-		// 	state.commonConfigs.AllowedOrigins = util.SetValueOrNull(res.Data.AllowedOrigins)
-		// }
+		if !config.commonConfigs.AllowedOrigins.IsNull() {
+			state.commonConfigs.AllowedOrigins = util.SetValueOrNull(res.Data.AllowedOrigins)
+		}
 		if !config.AllowedOrigins.IsNull() {
 			state.AllowedOrigins = util.SetValueOrNull(res.Data.AllowedOrigins)
 		}
-		// if !config.commonConfigs.LoginProviders.IsNull() {
-		// 	state.commonConfigs.LoginProviders = util.SetValueOrNull(res.Data.LoginProviders)
-		// }
+		if !config.commonConfigs.LoginProviders.IsNull() {
+			state.commonConfigs.LoginProviders = util.SetValueOrNull(res.Data.LoginProviders)
+		}
 		if !config.LoginProviders.IsNull() {
 			state.LoginProviders = util.SetValueOrNull(res.Data.LoginProviders)
 		}
-		// if !config.commonConfigs.DefaultScopes.IsNull() {
-		// 	state.commonConfigs.DefaultScopes = util.SetValueOrNull(res.Data.DefaultScopes)
-		// }
+		if !config.commonConfigs.DefaultScopes.IsNull() {
+			state.commonConfigs.DefaultScopes = util.SetValueOrNull(res.Data.DefaultScopes)
+		}
 		if !config.DefaultScopes.IsNull() {
 			state.DefaultScopes = util.SetValueOrNull(res.Data.DefaultScopes)
 		}
 
-		// if !config.commonConfigs.PendingScopes.IsNull() {
-		// 	state.commonConfigs.PendingScopes = util.SetValueOrNull(res.Data.PendingScopes)
-		// }
+		if !config.commonConfigs.PendingScopes.IsNull() {
+			state.commonConfigs.PendingScopes = util.SetValueOrNull(res.Data.PendingScopes)
+		}
 		if !config.PendingScopes.IsNull() {
 			state.PendingScopes = util.SetValueOrNull(res.Data.PendingScopes)
 		}
-		// if !config.commonConfigs.AllowedMfa.IsNull() {
-		// 	state.commonConfigs.AllowedMfa = util.SetValueOrNull(res.Data.AllowedMfa)
-		// }
+		if !config.commonConfigs.AllowedMfa.IsNull() {
+			state.commonConfigs.AllowedMfa = util.SetValueOrNull(res.Data.AllowedMfa)
+		}
 		if !config.AllowedMfa.IsNull() {
 			state.AllowedMfa = util.SetValueOrNull(res.Data.AllowedMfa)
 		}
-		// if !config.commonConfigs.AllowedRoles.IsNull() {
-		// 	state.commonConfigs.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
-		// }
+		if !config.commonConfigs.AllowedRoles.IsNull() {
+			state.commonConfigs.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
+		}
 		if !config.AllowedRoles.IsNull() {
 			state.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
 		}
 
-		// if !config.commonConfigs.DefaultRoles.IsNull() {
-		// 	state.commonConfigs.DefaultRoles = util.SetValueOrNull(res.Data.DefaultRoles)
-		// }
+		if !config.commonConfigs.DefaultRoles.IsNull() {
+			state.commonConfigs.DefaultRoles = util.SetValueOrNull(res.Data.DefaultRoles)
+		}
 		if !config.DefaultRoles.IsNull() {
 			state.DefaultRoles = util.SetValueOrNull(res.Data.DefaultRoles)
 		}
-		// if !config.commonConfigs.AccentColor.IsNull() {
-		// 	state.commonConfigs.AccentColor = util.StringValueOrNull(&res.Data.AccentColor)
-		// }
+		if !config.commonConfigs.AccentColor.IsNull() {
+			state.commonConfigs.AccentColor = util.StringValueOrNull(&res.Data.AccentColor)
+		}
 		if !config.AccentColor.IsNull() {
 			state.AccentColor = util.StringValueOrNull(&res.Data.AccentColor)
 		}
 
-		// if !config.commonConfigs.PrimaryColor.IsNull() {
-		// 	state.commonConfigs.PrimaryColor = util.StringValueOrNull(&res.Data.PrimaryColor)
-		// }
+		if !config.commonConfigs.PrimaryColor.IsNull() {
+			state.commonConfigs.PrimaryColor = util.StringValueOrNull(&res.Data.PrimaryColor)
+		}
 		if !config.PrimaryColor.IsNull() {
 			state.PrimaryColor = util.StringValueOrNull(&res.Data.PrimaryColor)
 		}
 
-		// if !config.commonConfigs.MediaType.IsNull() {
-		// 	state.commonConfigs.MediaType = util.StringValueOrNull(&res.Data.MediaType)
-		// }
+		if !config.commonConfigs.MediaType.IsNull() {
+			state.commonConfigs.MediaType = util.StringValueOrNull(&res.Data.MediaType)
+		}
 		if !config.MediaType.IsNull() {
 			state.MediaType = util.StringValueOrNull(&res.Data.MediaType)
 		}
 
-		// if !config.commonConfigs.HostedPageGroup.IsNull() {
-		// 	state.commonConfigs.HostedPageGroup = util.StringValueOrNull(&res.Data.HostedPageGroup)
-		// }
+		if !config.commonConfigs.HostedPageGroup.IsNull() {
+			state.commonConfigs.HostedPageGroup = util.StringValueOrNull(&res.Data.HostedPageGroup)
+		}
 		if !config.HostedPageGroup.IsNull() {
 			state.HostedPageGroup = util.StringValueOrNull(&res.Data.HostedPageGroup)
 		}
 
-		// if !config.commonConfigs.TemplateGroupID.IsNull() {
-		// 	state.commonConfigs.TemplateGroupID = util.StringValueOrNull(&res.Data.TemplateGroupID)
-		// }
+		if !config.commonConfigs.TemplateGroupID.IsNull() {
+			state.commonConfigs.TemplateGroupID = util.StringValueOrNull(&res.Data.TemplateGroupID)
+		}
 		if !config.TemplateGroupID.IsNull() {
 			state.TemplateGroupID = util.StringValueOrNull(&res.Data.TemplateGroupID)
 		}
 
-		// if !config.commonConfigs.BotProvider.IsNull() {
-		// 	state.commonConfigs.BotProvider = util.StringValueOrNull(&res.Data.BotProvider)
-		// }
+		if !config.commonConfigs.BotProvider.IsNull() {
+			state.commonConfigs.BotProvider = util.StringValueOrNull(&res.Data.BotProvider)
+		}
 		if !config.BotProvider.IsNull() {
 			state.BotProvider = util.StringValueOrNull(&res.Data.BotProvider)
 		}
 
-		// if !config.commonConfigs.LogoAlign.IsNull() {
-		// 	state.commonConfigs.LogoAlign = util.StringValueOrNull(&res.Data.LogoAlign)
-		// }
+		if !config.commonConfigs.LogoAlign.IsNull() {
+			state.commonConfigs.LogoAlign = util.StringValueOrNull(&res.Data.LogoAlign)
+		}
 		if !config.LogoAlign.IsNull() {
 			state.LogoAlign = util.StringValueOrNull(&res.Data.LogoAlign)
 		}
 
-		// if !config.commonConfigs.Webfinger.IsNull() {
-		// 	state.commonConfigs.Webfinger = util.StringValueOrNull(&res.Data.Webfinger)
-		// }
+		if !config.commonConfigs.Webfinger.IsNull() {
+			state.commonConfigs.Webfinger = util.StringValueOrNull(&res.Data.Webfinger)
+		}
 		if !config.Webfinger.IsNull() {
 			state.Webfinger = util.StringValueOrNull(&res.Data.Webfinger)
 		}
 
-		// if !config.commonConfigs.DefaultMaxAge.IsNull() {
-		// 	state.commonConfigs.DefaultMaxAge = types.Int64Value(res.Data.DefaultMaxAge)
-		// }
+		if !config.commonConfigs.DefaultMaxAge.IsNull() {
+			state.commonConfigs.DefaultMaxAge = types.Int64Value(res.Data.DefaultMaxAge)
+		}
 		if !config.DefaultMaxAge.IsNull() {
 			state.DefaultMaxAge = types.Int64Value(res.Data.DefaultMaxAge)
 		}
 
-		// if !config.commonConfigs.TokenLifetimeInSeconds.IsNull() {
-		// 	state.commonConfigs.TokenLifetimeInSeconds = types.Int64Value(res.Data.TokenLifetimeInSeconds)
-		// }
+		if !config.commonConfigs.TokenLifetimeInSeconds.IsNull() {
+			state.commonConfigs.TokenLifetimeInSeconds = types.Int64Value(res.Data.TokenLifetimeInSeconds)
+		}
 		if !config.TokenLifetimeInSeconds.IsNull() {
 			state.TokenLifetimeInSeconds = types.Int64Value(res.Data.TokenLifetimeInSeconds)
 		}
 
-		// if !config.commonConfigs.IDTokenLifetimeInSeconds.IsNull() {
-		// 	state.commonConfigs.IDTokenLifetimeInSeconds = types.Int64Value(res.Data.IDTokenLifetimeInSeconds)
-		// }
+		if !config.commonConfigs.IDTokenLifetimeInSeconds.IsNull() {
+			state.commonConfigs.IDTokenLifetimeInSeconds = types.Int64Value(res.Data.IDTokenLifetimeInSeconds)
+		}
 		if !config.IDTokenLifetimeInSeconds.IsNull() {
 			state.IDTokenLifetimeInSeconds = types.Int64Value(res.Data.IDTokenLifetimeInSeconds)
 		}
 
-		// if !config.commonConfigs.RefreshTokenLifetimeInSeconds.IsNull() {
-		// 	state.commonConfigs.RefreshTokenLifetimeInSeconds = types.Int64Value(res.Data.RefreshTokenLifetimeInSeconds)
-		// }
+		if !config.commonConfigs.RefreshTokenLifetimeInSeconds.IsNull() {
+			state.commonConfigs.RefreshTokenLifetimeInSeconds = types.Int64Value(res.Data.RefreshTokenLifetimeInSeconds)
+		}
 		if !config.RefreshTokenLifetimeInSeconds.IsNull() {
 			state.RefreshTokenLifetimeInSeconds = types.Int64Value(res.Data.RefreshTokenLifetimeInSeconds)
 		}
 
-		// if !config.commonConfigs.AllowGuestLogin.IsNull() {
-		// 	state.commonConfigs.AllowGuestLogin = types.BoolValue(res.Data.AllowGuestLogin)
-		// }
+		if !config.commonConfigs.AllowGuestLogin.IsNull() {
+			state.commonConfigs.AllowGuestLogin = types.BoolValue(res.Data.AllowGuestLogin)
+		}
 		if !config.AllowGuestLogin.IsNull() {
 			state.AllowGuestLogin = types.BoolValue(res.Data.AllowGuestLogin)
 		}
 
-		// if !config.commonConfigs.EnableDeduplication.IsNull() {
-		// 	state.commonConfigs.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
-		// }
+		if !config.commonConfigs.EnableDeduplication.IsNull() {
+			state.commonConfigs.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
+		}
 		if !config.EnableDeduplication.IsNull() {
 			state.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
 		}
 
-		// if !config.commonConfigs.AutoLoginAfterRegister.IsNull() {
-		// 	state.commonConfigs.AutoLoginAfterRegister = types.BoolValue(res.Data.AutoLoginAfterRegister)
-		// }
+		if !config.commonConfigs.AutoLoginAfterRegister.IsNull() {
+			state.commonConfigs.AutoLoginAfterRegister = types.BoolValue(res.Data.AutoLoginAfterRegister)
+		}
 		if !config.AutoLoginAfterRegister.IsNull() {
 			state.AutoLoginAfterRegister = types.BoolValue(res.Data.AutoLoginAfterRegister)
 		}
 
-		// if !config.commonConfigs.EnablePasswordlessAuth.IsNull() {
-		// 	state.commonConfigs.EnablePasswordlessAuth = types.BoolValue(res.Data.EnablePasswordlessAuth)
-		// }
+		if !config.commonConfigs.EnablePasswordlessAuth.IsNull() {
+			state.commonConfigs.EnablePasswordlessAuth = types.BoolValue(res.Data.EnablePasswordlessAuth)
+		}
 		if !config.EnablePasswordlessAuth.IsNull() {
 			state.EnablePasswordlessAuth = types.BoolValue(res.Data.EnablePasswordlessAuth)
 		}
 
-		// if !config.commonConfigs.RegisterWithLoginInformation.IsNull() {
-		// 	state.commonConfigs.RegisterWithLoginInformation = types.BoolValue(res.Data.RegisterWithLoginInformation)
-		// }
+		if !config.commonConfigs.RegisterWithLoginInformation.IsNull() {
+			state.commonConfigs.RegisterWithLoginInformation = types.BoolValue(res.Data.RegisterWithLoginInformation)
+		}
 		if !config.RegisterWithLoginInformation.IsNull() {
 			state.RegisterWithLoginInformation = types.BoolValue(res.Data.RegisterWithLoginInformation)
 		}
 
-		// if !config.commonConfigs.FdsEnabled.IsNull() {
-		// 	state.commonConfigs.FdsEnabled = types.BoolValue(res.Data.FdsEnabled)
-		// }
+		if !config.commonConfigs.FdsEnabled.IsNull() {
+			state.commonConfigs.FdsEnabled = types.BoolValue(res.Data.FdsEnabled)
+		}
 		if !config.FdsEnabled.IsNull() {
 			state.FdsEnabled = types.BoolValue(res.Data.FdsEnabled)
 		}
 
-		// if !config.commonConfigs.IsHybridApp.IsNull() {
-		// 	state.commonConfigs.IsHybridApp = types.BoolValue(res.Data.IsHybridApp)
-		// }
+		if !config.commonConfigs.IsHybridApp.IsNull() {
+			state.commonConfigs.IsHybridApp = types.BoolValue(res.Data.IsHybridApp)
+		}
 		if !config.IsHybridApp.IsNull() {
 			state.IsHybridApp = types.BoolValue(res.Data.IsHybridApp)
 		}
 
-		// if !config.commonConfigs.Editable.IsNull() {
-		// 	state.commonConfigs.Editable = types.BoolValue(res.Data.Editable)
-		// }
+		if !config.commonConfigs.Editable.IsNull() {
+			state.commonConfigs.Editable = types.BoolValue(res.Data.Editable)
+		}
 		if !config.Editable.IsNull() {
 			state.Editable = types.BoolValue(res.Data.Editable)
 		}
 
-		// if !config.commonConfigs.Enabled.IsNull() {
-		// 	state.commonConfigs.Enabled = types.BoolValue(res.Data.Enabled)
-		// }
+		if !config.commonConfigs.Enabled.IsNull() {
+			state.commonConfigs.Enabled = types.BoolValue(res.Data.Enabled)
+		}
 		if !config.Enabled.IsNull() {
 			state.Enabled = types.BoolValue(res.Data.Enabled)
 		}
 
-		// if !config.commonConfigs.AlwaysAskMfa.IsNull() {
-		// 	state.commonConfigs.AlwaysAskMfa = types.BoolValue(res.Data.AlwaysAskMfa)
-		// }
+		if !config.commonConfigs.AlwaysAskMfa.IsNull() {
+			state.commonConfigs.AlwaysAskMfa = types.BoolValue(res.Data.AlwaysAskMfa)
+		}
 		if !config.AlwaysAskMfa.IsNull() {
 			state.AlwaysAskMfa = types.BoolValue(res.Data.AlwaysAskMfa)
 		}
 
-		// if !config.commonConfigs.EmailVerificationRequired.IsNull() {
-		// 	state.commonConfigs.EmailVerificationRequired = types.BoolValue(res.Data.EmailVerificationRequired)
-		// }
+		if !config.commonConfigs.EmailVerificationRequired.IsNull() {
+			state.commonConfigs.EmailVerificationRequired = types.BoolValue(res.Data.EmailVerificationRequired)
+		}
 		if !config.EmailVerificationRequired.IsNull() {
 			state.EmailVerificationRequired = types.BoolValue(res.Data.EmailVerificationRequired)
 		}
 
-		// if !config.commonConfigs.EnableClassicalProvider.IsNull() {
-		// 	state.commonConfigs.EnableClassicalProvider = types.BoolValue(res.Data.EnableClassicalProvider)
-		// }
+		if !config.commonConfigs.EnableClassicalProvider.IsNull() {
+			state.commonConfigs.EnableClassicalProvider = types.BoolValue(res.Data.EnableClassicalProvider)
+		}
 		if !config.EnableClassicalProvider.IsNull() {
 			state.EnableClassicalProvider = types.BoolValue(res.Data.EnableClassicalProvider)
 		}
 
-		// if !config.commonConfigs.IsRememberMeSelected.IsNull() {
-		// 	state.commonConfigs.IsRememberMeSelected = types.BoolValue(res.Data.IsRememberMeSelected)
-		// }
+		if !config.commonConfigs.IsRememberMeSelected.IsNull() {
+			state.commonConfigs.IsRememberMeSelected = types.BoolValue(res.Data.IsRememberMeSelected)
+		}
 		if !config.IsRememberMeSelected.IsNull() {
 			state.IsRememberMeSelected = types.BoolValue(res.Data.IsRememberMeSelected)
 		}
 
-		// if !config.commonConfigs.ResponseTypes.IsNull() {
-		// 	resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.ResponseTypes, res.Data.ResponseTypes)...)
-		// }
+		if !config.commonConfigs.ResponseTypes.IsNull() {
+			resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.ResponseTypes, res.Data.ResponseTypes)...)
+		}
 		if !config.ResponseTypes.IsNull() {
 			resp.Diagnostics.Append(extractSetValues(ctx, &state.ResponseTypes, res.Data.ResponseTypes)...)
 		}
-		// if !config.commonConfigs.GrantTypes.IsNull() {
-		// 	resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.GrantTypes, res.Data.GrantTypes)...)
-		// }
+		if !config.commonConfigs.GrantTypes.IsNull() {
+			resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.GrantTypes, res.Data.GrantTypes)...)
+		}
 		if !config.GrantTypes.IsNull() {
 			resp.Diagnostics.Append(extractSetValues(ctx, &state.GrantTypes, res.Data.GrantTypes)...)
 		}
 
-		// if !config.commonConfigs.AllowLoginWith.IsNull() {
-		// 	resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.AllowLoginWith, res.Data.GrantTypes)...)
-		// }
+		if !config.commonConfigs.AllowLoginWith.IsNull() {
+			resp.Diagnostics.Append(extractSetValues(ctx, &state.commonConfigs.AllowLoginWith, res.Data.GrantTypes)...)
+		}
 		if !config.AllowLoginWith.IsNull() {
 			resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowLoginWith, res.Data.AllowLoginWith)...)
 		}
@@ -1211,9 +1209,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			if resp.Diagnostics.HasError() {
 				return resp
 			}
-			// if !config.commonConfigs.Mfa.IsNull() {
-			// 	state.commonConfigs.Mfa = mfa
-			// }
+			if !config.commonConfigs.Mfa.IsNull() {
+				state.commonConfigs.Mfa = mfa
+			}
 			if !config.Mfa.IsNull() {
 				state.Mfa = mfa
 			}
@@ -1242,9 +1240,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 
-		// if !config.commonConfigs.SocialProviders.IsNull() {
-		// 	state.commonConfigs.SocialProviders = socialProviders
-		// }
+		if !config.commonConfigs.SocialProviders.IsNull() {
+			state.commonConfigs.SocialProviders = socialProviders
+		}
 		if !config.SocialProviders.IsNull() {
 			state.SocialProviders = socialProviders
 		}
@@ -1270,18 +1268,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 					"logo_url":            util.StringValueOrNull(&cp.LogoURL),
 					"type":                util.StringValueOrNull(&cp.Type),
 					"is_provider_visible": types.BoolValue(cp.IsProviderVisible),
-					"domains": func() basetypes.SetValue {
-						if len(cp.Domains) == 0 {
-							return types.SetNull(types.StringType)
-						}
-						return types.SetValueMust(types.StringType, func() []attr.Value {
-							var temp []attr.Value
-							for _, role := range cp.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
-							}
-							return temp
-						}())
-					}(),
+					"domains":             util.SetValueOrNull(cp.Domains),
 				})
 			customProviderMetaObjectValues = append(customProviderMetaObjectValues, objValue)
 		}
@@ -1291,9 +1278,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 
-		// if !config.commonConfigs.CustomProviders.IsNull() {
-		// 	state.commonConfigs.CustomProviders = customProviders
-		// }
+		if !config.commonConfigs.CustomProviders.IsNull() {
+			state.commonConfigs.CustomProviders = customProviders
+		}
 		if !config.CustomProviders.IsNull() {
 			state.CustomProviders = customProviders
 		}
@@ -1308,18 +1295,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 					"logo_url":            util.StringValueOrNull(&saml.LogoURL),
 					"type":                util.StringValueOrNull(&saml.Type),
 					"is_provider_visible": types.BoolValue(saml.IsProviderVisible),
-					"domains": func() basetypes.SetValue {
-						if len(saml.Domains) == 0 {
-							return types.SetNull(types.StringType)
-						}
-						return types.SetValueMust(types.StringType, func() []attr.Value {
-							var temp []attr.Value
-							for _, role := range saml.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
-							}
-							return temp
-						}())
-					}(),
+					"domains":             util.SetValueOrNull(saml.Domains),
 				})
 			samlProviderMetaObjectValues = append(samlProviderMetaObjectValues, objValue)
 		}
@@ -1330,9 +1306,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 
-		// if !config.commonConfigs.SamlProviders.IsNull() {
-		// 	state.commonConfigs.SamlProviders = samlProviders
-		// }
+		if !config.commonConfigs.SamlProviders.IsNull() {
+			state.commonConfigs.SamlProviders = samlProviders
+		}
 		if !config.SamlProviders.IsNull() {
 			state.SamlProviders = samlProviders
 		}
@@ -1347,18 +1323,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 					"logo_url":            util.StringValueOrNull(&ad.LogoURL),
 					"type":                util.StringValueOrNull(&ad.Type),
 					"is_provider_visible": types.BoolValue(ad.IsProviderVisible),
-					"domains": func() basetypes.SetValue {
-						if len(ad.Domains) == 0 {
-							return types.SetNull(types.StringType)
-						}
-						return types.SetValueMust(types.StringType, func() []attr.Value {
-							var temp []attr.Value
-							for _, role := range ad.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
-							}
-							return temp
-						}())
-					}(),
+					"domains":             util.SetValueOrNull(ad.Domains),
 				})
 			adProviderMetaObjectValues = append(adProviderMetaObjectValues, objValue)
 		}
@@ -1369,9 +1334,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 
-		// if !config.commonConfigs.AdProviders.IsNull() {
-		// 	state.commonConfigs.AdProviders = adProviders
-		// }
+		if !config.commonConfigs.AdProviders.IsNull() {
+			state.commonConfigs.AdProviders = adProviders
+		}
 		if !config.AdProviders.IsNull() {
 			state.AdProviders = adProviders
 		}
@@ -1389,21 +1354,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			objValue := types.ObjectValueMust(
 				allowedGroupsObjectType.AttrTypes,
 				map[string]attr.Value{
-					"group_id": util.StringValueOrNull(&ag.GroupID),
-					"roles": types.SetValueMust(types.StringType, func() []attr.Value {
-						var temp []attr.Value
-						for _, role := range ag.Roles {
-							temp = append(temp, util.StringValueOrNull(&role))
-						}
-						return temp
-					}()),
-					"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
-						var temp []attr.Value
-						for _, role := range ag.DefaultRoles {
-							temp = append(temp, util.StringValueOrNull(&role))
-						}
-						return temp
-					}()),
+					"group_id":      util.StringValueOrNull(&ag.GroupID),
+					"roles":         util.SetValueOrNull(ag.Roles),
+					"default_roles": util.SetValueOrNull(ag.DefaultRoles),
 				})
 			allowedGroupsObjectValues = append(allowedGroupsObjectValues, objValue)
 		}
@@ -1414,9 +1367,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			return resp
 		}
 
-		// if !config.commonConfigs.AllowedGroups.IsNull() {
-		// 	state.commonConfigs.AllowedGroups = allowedGroups
-		// }
+		if !config.commonConfigs.AllowedGroups.IsNull() {
+			state.commonConfigs.AllowedGroups = allowedGroups
+		}
 		if !config.AllowedGroups.IsNull() {
 			state.AllowedGroups = allowedGroups
 		}
@@ -1426,21 +1379,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			objValue := types.ObjectValueMust(
 				allowedGroupsObjectType.AttrTypes,
 				map[string]attr.Value{
-					"group_id": util.StringValueOrNull(&oag.GroupID),
-					"roles": types.SetValueMust(types.StringType, func() []attr.Value {
-						var temp []attr.Value
-						for _, role := range oag.Roles {
-							temp = append(temp, util.StringValueOrNull(&role))
-						}
-						return temp
-					}()),
-					"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
-						var temp []attr.Value
-						for _, role := range oag.DefaultRoles {
-							temp = append(temp, util.StringValueOrNull(&role))
-						}
-						return temp
-					}()),
+					"group_id":      util.StringValueOrNull(&oag.GroupID),
+					"roles":         util.SetValueOrNull(oag.Roles),
+					"default_roles": util.SetValueOrNull(oag.DefaultRoles),
 				})
 			opsAllowedGroupsObjectValues = append(opsAllowedGroupsObjectValues, objValue)
 		}
@@ -1450,9 +1391,9 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 		if resp.Diagnostics.HasError() {
 			return resp
 		}
-		// if !config.commonConfigs.OperationsAllowedGroups.IsNull() {
-		// 	state.commonConfigs.OperationsAllowedGroups = operationsAllowedGroups
-		// }
+		if !config.commonConfigs.OperationsAllowedGroups.IsNull() {
+			state.commonConfigs.OperationsAllowedGroups = operationsAllowedGroups
+		}
 		if !config.OperationsAllowedGroups.IsNull() {
 			state.OperationsAllowedGroups = operationsAllowedGroups
 		}
