@@ -552,11 +552,11 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		temp := &cidaas.IAllowedGroups{
 			GroupID: ag.GroupID.ValueString(),
 		}
-		diags := ag.Roles.ElementsAs(ctx, temp.Roles, false)
+		diags := ag.Roles.ElementsAs(ctx, &temp.Roles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
-		diags = ag.DefaultRoles.ElementsAs(ctx, temp.DefaultRoles, false)
+		diags = ag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -567,11 +567,11 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		temp := &cidaas.IAllowedGroups{
 			GroupID: oag.GroupID.ValueString(),
 		}
-		diags := oag.Roles.ElementsAs(ctx, temp.Roles, false)
+		diags := oag.Roles.ElementsAs(ctx, &temp.Roles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
-		diags = oag.DefaultRoles.ElementsAs(ctx, temp.DefaultRoles, false)
+		diags = oag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -582,11 +582,11 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		temp := &cidaas.IAllowedGroups{
 			GroupID: aglg.GroupID.ValueString(),
 		}
-		diags := aglg.Roles.ElementsAs(ctx, temp.Roles, false)
+		diags := aglg.Roles.ElementsAs(ctx, &temp.Roles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
-		diags = aglg.DefaultRoles.ElementsAs(ctx, temp.DefaultRoles, false)
+		diags = aglg.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -602,13 +602,13 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 
 	if !plan.GroupSelection.IsNull() {
 		app.GroupSelection = &cidaas.IGroupSelection{
-			AlwaysShowGroupSelection: plan.groupSelection.AlwaysShowGroupSelection.ValueBool(),
+			AlwaysShowGroupSelection: plan.groupSelection.AlwaysShowGroupSelection.ValueBoolPointer(),
 		}
 		diags := plan.groupSelection.SelectableGroups.ElementsAs(ctx, &app.GroupSelection.SelectableGroups, false)
 		if diags.HasError() {
 			return nil, diags
 		}
-		diags = plan.groupSelection.SelectableGroups.ElementsAs(ctx, &app.GroupSelection.SelectableGroupTypes, false)
+		diags = plan.groupSelection.SelectableGroupTypes.ElementsAs(ctx, &app.GroupSelection.SelectableGroupTypes, false)
 		if diags.HasError() {
 			return nil, diags
 		}
@@ -1093,7 +1093,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 			state.commonConfigs.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
 		}
 		if !config.EnableDeduplication.IsNull() {
-			state.EnableDeduplication = types.BoolValue(res.Data.EnableDeduplication)
+			state.EnableDeduplication = types.BoolValue(true)
 		}
 
 		if !config.commonConfigs.AutoLoginAfterRegister.IsNull() {
@@ -1522,7 +1522,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 				"selectable_group_types":      types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"always_show_group_selection": util.BoolValueOrNull(&res.Data.GroupSelection.AlwaysShowGroupSelection),
+				"always_show_group_selection": util.BoolValueOrNull(res.Data.GroupSelection.AlwaysShowGroupSelection),
 				"selectable_groups":           util.SetValueOrNull(res.Data.GroupSelection.SelectableGroups),
 				"selectable_group_types":      util.SetValueOrNull(res.Data.GroupSelection.SelectableGroupTypes),
 			})
@@ -1542,7 +1542,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 				"key_hash":     types.StringType,
 			},
 			map[string]attr.Value{
-				"team_id":      util.StringValueOrNull(&res.Data.MobileSettings.BundleID),
+				"team_id":      util.StringValueOrNull(&res.Data.MobileSettings.TeamID),
 				"bundle_id":    util.StringValueOrNull(&res.Data.MobileSettings.BundleID),
 				"package_name": util.StringValueOrNull(&res.Data.MobileSettings.PackageName),
 				"key_hash":     util.StringValueOrNull(&res.Data.MobileSettings.KeyHash),

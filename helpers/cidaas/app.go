@@ -182,7 +182,7 @@ type IAppMobileSettings struct {
 }
 
 type IGroupSelection struct {
-	AlwaysShowGroupSelection bool     `json:"alwaysShowGroupSelection,omitempty"`
+	AlwaysShowGroupSelection *bool    `json:"alwaysShowGroupSelection"`
 	SelectableGroups         []string `json:"selectableGroups,omitempty"`
 	SelectableGroupTypes     []string `json:"selectableGroupTypes,omitempty"`
 }
