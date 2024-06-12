@@ -63,10 +63,8 @@ type AppConfig struct {
 	DefaultAcrValues                 types.Set    `tfsdk:"default_acr_values"`
 	Editable                         types.Bool   `tfsdk:"editable"`
 	WebMessageUris                   types.Set    `tfsdk:"web_message_uris"`
-	AppOwner                         types.String `tfsdk:"app_owner"`
 	JweEnabled                       types.Bool   `tfsdk:"jwe_enabled"`
 	UserConsent                      types.Bool   `tfsdk:"user_consent"`
-	Deleted                          types.Bool   `tfsdk:"deleted"`
 	Enabled                          types.Bool   `tfsdk:"enabled"`
 	AllowedFields                    types.Set    `tfsdk:"allowed_fields"`
 	AlwaysAskMfa                     types.Bool   `tfsdk:"always_ask_mfa"`
@@ -87,7 +85,6 @@ type AppConfig struct {
 	IsLoginSuccessPageEnabled        types.Bool   `tfsdk:"is_login_success_page_enabled"`
 	IsRegisterSuccessPageEnabled     types.Bool   `tfsdk:"is_register_success_page_enabled"`
 	GroupIDs                         types.Set    `tfsdk:"group_ids"`
-	AdminClient                      types.Bool   `tfsdk:"admin_client"`
 	IsGroupLoginSelectionEnabled     types.Bool   `tfsdk:"is_group_login_selection_enabled"`
 	GroupTypes                       types.Set    `tfsdk:"group_types"`
 	BackchannelLogoutURI             types.String `tfsdk:"backchannel_logout_uri"`
@@ -128,8 +125,6 @@ type AppConfig struct {
 	VideoURL                         types.String `tfsdk:"video_url"`
 	BotCaptchaRef                    types.String `tfsdk:"bot_captcha_ref"`
 	ApplicationMetaData              types.Map    `tfsdk:"application_meta_data"`
-	CreatedAt                        types.String `tfsdk:"created_at"`
-	UpdatedAt                        types.String `tfsdk:"updated_at"`
 
 	SocialProviders         types.List   `tfsdk:"social_providers"`
 	CustomProviders         types.List   `tfsdk:"custom_providers"`
@@ -368,6 +363,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	}
 
 	app := cidaas.AppModel{}
+	app.AppOwner = "CLIENT"
 
 	setStringValue(plan.CompanyName, commonConfigs.CompanyName, &app.CompanyName)
 	setStringValue(plan.CompanyAddress, commonConfigs.CompanyAddress, &app.CompanyAddress)
@@ -401,10 +397,8 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	setStringValue(plan.TokenEndpointAuthMethod, types.StringNull(), &app.TokenEndpointAuthMethod)
 	setStringValue(plan.TokenEndpointAuthSigningAlg, types.StringNull(), &app.TokenEndpointAuthSigningAlg)
 	setBoolValue(plan.Editable, commonConfigs.Editable, &app.Editable)
-	setStringValue(plan.AppOwner, types.StringNull(), &app.AppOwner)
 	setBoolValue(plan.JweEnabled, types.BoolNull(), &app.JweEnabled)
 	setBoolValue(plan.UserConsent, types.BoolNull(), &app.UserConsent)
-	setBoolValue(plan.Deleted, types.BoolNull(), &app.Deleted)
 	setBoolValue(plan.Enabled, commonConfigs.Enabled, &app.Enabled)
 	setBoolValue(plan.AlwaysAskMfa, commonConfigs.AlwaysAskMfa, &app.AlwaysAskMfa)
 	setBoolValue(plan.SmartMfa, types.BoolNull(), &app.SmartMfa)
@@ -418,7 +412,6 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	setStringValue(plan.BotProvider, commonConfigs.BotProvider, &app.BotProvider)
 	setBoolValue(plan.IsLoginSuccessPageEnabled, types.BoolNull(), &app.IsLoginSuccessPageEnabled)
 	setBoolValue(plan.IsRegisterSuccessPageEnabled, types.BoolNull(), &app.IsRegisterSuccessPageEnabled)
-	setBoolValue(plan.AdminClient, types.BoolNull(), &app.AdminClient)
 	setBoolValue(plan.IsGroupLoginSelectionEnabled, types.BoolNull(), &app.IsGroupLoginSelectionEnabled)
 	setStringValue(plan.BackchannelLogoutURI, types.StringNull(), &app.BackchannelLogoutURI)
 	setStringValue(plan.LogoAlign, commonConfigs.LogoAlign, &app.LogoAlign)
@@ -452,8 +445,6 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	setStringValue(plan.BackgroundURI, types.StringNull(), &app.BackgroundURI)
 	setStringValue(plan.VideoURL, types.StringNull(), &app.VideoURL)
 	setStringValue(plan.BotCaptchaRef, types.StringNull(), &app.BotCaptchaRef)
-	setStringValue(plan.CreatedAt, types.StringNull(), &app.CreatedTime)
-	setStringValue(plan.UpdatedAt, types.StringNull(), &app.UpdatedTime)
 
 	var diags diag.Diagnostics
 
@@ -636,10 +627,9 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	return &app, diags
 }
 
-func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, config *AppConfig) resource.ReadResponse {
+func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config *AppConfig) resource.ReadResponse {
 	var d diag.Diagnostics
 	resp := resource.ReadResponse{}
-
 	// only applicable for the required varaibles
 	if config.CommonConfigs.IsNull() {
 		state.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
@@ -957,7 +947,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 		if !config.commonConfigs.AllowedOrigins.IsNull() {
 			state.commonConfigs.AllowedOrigins = util.SetValueOrNull(res.Data.AllowedOrigins)
 		}
-		if !config.AllowedOrigins.IsNull() {
+		if !config.AllowedOrigins.IsNull() && len(config.AllowedOrigins.Elements()) > 0 {
 			state.AllowedOrigins = util.SetValueOrNull(res.Data.AllowedOrigins)
 		}
 		if !config.commonConfigs.LoginProviders.IsNull() {
@@ -969,7 +959,7 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 		if !config.commonConfigs.DefaultScopes.IsNull() {
 			state.commonConfigs.DefaultScopes = util.SetValueOrNull(res.Data.DefaultScopes)
 		}
-		if !config.DefaultScopes.IsNull() {
+		if !config.DefaultScopes.IsNull() && len(config.DefaultScopes.Elements()) > 0 {
 			state.DefaultScopes = util.SetValueOrNull(res.Data.DefaultScopes)
 		}
 
@@ -982,20 +972,20 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 		if !config.commonConfigs.AllowedMfa.IsNull() {
 			state.commonConfigs.AllowedMfa = util.SetValueOrNull(res.Data.AllowedMfa)
 		}
-		if !config.AllowedMfa.IsNull() {
+		if !config.AllowedMfa.IsNull() && len(config.AllowedMfa.Elements()) > 0 {
 			state.AllowedMfa = util.SetValueOrNull(res.Data.AllowedMfa)
 		}
 		if !config.commonConfigs.AllowedRoles.IsNull() {
 			state.commonConfigs.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
 		}
-		if !config.AllowedRoles.IsNull() {
+		if !config.AllowedRoles.IsNull() && len(config.AllowedRoles.Elements()) > 0 {
 			state.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
 		}
 
 		if !config.commonConfigs.DefaultRoles.IsNull() {
 			state.commonConfigs.DefaultRoles = util.SetValueOrNull(res.Data.DefaultRoles)
 		}
-		if !config.DefaultRoles.IsNull() {
+		if !config.DefaultRoles.IsNull() && len(config.DefaultRoles.Elements()) > 0 {
 			state.DefaultRoles = util.SetValueOrNull(res.Data.DefaultRoles)
 		}
 		if !config.commonConfigs.AccentColor.IsNull() {
@@ -1412,10 +1402,8 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 	state.ImprintURI = util.StringValueOrNull(&res.Data.ImprintURI)
 	state.TokenEndpointAuthMethod = util.StringValueOrNull(&res.Data.TokenEndpointAuthMethod)
 	state.TokenEndpointAuthSigningAlg = util.StringValueOrNull(&res.Data.TokenEndpointAuthSigningAlg)
-	state.AppOwner = util.StringValueOrNull(&res.Data.AppOwner)
 	state.JweEnabled = types.BoolValue(res.Data.JweEnabled)
 	state.UserConsent = types.BoolValue(res.Data.UserConsent)
-	state.Deleted = types.BoolValue(res.Data.Deleted)
 	state.SmartMfa = types.BoolValue(res.Data.SmartMfa)
 	state.CaptchaRef = util.StringValueOrNull(&res.Data.CaptchaRef)
 	state.CommunicationMediumVerification = util.StringValueOrNull(&res.Data.CommunicationMediumVerification)
@@ -1423,7 +1411,6 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 	state.EnableBotDetection = types.BoolValue(res.Data.EnableBotDetection)
 	state.IsLoginSuccessPageEnabled = types.BoolValue(res.Data.IsLoginSuccessPageEnabled)
 	state.IsRegisterSuccessPageEnabled = types.BoolValue(res.Data.IsRegisterSuccessPageEnabled)
-	state.AdminClient = types.BoolValue(res.Data.AdminClient)
 	state.IsGroupLoginSelectionEnabled = types.BoolValue(res.Data.IsGroupLoginSelectionEnabled)
 	state.BackchannelLogoutURI = util.StringValueOrNull(&res.Data.BackchannelLogoutURI)
 	state.LogoURI = util.StringValueOrNull(&res.Data.LogoURI)
@@ -1454,28 +1441,26 @@ func updateStateModel(ctx context.Context, res *cidaas.AppResponse, state, confi
 	state.BackgroundURI = util.StringValueOrNull(&res.Data.BackgroundURI)
 	state.VideoURL = util.StringValueOrNull(&res.Data.VideoURL)
 	state.BotCaptchaRef = util.StringValueOrNull(&res.Data.BotCaptchaRef)
-	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
-	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.PostLogoutRedirectUris, res.Data.PostLogoutRedirectUris)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.GroupIDs, res.Data.GroupIDs)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedMfa, res.Data.AllowedMfa)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedMfa, res.Data.AllowedMfa)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedFields, res.Data.AllowedFields)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.WebMessageUris, res.Data.WebMessageUris)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.WebMessageUris, res.Data.WebMessageUris)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.DefaultAcrValues, res.Data.DefaultAcrValues)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.GroupTypes, res.Data.GroupTypes)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedRoles, res.Data.AllowedRoles)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.DefaultRoles, res.Data.DefaultRoles)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedRoles, res.Data.AllowedRoles)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.DefaultRoles, res.Data.DefaultRoles)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.SuggestMfa, res.Data.SuggestMfa)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.CaptchaRefs, res.Data.CaptchaRefs)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.ConsentRefs, res.Data.ConsentRefs)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.DefaultScopes, res.Data.DefaultScopes)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.PendingScopes, res.Data.PendingScopes)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.LoginProviders, res.Data.LoginProviders)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.DefaultScopes, res.Data.DefaultScopes)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.PendingScopes, res.Data.PendingScopes)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.LoginProviders, res.Data.LoginProviders)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.AdditionalAccessTokenPayload, res.Data.AdditionalAccessTokenPayload)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.RequiredFields, res.Data.RequiredFields)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedWebOrigins, res.Data.AllowedWebOrigins)...)
-	resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedOrigins, res.Data.AllowedOrigins)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedWebOrigins, res.Data.AllowedWebOrigins)...)
+	// resp.Diagnostics.Append(extractSetValues(ctx, &state.AllowedOrigins, res.Data.AllowedOrigins)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.Contacts, res.Data.Contacts)...)
 	resp.Diagnostics.Append(extractSetValues(ctx, &state.RequestUris, res.Data.RequestUris)...)
 
@@ -1661,7 +1646,7 @@ func (v commonConfigConflictVerifier) PlanModifyObject(ctx context.Context, req 
 	message := "\033[1mRecommendations:\033[0m\n\n" +
 		"  - Utilize common_configs only when there are shared configuration attributes for multiple resources.\n" +
 		"  - If you need to override any specific attribute for a particular resource, you can supply the main configuration attribute directly within the resource block.\n" +
-		"  - If your configuration involves a single resource or if the common configuration attributes are not shared across multiple resources, we do not suggest using common_configs."
+		"  - If your configuration involves a single resource or if the common configuration attributes are not shared across multiple resources we do not suggest using common_configs."
 
 	if !commonConfig.CompanyName.IsNull() && company_name.ValueString() != "" {
 		resp.Diagnostics.AddWarning(

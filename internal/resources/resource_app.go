@@ -41,6 +41,7 @@ func (r *AppResource) Configure(_ context.Context, req resource.ConfigureRequest
 
 func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan, config AppConfig
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
@@ -51,11 +52,13 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	res, err := r.cidaasClient.App.Create(*appModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create app", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create app", fmt.Sprintf("Error: %+v", err.Error()))
 		return
 	}
+
 	resp.Diagnostics.Append(updateStateModel(ctx, res, &plan, &config).Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -75,7 +78,7 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		resp.Diagnostics.AddError("failed to read app", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	resp.Diagnostics.Append(updateStateModel(ctx, res, &state, &state).Diagnostics...)
+	resp.Diagnostics.Append(updateStateModel(ctx, *res, &state, &state).Diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -83,11 +86,12 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 }
 
 func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state, config AppConfig
+	var plan, state AppConfig
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	appModel, diags := prepareAppModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -119,6 +123,7 @@ func (r *AppResource) ImportState(ctx context.Context, req resource.ImportStateR
 	resource.ImportStatePassthroughID(ctx, path.Root("client_id"), req, resp)
 }
 
+// set default here
 func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 
 	if req.Plan.Raw.IsNull() {
@@ -139,14 +144,14 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 				resp.Plan.SetAttribute(ctx, path.Root("accent_color"), config.commonConfigs.AccentColor)
 			}
 		}
-		if config.PrimaryColor.IsNull() || plan.PrimaryColor.Equal(types.StringValue("#f7941d")) {
-			if !config.commonConfigs.PrimaryColor.IsNull() {
-				resp.Plan.SetAttribute(ctx, path.Root("primary_color"), config.commonConfigs.PrimaryColor)
-			}
-		}
 		if config.MediaType.IsNull() || plan.MediaType.Equal(types.StringValue("IMAGE")) {
 			if !config.commonConfigs.MediaType.IsNull() {
 				resp.Plan.SetAttribute(ctx, path.Root("media_type"), config.commonConfigs.MediaType)
+			}
+		}
+		if config.PrimaryColor.IsNull() || plan.PrimaryColor.Equal(types.StringValue("#f7941d")) {
+			if !config.commonConfigs.PrimaryColor.IsNull() {
+				resp.Plan.SetAttribute(ctx, path.Root("primary_color"), config.commonConfigs.PrimaryColor)
 			}
 		}
 		if config.HostedPageGroup.IsNull() || plan.HostedPageGroup.Equal(types.StringValue("default")) {

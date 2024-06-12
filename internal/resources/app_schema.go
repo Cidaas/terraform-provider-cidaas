@@ -473,12 +473,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					},
 				},
 			},
-			"app_owner": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"jwe_enabled": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
@@ -524,11 +518,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-			},
-			"deleted": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
 			},
 			"enabled": schema.BoolAttribute{
 				Optional: true,
@@ -636,11 +625,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"group_ids": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-			},
-			"admin_client": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
 			},
 			"is_group_login_selection_enabled": schema.BoolAttribute{
 				Optional: true,
@@ -876,18 +860,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Default:  booldefault.StaticBool(false),
 			},
 			"common_configs": getCommonConfig(),
-			"created_at": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 		},
 	}
 }
@@ -984,9 +956,6 @@ func getCommonConfig() schema.SingleNestedAttribute {
 						},
 						"social_id": schema.StringAttribute{
 							Required: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
 						},
 					},
 				},
