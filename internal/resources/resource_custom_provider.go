@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -72,7 +74,6 @@ type UserInfoField struct {
 	PhoneNumber       types.String `tfsdk:"phone_number"`
 	MobileNumber      types.String `tfsdk:"mobile_number"`
 	Address           types.String `tfsdk:"address"`
-	Sub               types.String `tfsdk:"sub"`
 	CustomFields      types.Map    `tfsdk:"custom_fields"`
 }
 
@@ -202,6 +203,7 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			},
 			"userinfo_fields": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						Optional: true,
@@ -260,14 +262,12 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 					"address": schema.StringAttribute{
 						Optional: true,
 					},
-					"sub": schema.StringAttribute{
-						Optional: true,
-					},
 					"custom_fields": schema.MapAttribute{
 						ElementType: types.StringType,
 						Optional:    true,
 					},
 				},
+				Default: objectdefault.StaticValue(userInfoDefaultValue()),
 			},
 			"domains": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -299,6 +299,7 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(state.ProviderName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read custom provider", fmt.Sprintf("Error: %s", err.Error()))
@@ -354,16 +355,23 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	metadataAttributes := map[string]attr.Value{}
 	customFields := map[string]attr.Value{}
 
+	hasCustomfield := false
 	for key, value := range res.Data.UserinfoFields {
 		if strings.HasPrefix(key, "customFields.") {
-			customFields[strings.TrimPrefix(key, "customFields.")] = types.StringValue(value)
+			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&value)
+			hasCustomfield = true
 		} else {
 			metadataAttributeTypes[key] = types.StringType
-			metadataAttributes[key] = types.StringValue(value)
+			metadataAttributes[key] = util.StringValueOrNull(&value)
 		}
 	}
 	metadataAttributeTypes["custom_fields"] = types.MapType{ElemType: types.StringType}
-	metadataAttributes["custom_fields"] = types.MapValueMust(types.StringType, customFields)
+	if hasCustomfield {
+		metadataAttributes["custom_fields"] = types.MapValueMust(types.StringType, customFields)
+	} else {
+		metadataAttributes["custom_fields"] = types.MapNull(types.StringType)
+	}
+
 	state.UserinfoFields, d = types.ObjectValue(metadataAttributeTypes, metadataAttributes)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
@@ -460,17 +468,66 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 		uf["phone_number"] = plan.userinfoFields.PhoneNumber.ValueString()
 		uf["mobile_number"] = plan.userinfoFields.MobileNumber.ValueString()
 		uf["address"] = plan.userinfoFields.Address.ValueString()
-		uf["sub"] = plan.userinfoFields.Sub.ValueString()
 
-		var cfMap map[string]string
-		diag = plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
-		if diag.HasError() {
-			return nil, diag
-		}
-		for k, v := range cfMap {
-			uf["customFields."+k] = v
+		if len(plan.userinfoFields.CustomFields.Elements()) > 0 {
+			var cfMap map[string]string
+			diag = plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
+			if diag.HasError() {
+				return nil, diag
+			}
+			for k, v := range cfMap {
+				uf["customFields."+k] = v
+			}
 		}
 	}
 	cp.UserinfoFields = uf
 	return &cp, nil
+}
+
+func userInfoDefaultValue() basetypes.ObjectValue {
+	return types.ObjectValueMust(
+		map[string]attr.Type{
+			"name":               types.StringType,
+			"family_name":        types.StringType,
+			"given_name":         types.StringType,
+			"middle_name":        types.StringType,
+			"nickname":           types.StringType,
+			"preferred_username": types.StringType,
+			"profile":            types.StringType,
+			"picture":            types.StringType,
+			"website":            types.StringType,
+			"gender":             types.StringType,
+			"birthdate":          types.StringType,
+			"zoneinfo":           types.StringType,
+			"locale":             types.StringType,
+			"updated_at":         types.StringType,
+			"email":              types.StringType,
+			"email_verified":     types.StringType,
+			"phone_number":       types.StringType,
+			"mobile_number":      types.StringType,
+			"address":            types.StringType,
+			"custom_fields":      types.MapType{ElemType: types.StringType},
+		},
+		map[string]attr.Value{
+			"name":               types.StringValue("name"),
+			"family_name":        types.StringValue("family_name"),
+			"given_name":         types.StringValue("given_name"),
+			"middle_name":        types.StringValue("middle_name"),
+			"nickname":           types.StringValue("nickname"),
+			"preferred_username": types.StringValue("preferred_username"),
+			"profile":            types.StringValue("profile"),
+			"picture":            types.StringValue("picture"),
+			"website":            types.StringValue("website"),
+			"gender":             types.StringValue("gender"),
+			"birthdate":          types.StringValue("birthdate"),
+			"zoneinfo":           types.StringValue("zoneinfo"),
+			"locale":             types.StringValue("locale"),
+			"updated_at":         types.StringValue("updated_at"),
+			"email":              types.StringValue("email"),
+			"email_verified":     types.StringValue("email_verified"),
+			"phone_number":       types.StringValue("phone_number"),
+			"mobile_number":      types.StringValue("mobile_number"),
+			"address":            types.StringValue("address"),
+			"custom_fields":      types.MapNull(types.StringType),
+		})
 }

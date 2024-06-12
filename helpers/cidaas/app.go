@@ -4,18 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
 
 type AppResponse struct {
-	Success bool `json:"success,omitempty"`
-	Status  int  `json:"status,omitempty"`
-	Data    struct {
-		AppConfig
-		AppKey IAppKeySettings `json:"appKey,omitempty"`
-	} `json:"data,omitempty"`
+	Success bool     `json:"success,omitempty"`
+	Status  int64    `json:"status,omitempty"`
+	Data    AppModel `json:"data,omitempty"`
 }
 
-type AppConfig struct {
+// to add
+// suggestVerificationMethods
+type AppModel struct {
+	ID                               string                 `json:"_id,omitempty"`
 	ClientType                       string                 `json:"client_type,omitempty"`
 	AccentColor                      string                 `json:"accentColor,omitempty"`
 	PrimaryColor                     string                 `json:"primaryColor,omitempty"`
@@ -24,7 +26,7 @@ type AppConfig struct {
 	AllowLoginWith                   []string               `json:"allow_login_with,omitempty"`
 	RedirectURIS                     []string               `json:"redirect_uris,omitempty"`
 	AllowedLogoutUrls                []string               `json:"allowed_logout_urls,omitempty"`
-	EnableDeduplication              bool                   `json:"enable_deduplication,omitempty"`
+	EnableDeduplication              bool                   `json:"enable_deduplication"`
 	AutoLoginAfterRegister           bool                   `json:"auto_login_after_register,omitempty"`
 	EnablePasswordlessAuth           bool                   `json:"enable_passwordless_auth,omitempty"`
 	RegisterWithLoginInformation     bool                   `json:"register_with_login_information"`
@@ -46,11 +48,11 @@ type AppConfig struct {
 	IsHybridApp                      bool                   `json:"is_hybrid_app,omitempty"`
 	AllowedWebOrigins                []string               `json:"allowed_web_origins,omitempty"`
 	AllowedOrigins                   []string               `json:"allowed_origins,omitempty"`
-	MobileSettings                   IAppMobileSettings     `json:"mobile_settings,omitempty"`
-	DefaultMaxAge                    int                    `json:"default_max_age,omitempty"`
-	TokenLifetimeInSeconds           int                    `json:"token_lifetime_in_seconds,omitempty"`
-	IDTokenLifetimeInSeconds         int                    `json:"id_token_lifetime_in_seconds,omitempty"`
-	RefreshTokenLifetimeInSeconds    int                    `json:"refresh_token_lifetime_in_seconds,omitempty"`
+	MobileSettings                   *IAppMobileSettings    `json:"mobile_settings,omitempty"`
+	DefaultMaxAge                    int64                  `json:"default_max_age,omitempty"`
+	TokenLifetimeInSeconds           int64                  `json:"token_lifetime_in_seconds,omitempty"`
+	IDTokenLifetimeInSeconds         int64                  `json:"id_token_lifetime_in_seconds,omitempty"`
+	RefreshTokenLifetimeInSeconds    int64                  `json:"refresh_token_lifetime_in_seconds,omitempty"`
 	TemplateGroupID                  string                 `json:"template_group_id,omitempty"`
 	ClientID                         string                 `json:"client_id,omitempty"`
 	ClientSecret                     string                 `json:"client_secret,omitempty"`
@@ -63,16 +65,14 @@ type AppConfig struct {
 	DefaultAcrValues                 []string               `json:"default_acr_values,omitempty"`
 	Editable                         bool                   `json:"editable,omitempty"`
 	WebMessageUris                   []string               `json:"web_message_uris,omitempty"`
-	SocialProviders                  []ISocialProviderData  `json:"social_providers,omitempty"`
-	CustomProviders                  []IProviderMetadData   `json:"custom_providers,omitempty"`
-	SamlProviders                    []IProviderMetadData   `json:"saml_providers,omitempty"`
-	AdProviders                      []IProviderMetadData   `json:"ad_providers,omitempty"`
-	AppOwner                         string                 `json:"app_owner,omitempty"`
+	SocialProviders                  []*ISocialProviderData `json:"social_providers,omitempty"`
+	CustomProviders                  []*IProviderMetadData  `json:"custom_providers,omitempty"`
+	SamlProviders                    []*IProviderMetadData  `json:"saml_providers,omitempty"`
+	AdProviders                      []*IProviderMetadData  `json:"ad_providers,omitempty"`
 	JweEnabled                       bool                   `json:"jwe_enabled,omitempty"`
 	UserConsent                      bool                   `json:"user_consent,omitempty"`
-	AllowedGroups                    []IAllowedGroups       `json:"allowed_groups,omitempty"`
-	OperationsAllowedGroups          []IAllowedGroups       `json:"operations_allowed_groups,omitempty"`
-	Deleted                          bool                   `json:"deleted"`
+	AllowedGroups                    []*IAllowedGroups      `json:"allowed_groups,omitempty"`
+	OperationsAllowedGroups          []*IAllowedGroups      `json:"operations_allowed_groups,omitempty"`
 	Enabled                          bool                   `json:"enabled"`
 	AllowedFields                    []string               `json:"allowed_fields,omitempty"`
 	AlwaysAskMfa                     bool                   `json:"always_ask_mfa,omitempty"`
@@ -90,25 +90,21 @@ type AppConfig struct {
 	IsRememberMeSelected             bool                   `json:"is_remember_me_selected"`
 	EnableBotDetection               bool                   `json:"enable_bot_detection,omitempty"`
 	BotProvider                      string                 `json:"bot_provider,omitempty"`
-	AllowGuestLoginGroups            []IAllowedGroups       `json:"allow_guest_login_groups,omitempty"`
+	AllowGuestLoginGroups            []*IAllowedGroups      `json:"allow_guest_login_groups,omitempty"`
 	IsLoginSuccessPageEnabled        bool                   `json:"is_login_success_page_enabled,omitempty"`
 	IsRegisterSuccessPageEnabled     bool                   `json:"is_register_success_page_enabled,omitempty"`
 	GroupIDs                         []string               `json:"groupIds,omitempty"`
-	AdminClient                      bool                   `json:"adminClient,omitempty"`
 	IsGroupLoginSelectionEnabled     bool                   `json:"isGroupLoginSelectionEnabled,omitempty"`
-	GroupSelection                   IGroupSelection        `json:"groupSelection,omitempty"`
+	GroupSelection                   *IGroupSelection       `json:"groupSelection,omitempty"`
 	GroupTypes                       []string               `json:"groupTypes,omitempty"`
 	BackchannelLogoutURI             string                 `json:"backchannel_logout_uri,omitempty"`
 	PostLogoutRedirectUris           []string               `json:"post_logout_redirect_uris,omitempty"`
 	LogoAlign                        string                 `json:"logoAlign,omitempty"`
-	Mfa                              IMfaOption             `json:"mfa,omitempty"`
-	PushConfig                       IPushConfig            `json:"push_config,omitempty"`
+	Mfa                              *IMfaOption            `json:"mfa,omitempty"`
 	Webfinger                        string                 `json:"webfinger,omitempty"`
 	ApplicationType                  string                 `json:"application_type,omitempty"`
 	LogoURI                          string                 `json:"logo_uri,omitempty"`
 	InitiateLoginURI                 string                 `json:"initiate_login_uri,omitempty"`
-	ClientSecretExpiresAt            int                    `json:"client_secret_expires_at,omitempty"`
-	ClientIDIssuedAt                 int                    `json:"client_id_issued_at,omitempty"`
 	RegistrationClientURI            string                 `json:"registration_client_uri,omitempty"`
 	RegistrationAccessToken          string                 `json:"registration_access_token,omitempty"`
 	ClientURI                        string                 `json:"client_uri,omitempty"`
@@ -126,35 +122,47 @@ type AppConfig struct {
 	RequestObjectEncryptionAlg       string                 `json:"request_object_encryption_alg,omitempty"`
 	RequestObjectEncryptionEnc       string                 `json:"request_object_encryption_enc,omitempty"`
 	RequestUris                      []string               `json:"request_uris,omitempty"`
-	RequireAuthTime                  bool                   `json:"require_auth_time,omitempty"`
-	BackchannelLogoutSessionRequired bool                   `json:"backchannel_logout_session_required,omitempty"`
-	TappID                           string                 `json:"tapp_id,omitempty"`
-	ClientGroupID                    string                 `json:"client_group_id,omitempty"`
-	LegalEntity                      string                 `json:"legal_entity,omitempty"`
-	Tenant                           string                 `json:"tenant,omitempty"`
-	DeviceCode                       bool                   `json:"device_code,omitempty"`
-	TestEmails                       []string               `json:"test_emails,omitempty"`
-	Active                           bool                   `json:"active,omitempty"`
 	Description                      string                 `json:"description,omitempty"`
 	DefaultScopes                    []string               `json:"default_scopes,omitempty"`
 	PendingScopes                    []string               `json:"pending_scopes,omitempty"`
 	ConsentPageGroup                 string                 `json:"consent_page_group,omitempty"`
 	PasswordPolicyRef                string                 `json:"password_policy_ref,omitempty"`
 	BlockingMechanismRef             string                 `json:"blocking_mechanism_ref,omitempty"`
-	AcceptRolesInTheRegistration     bool                   `json:"accept_roles_in_the_registration,omitempty"`
 	Sub                              string                 `json:"sub,omitempty"`
 	Role                             string                 `json:"role,omitempty"`
 	MfaConfiguration                 string                 `json:"mfa_configuration,omitempty"`
 	SuggestMfa                       []string               `json:"suggest_mfa,omitempty"`
 	AllowGuestLogin                  bool                   `json:"allow_guest_login,omitempty"`
-	LoginSpi                         ILoginSPI              `json:"login_spi,omitempty"`
-	EnableLoginSpi                   bool                   `json:"enable_login_spi,omitempty"`
+	LoginSpi                         *ILoginSPI             `json:"login_spi,omitempty"`
 	BackgroundURI                    string                 `json:"backgroundUri,omitempty"`
 	VideoURL                         string                 `json:"videoUrl,omitempty"`
 	BotCaptchaRef                    string                 `json:"bot_captcha_ref,omitempty"`
-	CreatedTime                      string                 `json:"createdTime,omitempty"`
-	UpdatedTime                      string                 `json:"UpdatedTime,omitempty"`
-	ApplicationMetaData              map[string]interface{} `json:"application_meta_data,omitempty"`
+	ApplicationMetaData              map[string]string      `json:"application_meta_data,omitempty"`
+
+	// attributes not available in resource app schema
+	RequireAuthTime                  bool     `json:"require_auth_time,omitempty"`
+	BackchannelLogoutSessionRequired bool     `json:"backchannel_logout_session_required,omitempty"`
+	TappID                           string   `json:"tapp_id,omitempty"`
+	ClientGroupID                    string   `json:"client_group_id,omitempty"`
+	LegalEntity                      string   `json:"legal_entity,omitempty"`
+	Tenant                           string   `json:"tenant,omitempty"`
+	DeviceCode                       bool     `json:"device_code,omitempty"`
+	TestEmails                       []string `json:"test_emails,omitempty"`
+	Active                           bool     `json:"active,omitempty"`
+	EnableLoginSpi                   bool     `json:"enable_login_spi,omitempty"`
+	AcceptRolesInTheRegistration     bool     `json:"accept_roles_in_the_registration,omitempty"`
+
+	// app_owner removed from schema but assigned while preparing the model
+	AppOwner string `json:"app_owner,omitempty"`
+
+	// removed from schema
+	// ClientSecretExpiresAt int64       `json:"client_secret_expires_at,omitempty"`
+	// ClientIDIssuedAt      int64       `json:"client_id_issued_at,omitempty"`
+	// PushConfig            IPushConfig `json:"push_config,omitempty"`
+	// CreatedTime           string      `json:"createdTime,omitempty"`
+	// UpdatedTime           string      `json:"UpdatedTime,omitempty"`
+	// Deleted               bool        `json:"deleted"`
+	// AdminClient           bool        `json:"adminClient,omitempty"`
 }
 
 type IAllowedGroups struct {
@@ -169,29 +177,21 @@ type ILoginSPI struct {
 	SpiURL        string `json:"spi_url,omitempty"`
 }
 type IAppMobileSettings struct {
-	ID          string `json:"id,omitempty"`
-	SecondaryID string `json:"_id,omitempty"`
 	TeamID      string `json:"teamId,omitempty"`
 	BundleID    string `json:"bundleId,omitempty"`
 	PackageName string `json:"packageName,omitempty"`
 	KeyHash     string `json:"keyHash,omitempty"`
 }
-type IAppKeySettings struct {
-	ID           string      `json:"_id,omitempty"`
-	KeyType      string      `json:"keyType,omitempty"`
-	PublicKey    string      `json:"publicKey,omitempty"`
-	PublicKeyJWK interface{} `json:"publicKeyJWK,omitempty"`
-	CreatedTime  string      `json:"createdTime,omitempty"`
-}
+
 type IGroupSelection struct {
-	AlwaysShowGroupSelection bool     `json:"alwaysShowGroupSelection,omitempty"`
+	AlwaysShowGroupSelection *bool    `json:"alwaysShowGroupSelection"`
 	SelectableGroups         []string `json:"selectableGroups,omitempty"`
 	SelectableGroupTypes     []string `json:"selectableGroupTypes,omitempty"`
 }
 
 type IMfaOption struct {
 	Setting               string   `json:"setting,omitempty"`
-	TimeIntervalInSeconds int      `json:"time_interval_in_seconds,omitempty"`
+	TimeIntervalInSeconds *int64   `json:"time_interval_in_seconds,omitempty"`
 	AllowedMethods        []string `json:"allowed_methods,omitempty"`
 }
 
@@ -213,71 +213,83 @@ type IPushConfig struct {
 type ISocialProviderData struct {
 	ProviderName string `json:"provider_name,omitempty"`
 	SocialID     string `json:"social_id,omitempty"`
-	DisplayName  string `json:"display_name,omitempty"`
 }
 type IProviderMetadData struct {
-	LogoURL      string `json:"logo_url,omitempty"`
-	ProviderName string `json:"provider_name,omitempty"`
-	DisplayName  string `json:"display_name,omitempty"`
-	Type         string `json:"type,omitempty"`
+	LogoURL           string   `json:"logo_url,omitempty"`
+	ProviderName      string   `json:"provider_name,omitempty"`
+	DisplayName       string   `json:"display_name,omitempty"`
+	Type              string   `json:"type,omitempty"`
+	IsProviderVisible bool     `json:"isProviderVisible,omitempty"`
+	Domains           []string `json:"domains,omitempty"`
 }
 
-func (c *Client) CreateApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s", c.Config.BaseURL, "apps-srv/clients")
-	c.HTTPClient.HTTPMethod = http.MethodPost
-	res, err := c.HTTPClient.MakeRequest(app)
+var _ AppService = &App{}
+
+type App struct {
+	HTTPClient util.HTTPClientInterface
+}
+type AppService interface {
+	Create(app AppModel) (AppResponse, error)
+	Get(clientID string) (*AppResponse, error)
+	Update(app AppModel) error
+	Delete(clientID string) error
+}
+
+func NewApp(httpClient util.HTTPClientInterface) AppService {
+	return &App{HTTPClient: httpClient}
+}
+
+func (a *App) Create(app AppModel) (AppResponse, error) {
+	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients"))
+	a.HTTPClient.SetMethod(http.MethodPost)
+	res, err := a.HTTPClient.MakeRequest(app)
+	var response AppResponse
+
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+		return response, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
 	return response, nil
 }
 
-func (c *Client) UpdateApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s", c.Config.BaseURL, "apps-srv/clients")
-	c.HTTPClient.HTTPMethod = http.MethodPut
-	res, err := c.HTTPClient.MakeRequest(app)
+func (a *App) Get(clientID string) (*AppResponse, error) {
+	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients", clientID))
+	a.HTTPClient.SetMethod(http.MethodGet)
+	res, err := a.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+	var response AppResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
 	}
-	return response, nil
+	return &response, nil
 }
 
-func (c *Client) DeleteApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientID)
-	c.HTTPClient.HTTPMethod = http.MethodDelete
-	res, err := c.HTTPClient.MakeRequest(app)
+func (a *App) Update(app AppModel) error {
+	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients"))
+	a.HTTPClient.SetMethod(http.MethodPut)
+	res, err := a.HTTPClient.MakeRequest(app)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
-	}
-	return response, nil
+	return nil
 }
 
-func (c *Client) GetApp(app AppConfig) (response *AppResponse, err error) {
-	c.HTTPClient.URL = fmt.Sprintf("%s/%s/%s", c.Config.BaseURL, "apps-srv/clients", app.ClientID)
-	c.HTTPClient.HTTPMethod = http.MethodGet
-	res, err := c.HTTPClient.MakeRequest(app)
+func (a *App) Delete(clientID string) error {
+	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients", clientID))
+	a.HTTPClient.SetMethod(http.MethodDelete)
+	res, err := a.HTTPClient.MakeRequest(nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
-	}
-	return response, nil
+	return nil
 }
