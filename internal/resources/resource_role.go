@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -52,6 +54,9 @@ func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"role": schema.StringAttribute{
 				Required: true,
@@ -60,7 +65,7 @@ func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				},
 			},
 			"name": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -97,9 +102,9 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		resp.Diagnostics.AddError("failed to read role", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.Role = types.StringValue(response.Data.Role)
-	state.Description = types.StringValue(response.Data.Description)
-	state.Name = types.StringValue(response.Data.Name)
+	state.Role = util.StringValueOrNull(&response.Data.Role)
+	state.Description = util.StringValueOrNull(&response.Data.Description)
+	state.Name = util.StringValueOrNull(&response.Data.Name)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

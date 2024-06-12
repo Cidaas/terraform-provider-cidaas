@@ -170,14 +170,6 @@ func TestAccRoleResource_createMissingFields(t *testing.T) {
 		name = "Test Name"
 		description = "Test Description"
 	}`
-	missingNameConfig := `
-	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
-	}
-	resource "cidaas_role" "example" {
-		role = "terraform_admin"
-		description = "Test Description"
-	}`
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -185,10 +177,6 @@ func TestAccRoleResource_createMissingFields(t *testing.T) {
 			{
 				Config:      missingRoleConfig,
 				ExpectError: regexp.MustCompile(`The argument "role" is required, but no definition was found.`),
-			},
-			{
-				Config:      missingNameConfig,
-				ExpectError: regexp.MustCompile(`The argument "name" is required, but no definition was found.`),
 			},
 		},
 	})
