@@ -1,5 +1,16 @@
 ## Changelog
 
+### 2.5.8
+#### Additions
+
+- resource cidaas_registration_page_field schema update to toggle `overwrite_with_null_value_from_social_provider` in SYSTEM fields.
+
+### 2.5.7
+#### Additions
+
+- app_resource schema update to support `is_provider_visible` in customProviders, socialProviders & adProviders.
+
+
 ### 2.5.6
 #### Additions
 

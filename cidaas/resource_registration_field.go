@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceRegistrationField() *schema.Resource {
@@ -64,8 +65,9 @@ func resourceRegistrationField() *schema.Resource {
 			},
 
 			"field_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"CUSTOM", "SYSTEM"}, false),
 			},
 
 			"data_type": {
@@ -131,7 +133,11 @@ func resourceRegistrationField() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
+			"overwrite_with_null_value_from_social_provider": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"app_attributes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -160,6 +166,15 @@ func resourceRegistrationFieldCreate(ctx context.Context, d *schema.ResourceData
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas.CidaasClient)
 	registrationFieldConfig := prepareRegistrationFieldConfig(d)
+
+	if registrationFieldConfig.FieldType == "SYSTEM" {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Invalid configuration",
+			Detail:   "SYSTEM fields are not allowed to create. You can only update them. Please import first to update a SYSTEM field.",
+		})
+		return diags
+	}
 	isValid, msg := cidaas.ValidateRequest(registrationFieldConfig)
 	if !isValid {
 		diags = append(diags, diag.Diagnostic{
@@ -217,6 +232,7 @@ func resourceRegistrationFieldRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("field_type", response.Data.FieldType)
 	d.Set("registration_field_id", response.Data.Id)
 	d.Set("base_data_type", response.Data.BaseDataType)
+	d.Set("overwrite_with_null_value_from_social_provider", response.Data.OverwriteWithNullValueFromSocialProvider)
 	if len(response.Data.LocaleText) > 0 {
 		d.Set("locale_text_locale", response.Data.LocaleText[0]["locale"])
 		d.Set("locale_text_name", response.Data.LocaleText[0]["name"])
@@ -260,15 +276,25 @@ func resourceRegistrationFieldUpdate(ctx context.Context, d *schema.ResourceData
 func resourceRegistrationFieldDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	cidaas_client := m.(cidaas.CidaasClient)
-	registration_field_key := d.Get("field_key").(string)
-	_, err := cidaas_client.DeleteRegistrationField(registration_field_key)
-	if err != nil {
+	if d.Get("field_type").(string) != "SYSTEM" {
+		registration_field_key := d.Get("field_key").(string)
+		_, err := cidaas_client.DeleteRegistrationField(registration_field_key)
+		if err != nil {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "failed to delete registration field",
+				Detail:   err.Error(),
+			})
+		}
+	} else {
+		msg := "SYSTEM fields are removed only from the state and cannot be deleted from the Cidaas system."
 		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "failed to delete registration field",
-			Detail:   err.Error(),
+			Severity: diag.Warning,
+			Summary:  msg,
+			Detail:   msg,
 		})
 	}
+
 	return diags
 }
 
@@ -298,6 +324,7 @@ func prepareRegistrationFieldConfig(d *schema.ResourceData) cidaas.RegistrationF
 	registrationFieldConfig.FieldDefinition.Language = d.Get("locale_text_language").(string)
 	registrationFieldConfig.FieldDefinition.MinLength = d.Get("locale_text_min_length").(int)
 	registrationFieldConfig.FieldDefinition.MaxLength = d.Get("locale_text_max_length").(int)
+	registrationFieldConfig.OverwriteWithNullValueFromSocialProvider = d.Get("overwrite_with_null_value_from_social_provider").(bool)
 
 	className := "FieldSetup"
 	if registrationFieldConfig.FieldType == "SYSTEM" {

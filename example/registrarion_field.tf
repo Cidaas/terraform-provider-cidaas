@@ -22,4 +22,5 @@ resource "cidaas_registration_page_field" "sample" {
     "profile",
     "cidaas:public_profile",
   ]
+  overwrite_with_null_value_from_social_provider = false
 }
