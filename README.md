@@ -567,6 +567,7 @@ resource "cidaas_registration_page_field" "sample" {
     "profile",
     "cidaas:public_profile",
   ]
+  overwrite_with_null_value_from_social_provider = false
 }
 ```
 
@@ -594,6 +595,7 @@ Refer to the detailed parameter descriptions provided in the table below :
 | min_length_error_msg    | string  | Custom message for minimum length validation.             |
 | max_length_error_msg    | string  | Custom message for maximum length validation.             |
 | scopes                  | list    | List of scopes associated with the field.                 |
+| overwrite_with_null_value_from_social_provider                  | boolean    | set to true if you want the value should be reset by identity provider.                 |
 
 ### Import Statement:
 
