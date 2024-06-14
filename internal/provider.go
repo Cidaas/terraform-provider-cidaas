@@ -61,6 +61,7 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewSocialProvider,
 		cidaasResource.NewScopeResource,
 		cidaasResource.NewScopeGroupResource,
+		cidaasResource.NewConsentGroupResource,
 		cidaasResource.NewGroupTypeResource,
 		cidaasResource.NewUserGroupResource,
 		cidaasResource.NewHostedPageResource,

@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type ScopeGroupResource struct {
+type ConsentGroupResource struct {
 	cidaasClient *cidaas.Client
 }
 
-type ScopeGroupConfig struct {
+type ConsentGroupConfig struct {
 	ID          types.String `tfsdk:"id"`
 	GroupName   types.String `tfsdk:"group_name"`
 	Description types.String `tfsdk:"description"`
@@ -29,15 +29,15 @@ type ScopeGroupConfig struct {
 	UpdatedAt   types.String `tfsdk:"updated_at"`
 }
 
-func NewScopeGroupResource() resource.Resource {
-	return &ScopeGroupResource{}
+func NewConsentGroupResource() resource.Resource {
+	return &ConsentGroupResource{}
 }
 
-func (r *ScopeGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_scope_group"
+func (r *ConsentGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_consent_group"
 }
 
-func (r *ScopeGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ConsentGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -52,120 +52,119 @@ func (r *ScopeGroupResource) Configure(_ context.Context, req resource.Configure
 	r.cidaasClient = client
 }
 
-func (r *ScopeGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ConsentGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control." +
+		MarkdownDescription: "The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas." +
+			"\n Consent Groups are useful to organize and manage consents by grouping related consent items together." +
 			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:scopes_read" +
-			"\n- cidaas:scopes_write" +
-			"\n- cidaas:scopes_delete",
+			"\n- cidaas:tenant_consent_read" +
+			"\n- cidaas:tenant_consent_write" +
+			"\n- cidaas:tenant_consent_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The ID of th resource.",
+				Computed:            true,
+				MarkdownDescription: "The unique identifier of the consent group.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"group_name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The name of the consent group.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
 				PlanModifiers: []planmodifier.String{
 					&validators.UniqueIdentifier{},
 				},
-				MarkdownDescription: "The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.",
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The `description` attribute provides details about the scope of the group, explaining its purpose.",
+				MarkdownDescription: "Description of the consent group.",
 			},
 			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was created.",
+				Computed:            true,
+				MarkdownDescription: "The timestamp when the consent group was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was last updated.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed:            true,
+				MarkdownDescription: "The timestamp when the consent group was last updated.",
 			},
 		},
 	}
 }
 
-func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *ConsentGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ScopeGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	scopeGroup := cidaas.ScopeGroupConfig{
+	consentGroup := cidaas.ConsentGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	res, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
+	res, err := r.cidaasClient.ConsentGroup.Upsert(consentGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create scope group", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to create consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	plan.GroupName = util.StringValueOrNull(&res.Data.GroupName)
 	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { //nolint:dupl
-	var state ScopeGroupConfig
+func (r *ConsentGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { //nolint:dupl
+	var state ConsentGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.ScopeGroup.Get(state.GroupName.ValueString())
+	res, err := r.cidaasClient.ConsentGroup.Get(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read scope group", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to read consent group", fmt.Sprintf("Error: %s ", err.Error()))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.GroupName = util.StringValueOrNull(&res.Data.GroupName)
 	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
-	state.GroupName = util.StringValueOrNull(&res.Data.GroupName)
 	state.Description = util.StringValueOrNull(&res.Data.Description)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state ScopeGroupConfig
+func (r *ConsentGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan ConsentGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	scopeGroup := cidaas.ScopeGroupConfig{
+	consentGroup := cidaas.ConsentGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	_, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
+	res, err := r.cidaasClient.ConsentGroup.Upsert(consentGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update scope group", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to update consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *ScopeGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state ScopeGroupConfig
+func (r *ConsentGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state ConsentGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.ScopeGroup.Delete(state.GroupName.ValueString())
+	err := r.cidaasClient.ConsentGroup.Delete(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete scope group", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to delete consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
 }
 
-func (r *ScopeGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("group_name"), req, resp)
+func (r *ConsentGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }

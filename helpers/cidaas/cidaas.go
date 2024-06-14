@@ -15,6 +15,7 @@ type Client struct {
 	SocialProvider SocialProviderService
 	Scope          ScopeService
 	ScopeGroup     ScopeGroupService
+	ConsentGroup   ConsentGroupService
 	GroupType      GroupTypeService
 	UserGroup      UserGroupService
 	HostedPage     HostedPageService
