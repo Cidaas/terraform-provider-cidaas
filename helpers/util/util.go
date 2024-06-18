@@ -70,3 +70,12 @@ func BoolValueOrNull(value *bool) types.Bool {
 	}
 	return types.BoolNull()
 }
+
+func GetLanguageForLocale(locale string) string {
+	for _, v := range Locals {
+		if v.LocaleString == locale {
+			return v.Language
+		}
+	}
+	return "en"
+}
