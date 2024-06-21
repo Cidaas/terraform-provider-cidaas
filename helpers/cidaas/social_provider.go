@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -50,7 +49,7 @@ type SocialProviderResponse struct {
 }
 
 type SocialProvider struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type SocialProviderService interface {
@@ -59,47 +58,50 @@ type SocialProviderService interface {
 	Delete(providerName, providerID string) error
 }
 
-func NewSocialProvider(httpClient util.HTTPClientInterface) SocialProviderService {
-	return &SocialProvider{HTTPClient: httpClient}
+func NewSocialProvider(clientConfig ClientConfig) SocialProviderService {
+	return &SocialProvider{clientConfig}
 }
 
-func (c *SocialProvider) Upsert(cp *SocialProviderModel) (*SocialProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(cp)
-	if err != nil {
+func (s *SocialProvider) Upsert(sp *SocialProviderModel) (*SocialProviderResponse, error) {
+	var response SocialProviderResponse
+	url := fmt.Sprintf("%s/%s", s.BaseURL, "providers-srv/multi/providers")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, s.AccessToken)
+
+	res, err := httpClient.MakeRequest(sp)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response SocialProviderResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *SocialProvider) Get(providerName, providerID string) (*SocialProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerID))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+func (s *SocialProvider) Get(providerName, providerID string) (*SocialProviderResponse, error) {
+	var response SocialProviderResponse
+	url := fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", s.BaseURL, "providers-srv/multi/providers", providerName, providerID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response SocialProviderResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *SocialProvider) Delete(providerName, providerID string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerID))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+func (s *SocialProvider) Delete(providerName, providerID string) error {
+	url := fmt.Sprintf("%s/%s/%s/%s", s.BaseURL, "providers-srv/multi/providers", providerName, providerID)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, s.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
