@@ -8,16 +8,16 @@ import (
 )
 
 type SocialProviderModel struct {
-	ID                    string      `json:"id,omitempty"`
-	ClientID              string      `json:"client_id,omitempty"`
-	ClientSecret          string      `json:"client_secret,omitempty"`
-	Name                  string      `json:"name,omitempty"`
-	ProviderName          string      `json:"provider_name,omitempty"`
-	Claims                ClaimsModel `json:"claims,omitempty"`
-	EnabledForAdminPortal bool        `json:"enabled_for_admin_portal"`
-	Enabled               bool        `json:"enabled"`
-	SPScopes              []string    `json:"scopes"`
-	SPUserInfoFields      []string    `json:"userinfo_fields"`
+	ID                    string                `json:"id,omitempty"`
+	ClientID              string                `json:"client_id,omitempty"`
+	ClientSecret          string                `json:"client_secret,omitempty"`
+	Name                  string                `json:"name,omitempty"`
+	ProviderName          string                `json:"provider_name,omitempty"`
+	Claims                ClaimsModel           `json:"claims,omitempty"`
+	EnabledForAdminPortal bool                  `json:"enabled_for_admin_portal"`
+	Enabled               bool                  `json:"enabled"`
+	Scopes                []string              `json:"scopes"`
+	UserInfoFields        []UserInfoFieldsModel `json:"userinfo_fields"`
 }
 
 type ClaimsModel struct {
@@ -33,6 +33,13 @@ type RequiredClaimsModel struct {
 type OptionalClaimsModel struct {
 	UserInfo []string `json:"user_info,omitempty"`
 	IdToken  []string `json:"id_token,omitempty"`
+}
+
+type UserInfoFieldsModel struct {
+	InnerKey      string `json:"inner_key,omitempty"`
+	ExternalKey   string `json:"external_key,omitempty"`
+	IsCustomField bool   `json:"is_custom_field,omitempty"`
+	IsSystemField bool   `json:"is_system_field,omitempty"`
 }
 
 type SocialProviderResponse struct {

@@ -30,7 +30,9 @@ type SocialProviderConfig struct {
 	ClientSecret          types.String `tfsdk:"client_secret"`
 	ClaimsConfig          types.Object `tfsdk:"claims"`
 	EnabledForAdminPortal types.Bool   `tfsdk:"enabled_for_admin_portal"`
-	//UserInfoFieldsConfig  types.List   `tfsdk:"userinfo_fields"`
+	UserInfoFieldsConfigs types.List   `tfsdk:"userinfo_fields"`
+	userInfoFieldsConfigs []*UserInfoFieldsConfig
+	Scopes                types.Set `tfsdk:"scopes"`
 	//CreatedAt             types.String `tfsdk:"created_at"`
 	//UpdatedAt             types.String `tfsdk:"updated_at"`
 	claimsConfig *ClaimsConfig
@@ -124,6 +126,10 @@ func (r *SocialProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Required:  true,
 				Sensitive: true,
 			},
+			"scopes": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+			},
 			"claims": schema.SingleNestedAttribute{
 				Optional: true,
 				Computed: true,
@@ -154,6 +160,26 @@ func (r *SocialProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 								ElementType: types.StringType,
 								Optional:    true,
 							},
+						},
+					},
+				},
+			},
+			"userinfo_fields": schema.ListNestedAttribute{
+				Computed: true,
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"inner_key": schema.StringAttribute{
+							Required: true,
+						},
+						"external_key": schema.StringAttribute{
+							Required: true,
+						},
+						"is_custom_field": schema.BoolAttribute{
+							Required: true,
+						},
+						"is_system_field": schema.BoolAttribute{
+							Required: true,
 						},
 					},
 				},
@@ -199,6 +225,15 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
 	state.Enabled = types.BoolValue(res.Data.Enabled)
 	state.EnabledForAdminPortal = types.BoolValue(res.Data.EnabledForAdminPortal)
+
+	var d diag.Diagnostics
+	if len(res.Data.Scopes) > 0 {
+		state.Scopes, d = types.SetValueFrom(ctx, types.StringType, res.Data.Scopes)
+		resp.Diagnostics.Append(d...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 	ReadClaimsInfo(state, res.Data, ctx, resp)
 	resp.Diagnostics.AddWarning("State After reading.", fmt.Sprintf("state: %+v", state))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -287,6 +322,10 @@ func (sp *SocialProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 			diags = sp.claimsConfig.optionalClaimsConfig.UserInfo.ElementsAs(ctx, &sp.claimsConfig.optionalClaimsConfig.UserInfo, false)
 			diags = sp.claimsConfig.optionalClaimsConfig.IdToken.ElementsAs(ctx, &sp.claimsConfig.optionalClaimsConfig.IdToken, false)
 		}*/
+		if !sp.UserInfoFieldsConfigs.IsNull() {
+			sp.userInfoFieldsConfigs = make([]*UserInfoFieldsConfig, 0, len(sp.UserInfoFieldsConfigs.Elements()))
+			diags = sp.UserInfoFieldsConfigs.ElementsAs(ctx, &sp.userInfoFieldsConfigs, false)
+		}
 
 	}
 	/*if !sp.ClaimsConfig.IsNull() &&  sp.claimsConfig.{
@@ -313,6 +352,22 @@ func prepareSocialProviderModel(ctx context.Context, plan SocialProviderConfig) 
 		if diag.HasError() {
 			return nil, diag
 		}
+	}
+	if !plan.UserInfoFieldsConfigs.IsNull() {
+		var userInfoModels []cidaas.UserInfoFieldsModel
+		for _, v := range plan.userInfoFieldsConfigs {
+			userInfoModels = append(userInfoModels, cidaas.UserInfoFieldsModel{
+				IsCustomField: v.IsCustomField.ValueBool(),
+				IsSystemField: v.IsSystemField.ValueBool(),
+				InnerKey:      v.InnerKey.ValueString(),
+				ExternalKey:   v.ExternalKey.ValueString(),
+			})
+		}
+		sp.UserInfoFields = userInfoModels
+	}
+	diag := plan.Scopes.ElementsAs(ctx, &sp.Scopes, false)
+	if diag.HasError() {
+		return nil, diag
 	}
 	return &sp, nil
 }
