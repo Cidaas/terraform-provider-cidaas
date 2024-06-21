@@ -12,6 +12,7 @@ import (
 type Client struct {
 	Role           RoleService
 	CustomProvider CustomProvideService
+	SocialProvider SocialProviderService
 	Scope          ScopeService
 	ScopeGroup     ScopeGroupService
 	GroupType      GroupTypeService
