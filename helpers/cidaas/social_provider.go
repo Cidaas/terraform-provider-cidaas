@@ -83,7 +83,7 @@ func (c *SocialProvider) UpsertSocialProvider(cp *SocialProviderModel) (*SocialP
 }
 
 func (c *SocialProvider) GetSocialProvider(providerName, providerId string) (*SocialProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s%s&provider_id=%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers?provider_name=", providerName, providerId))
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerId))
 	c.HTTPClient.SetMethod(http.MethodGet)
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
