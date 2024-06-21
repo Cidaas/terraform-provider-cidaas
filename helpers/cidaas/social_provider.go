@@ -54,12 +54,8 @@ type SocialProvider struct {
 
 type SocialProviderService interface {
 	UpsertSocialProvider(cp *SocialProviderModel) (*SocialProviderResponse, error)
-
 	GetSocialProvider(providerName, providerId string) (*SocialProviderResponse, error)
 	DeleteSocialProvider(providerName, providerId string) error
-	//ConfigureCustomProvider(cp CustomProviderConfigPayload) (*CustomProviderConfigureResponse, error)
-	//UpdateCustomProvider(cp *CustomProviderModel) error
-	//https://kube-nightlybuild-dev.cidaas.de/providers-srv/multi/providers/google/bc34e3db-aeaf-4a41-9b75-c12b825ea987
 }
 
 func NewSocialProvider(httpClient util.HTTPClientInterface) SocialProviderService {
