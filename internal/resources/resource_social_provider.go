@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"strings"
 )
 
 type SocialProvider struct {
@@ -210,22 +211,32 @@ func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest,
 	}
 	resp.Diagnostics.AddWarning("SocialProviderModel Response ", fmt.Sprintf("SP: %+v ", res.Data))
 
-	plan.ID = types.StringValue(res.Data.ID)
+	//plan.ID = types.StringValue(res.Data.ID)
+	plan.ID = types.StringValue(res.Data.ProviderName + "_" + res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state SocialProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.SocialProvider.GetSocialProvider(state.ProviderName.ValueString(), state.ID.ValueString())
+	params := strings.Split(state.ID.ValueString(), "_")
+	if len(params) != 2 {
+		resp.Diagnostics.AddError("invalid id. Valid Format: providerName_ID ", fmt.Sprintf("ID: %s", state.ID.ValueString()))
+		return
+	}
+	//res, err := r.cidaasClient.SocialProvider.GetSocialProvider(state.ProviderName.ValueString(), state.ID.ValueString())
+	res, err := r.cidaasClient.SocialProvider.GetSocialProvider(params[0], params[1])
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
 	state.ClientID = types.StringValue(res.Data.ClientID)
 	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
 	state.Enabled = types.BoolValue(res.Data.Enabled)
 	state.EnabledForAdminPortal = types.BoolValue(res.Data.EnabledForAdminPortal)
+	//
+	//state.ID = types.StringValue(res.Data.ID)
+	//state.ProviderName = types.StringValue(res.Data.ID)
 
 	var d diag.Diagnostics
 	if len(res.Data.Scopes) > 0 {
@@ -236,41 +247,8 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		}
 	}
 	ReadClaimsInfo(state, res.Data, ctx, resp)
-	resp.Diagnostics.AddWarning("State After reading.", fmt.Sprintf("state: %+v", state))
+	//resp.Diagnostics.AddWarning("State After reading.", fmt.Sprintf("state: %+v", state))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	/*
-		Setting
-	*/
-
-	/*claimObjectType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"required_claims":  types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"user_info": types.SetValue(types.StringType, res.Data.Claims.RequiredClaims.UserInfo),
-					"id_token": types.SetValue(types.StringType, res.Data.Claims.RequiredClaims.IdToken),
-				},
-			},
-			"optional_claims":    types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-
-				},
-			},
-		},
-	}*/
-
-	/*objValue := types.ObjectValueMust(claimObjectType.AttrTypes, map[string]attr.Value{
-		"scope_name":  types.StringValue(res.Data.Claims.RequiredClaims.UserInfo),
-		"required":    types.BoolValue(sc.Required),
-		"recommended": types.BoolValue(sc.Recommended),
-	})*/
-
-	/*if len(res.Data.Domains) > 0 {
-		state.Domains, d = types.SetValueFrom(ctx, types.StringType, res.Data.Domains)
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}*/
 }
 
 func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -278,17 +256,28 @@ func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
+	params := strings.Split(plan.ID.ValueString(), "_")
+	if len(params) != 2 {
+		resp.Diagnostics.AddError("invalid id. Valid Format: providerName_ID ", fmt.Sprintf("ID: %s", state.ID.ValueString()))
+		return
+	}
+	plan.ID = types.StringValue(params[1])
+	state.ID = types.StringValue(params[1])
+	plan.ProviderName = types.StringValue(params[0])
 	spModel, d := prepareSocialProviderModel(ctx, plan)
+	//spModel.ID = params[1]
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	spModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.SocialProvider.UpsertSocialProvider(spModel)
+
+	res, err := r.cidaasClient.SocialProvider.UpsertSocialProvider(spModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+	plan.ID = types.StringValue(res.Data.ProviderName + "_" + res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -298,7 +287,12 @@ func (r *SocialProvider) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.SocialProvider.DeleteSocialProvider(state.ProviderName.ValueString(), state.ID.ValueString())
+	params := strings.Split(state.ID.ValueString(), "_")
+	if len(params) != 2 {
+		resp.Diagnostics.AddError("invalid id. Valid Format: providerName_ID ", fmt.Sprintf("ID: %s", state.ID.ValueString()))
+	}
+	//err := r.cidaasClient.SocialProvider.DeleteSocialProvider(state.ProviderName.ValueString(), state.ID.ValueString())
+	err := r.cidaasClient.SocialProvider.DeleteSocialProvider(params[0], params[1])
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
