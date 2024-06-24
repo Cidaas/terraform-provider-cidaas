@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -25,25 +24,8 @@ func (v UniqueIdentifier) PlanModifyString(ctx context.Context, req planmodifier
 		return
 	}
 
-	var attributeName string
-	for attrName, attrConfig := range req.Plan.Schema.GetAttributes() {
-		if attrConfig.IsComputed() || attrConfig.IsOptional() || !attrConfig.GetType().Equal(req.ConfigValue.Type(ctx)) {
-			continue
-		}
-		var temp string
-		diags := req.Config.GetAttribute(ctx, path.Root(attrName), &temp)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		if temp == req.ConfigValue.ValueString() {
-			attributeName = attrName
-			break
-		}
-	}
-
 	if !req.ConfigValue.Equal(req.StateValue) {
 		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute %s can't be modified.", attributeName))
+			fmt.Sprintf("Attribute %s can't be modified.", req.Path.String()))
 	}
 }

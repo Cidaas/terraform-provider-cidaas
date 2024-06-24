@@ -272,19 +272,10 @@ func generateScopeModel(ctx context.Context, plan ScopeConfig) (*cidaas.ScopeMod
 	for _, ld := range plan.localizedDescriptions {
 		scope.LocaleWiseDescription = append(scope.LocaleWiseDescription, cidaas.ScopeLocalDescription{
 			Locale:      ld.Locale.ValueString(),
-			Language:    getLanguageForLocale(ld.Locale.ValueString()),
+			Language:    util.GetLanguageForLocale(ld.Locale.ValueString()),
 			Title:       ld.Title.ValueString(),
 			Description: ld.Description.ValueString(),
 		})
 	}
 	return &scope, nil
-}
-
-func getLanguageForLocale(locale string) string {
-	for _, v := range util.Locals {
-		if v.LocaleString == locale {
-			return v.Language
-		}
-	}
-	return "en"
 }

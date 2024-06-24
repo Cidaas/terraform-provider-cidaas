@@ -65,6 +65,7 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewHostedPageResource,
 		cidaasResource.NewWebhookResource,
 		cidaasResource.NewAppResource,
+		cidaasResource.NewRegFieldResource,
 	}
 }
 

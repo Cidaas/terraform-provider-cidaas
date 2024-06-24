@@ -3,6 +3,7 @@ package util
 import (
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -69,4 +70,21 @@ func BoolValueOrNull(value *bool) types.Bool {
 		return types.BoolValue(*value)
 	}
 	return types.BoolNull()
+}
+
+func TimeValueOrNull(value *time.Time) types.String {
+	if value != nil && !value.IsZero() {
+		return types.StringValue(value.Format("2006-01-02T15:04:05Z"))
+
+	}
+	return types.StringNull()
+}
+
+func GetLanguageForLocale(locale string) string {
+	for _, v := range Locals {
+		if v.LocaleString == locale {
+			return v.Language
+		}
+	}
+	return "en"
 }
