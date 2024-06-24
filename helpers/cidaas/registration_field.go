@@ -23,6 +23,7 @@ type RegistrationFieldConfig struct {
 	Unique                                   bool             `json:"unique"`
 	IsSearchable                             bool             `json:"isSearchable"`
 	OverwriteWithNullValueFromSocialProvider bool             `json:"overwriteWithNullValueFromSocialProvider"`
+	ConsentRefs                              []string         `json:"consent_refs,omitempty"`
 	Scopes                                   []string         `json:"scopes,omitempty"`
 	Enabled                                  bool             `json:"enabled"`
 	LocaleTexts                              []*LocaleText    `json:"localeTexts,omitempty"`

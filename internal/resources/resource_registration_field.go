@@ -51,6 +51,7 @@ type RegFieldConfig struct {
 	IsList                              types.Bool   `tfsdk:"is_list"`
 	Order                               types.Int64  `tfsdk:"order"`
 	Scopes                              types.Set    `tfsdk:"scopes"`
+	ConsentRefs                         types.Set    `tfsdk:"consent_refs"`
 	LocalTexts                          types.List   `tfsdk:"local_texts"`
 	FieldDefinition                     types.Object `tfsdk:"field_definition"`
 
@@ -233,6 +234,10 @@ func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"scopes": schema.SetAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+			},
+			"consent_refs": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
 			},
@@ -422,6 +427,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.IsGroup = util.BoolValueOrNull(&res.Data.IsGroup)
 	state.IsList = util.BoolValueOrNull(&res.Data.IsList)
 	state.Scopes = util.SetValueOrNull(res.Data.Scopes)
+	state.ConsentRefs = util.SetValueOrNull(res.Data.ConsentRefs)
 	state.Order = util.Int64ValueOrNull(&res.Data.Order)
 
 	var localTextsObjectValues []attr.Value
@@ -587,6 +593,13 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	diag := plan.Scopes.ElementsAs(ctx, &regConfig.Scopes, false)
 	if diag.HasError() {
 		return nil, diag
+	}
+
+	if plan.DataType.ValueString() == "CONSENT" {
+		diag = plan.ConsentRefs.ElementsAs(ctx, &regConfig.ConsentRefs, false)
+		if diag.HasError() {
+			return nil, diag
+		}
 	}
 
 	var attrKeys []string
@@ -901,6 +914,14 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configuration",
 			"Attributes min_date, max_date, initial_date and initial_date_view can not be empty when data_type is DATE.",
+		)
+	}
+
+	if req.ConfigValue.ValueString() != "CONSENT" &&
+		!config.ConsentRefs.IsNull() {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configuration",
+			"Attribute consent_refs is only allowed when data_type is set to CONSENT.",
 		)
 	}
 
