@@ -21,6 +21,7 @@ type Client struct {
 	HostedPage     HostedPageService
 	Webhook        WebhookService
 	App            AppService
+	RegField       RegFieldService
 	// remove HTTPClient after migrated all the resources to framework
 	HTTPClient util.HTTPClient
 }
@@ -69,6 +70,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		HostedPage:     NewHostedPage(&ht),
 		Webhook:        NewWebhook(&ht),
 		App:            NewApp(&ht),
+		RegField:       NewRegField(&ht),
 	}
 	return client, nil
 }
