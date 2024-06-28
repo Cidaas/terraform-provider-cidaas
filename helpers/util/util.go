@@ -79,12 +79,3 @@ func TimeValueOrNull(value *time.Time) types.String {
 	}
 	return types.StringNull()
 }
-
-func GetLanguageForLocale(locale string) string {
-	for _, v := range Locals {
-		if v.LocaleString == locale {
-			return v.Language
-		}
-	}
-	return "en"
-}
