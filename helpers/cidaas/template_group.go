@@ -102,6 +102,12 @@ func (r *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
 	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", r.HTTPClient.GetHost(), "templates-srv/groups", groupID))
 	r.HTTPClient.SetMethod(http.MethodGet)
 	res, err := r.HTTPClient.MakeRequest(nil)
+	if res.StatusCode == http.StatusNoContent {
+		resp := &TemplateGroupResponse{
+			Status: http.StatusNoContent,
+		}
+		return resp, fmt.Errorf("template group not found by the provider group_id  %s", groupID)
+	}
 	if err != nil {
 		return nil, err
 	}

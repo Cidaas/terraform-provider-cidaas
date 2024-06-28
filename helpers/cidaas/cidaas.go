@@ -23,8 +23,7 @@ type Client struct {
 	App            AppService
 	RegField       RegFieldService
 	TemplateGroup  TemplateGroupService
-	// remove HTTPClient after migrated all the resources to framework
-	HTTPClient util.HTTPClient
+	Template       TemplateService
 }
 
 type ClientConfig struct {
@@ -73,6 +72,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		App:            NewApp(&ht),
 		RegField:       NewRegField(&ht),
 		TemplateGroup:  NewTemplateGroup(&ht),
+		Template:       NewTemplate(&ht),
 	}
 	return client, nil
 }

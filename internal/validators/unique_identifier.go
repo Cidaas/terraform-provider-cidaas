@@ -26,6 +26,6 @@ func (v UniqueIdentifier) PlanModifyString(ctx context.Context, req planmodifier
 
 	if !req.ConfigValue.Equal(req.StateValue) {
 		resp.Diagnostics.AddError("Unexpected Resource Configuration",
-			fmt.Sprintf("Attribute %s can't be modified.", req.Path.String()))
+			fmt.Sprintf("Attribute %s can't be modified. Existing value %s, got %s", req.Path.String(), req.StateValue.ValueString(), req.ConfigValue.ValueString()))
 	}
 }

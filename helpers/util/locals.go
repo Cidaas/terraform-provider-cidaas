@@ -150,3 +150,12 @@ var Locals = []LocaleData{
 	{LocaleString: "zh-HK", Country: "HK", DisplayCountry: "Hong Kong", DisplayLanguage: "Chinese", DisplayName: "Chinese (Hong Kong)", DisplayVariant: "", ISO3Country: "HKG", ISO3Language: "zho", Language: "zh", Variant: ""},
 	{LocaleString: "zh-TW", Country: "TW", DisplayCountry: "Taiwan", DisplayLanguage: "Chinese", DisplayName: "Chinese (Taiwan)", DisplayVariant: "", ISO3Country: "TWN", ISO3Language: "zho", Language: "zh", Variant: ""},
 }
+
+func GetLanguageForLocale(locale string) string {
+	for _, v := range Locals {
+		if v.LocaleString == locale {
+			return v.Language
+		}
+	}
+	return "en"
+}
