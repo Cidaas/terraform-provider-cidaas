@@ -115,24 +115,32 @@ func (r *CustomProvider) Configure(_ context.Context, req resource.ConfigureRequ
 
 func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "This example demonstrates the configuration of a custom provider resource for interacting with Cidaas." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:provider_read" +
+			"\n- cidaas:provider_write",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The ID of the resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"provider_name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The unique identifier of the custom provider. This cannot be updated for an existing state.",
 				PlanModifiers: []planmodifier.String{
 					&validators.UniqueIdentifier{},
 				},
 			},
 			"display_name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The display name of the provider.",
 			},
 			"logo_url": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL for the provider's logo.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -141,20 +149,24 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				},
 			},
 			"standard_type": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"OPENID_CONNECT", "OAUTH2"}...),
 				},
 			},
 			"client_id": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The client ID of the provider.",
 			},
 			"client_secret": schema.StringAttribute{
-				Required:  true,
-				Sensitive: true,
+				Required:            true,
+				Sensitive:           true,
+				MarkdownDescription: "The client secret of the provider.",
 			},
 			"authorization_endpoint": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The URL for authorization of the provider.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -163,7 +175,8 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				},
 			},
 			"token_endpoint": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The URL to generate token with this provider.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -172,7 +185,8 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				},
 			},
 			"userinfo_endpoint": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The URL to fetch user details using this provider.",
 				Validators: []validator.String{
 					// hcpvalidator.URL(),
 					stringvalidator.RegexMatches(
@@ -183,27 +197,34 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			},
 			// In plan Set deletes an existing record and create a whole new one, so preferred list. However, to allow only unique values use set
 			"scopes": schema.ListNestedAttribute{
+				MarkdownDescription: "List of scopes of the provider with details",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"scope_name": schema.StringAttribute{
-							Optional: true,
+							Optional:            true,
+							MarkdownDescription: "The name of the scope, e.g., `openid`, `profile`.",
 						},
 						"required": schema.BoolAttribute{
-							Optional: true,
+							Optional:            true,
+							MarkdownDescription: "Indicates if the scope is required.",
 						},
 						"recommended": schema.BoolAttribute{
-							Optional: true,
+							MarkdownDescription: "Indicates if the scope is recommended.",
+							Optional:            true,
 						},
 					},
 				},
 				Optional: true,
 			},
 			"scope_display_label": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "Display label for the scope of the provider.",
 			},
 			"userinfo_fields": schema.SingleNestedAttribute{
 				Optional: true,
 				Computed: true,
+				MarkdownDescription: "Object containing various user information fields with their values." +
+					" The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization",
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
 						Optional: true,
@@ -270,8 +291,9 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 				Default: objectdefault.StaticValue(userInfoDefaultValue()),
 			},
 			"domains": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The domains of the provider.",
+				Optional:            true,
 			},
 		},
 	}

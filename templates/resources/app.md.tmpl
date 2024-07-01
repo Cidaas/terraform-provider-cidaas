@@ -1,0 +1,90 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+
+## V2 to V3 Migration:
+If you are migrating from v2 to v3, please note the following changes in the v3 version:
+
+### Attributes not supported in app config anymore:
+
+- client_secret_expires_at
+- client_id_issued_at
+- push_config
+- created_at
+- updated_at
+- admin_client
+- deleted
+- app_owner
+
+### Change in data types of some attribute
+
+ - social_providers
+ - custom_providers
+ - saml_providers
+ - ad_providers
+
+ The above attributes now has to be provided as set of objects.
+
+ #### Example:
+ ```terraform
+ social_providers = [
+  {
+      logo_url      = "https://cidaas.com/logo-url"
+      provider_name = "sample-custom-provider"
+      display_name  = "sample-custom-provider"
+      type          = "CUSTOM_OPENID_CONNECT"
+      is_provider_visible = true
+      domains = ["https://cidaas.de/]
+  },
+  {
+      logo_url      = "https://cidaas.com/logo-url"
+      provider_name = "sample-custom-provider"
+      display_name  = "sample-custom-provider"
+      type          = "CUSTOM_OPENID_CONNECT"
+      is_provider_visible = true
+      domains = ["https://cidaas.de/]
+  },
+ ]
+ ```
+
+### V3 App Resource Highlights:
+
+- The resource app can now be set up with minimal configuration. The following parameters are the only required ones to create an app.
+In the [schema](#schema) section, only client_name is shown as **required** because the other attributes can be configured in common_configs.
+However, each attribute must appear either in the main configuration block or in common_configs. `client_name` cannot be part of common_configs.
+
+  - client_name
+  - client_type
+  - company_name                   
+  - company_address                
+  - company_website                 
+  - allowed_scopes                
+  - redirect_uris
+  - allowed_logout_urls
+- Attribute `common_configs` added to share same configuration across multiple apps. Pleas check the samples in examples directory that demonstrates the use of `common_configs`.
+- If you need to override any specific attribute for a particular resource where the same attribute is available in `common_configs`, you can supply the main configuration attribute directly within the resource block.
+- If your configuration involves a single resource or if the common configuration attributes are not shared across multiple resources we do not suggest using `common_configs`.
+
+## Example Usage(V3 configuration)
+
+{{ tffile "examples/resources/cidaas_app/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+# The import identifier in this command is the client_id of the app to be imported.
+
+terraform import cidaas_app.sample client_id
+```

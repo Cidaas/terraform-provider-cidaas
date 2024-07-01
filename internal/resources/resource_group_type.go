@@ -60,24 +60,33 @@ func (r *GroupTypeResource) Configure(_ context.Context, req resource.ConfigureR
 
 func (r *GroupTypeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the Cidaas system." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:group_type_read" +
+			"\n- cidaas:group_type_write" +
+			"\n- cidaas:group_type_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of the resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"role_mode": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "Determines the role mode for the user group type. Allowed values are `any_roles`, `no_roles`, `roles_required` and `allowed_roles`",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"any_roles", "no_roles", "roles_required", "allowed_roles"}...),
 				},
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The `description` attribute provides details about the group type, explaining its purpose.",
 			},
 			"group_type": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The unique identifier of the group type. This cannot be updated for an existing state.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -86,20 +95,23 @@ func (r *GroupTypeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				},
 			},
 			"allowed_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "List of allowed roles in this group type.",
 				Validators: []validator.Set{
 					&allowedRolesValidator{},
 				},
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was last updated.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

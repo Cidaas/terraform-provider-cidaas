@@ -77,41 +77,52 @@ func (r *ScopeResource) Configure(_ context.Context, req resource.ConfigureReque
 
 func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client)." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:scopes_read" +
+			"\n- cidaas:scopes_write" +
+			"\n- cidaas:scopes_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of the resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"security_level": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The security level of the scope, e.g., `PUBLIC`. Allowed values are `PUBLIC` and `CONFIDENTIAL`",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"PUBLIC", "CONFIDENTIAL"}...),
 				},
 				Default: stringdefault.StaticString("PUBLIC"),
 			},
 			"scope_key": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "Unique identifier for the scope. This cannot be updated for an existing state.",
 				PlanModifiers: []planmodifier.String{
 					// the destroy will throw the error too
 					validators.UniqueIdentifier{},
 				},
 			},
 			"group_name": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "List of scope_groups to associate the scope with.",
 				// group_name validator can be added by fetching the group_names using api
 			},
 			"required_user_consent": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether user consent is required for the scope.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"scope_owner": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The owner of the scope. e.g. `ADMIN`",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -121,9 +132,10 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"locale": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  stringdefault.StaticString("en-US"),
+							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "The locale for the scope, e.g., `en-US`.",
+							Default:             stringdefault.StaticString("en-US"),
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
@@ -136,10 +148,12 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 							},
 						},
 						"title": schema.StringAttribute{
-							Required: true,
+							Required:            true,
+							MarkdownDescription: "The title of the scope in the configured locale.",
 						},
 						"description": schema.StringAttribute{
-							Optional: true,
+							Optional:            true,
+							MarkdownDescription: "The description of the scope in the configured locale.",
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(0, 256),
 							},

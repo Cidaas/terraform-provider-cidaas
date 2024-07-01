@@ -87,15 +87,22 @@ func (r *HostedPageResource) Configure(_ context.Context, req resource.Configure
 
 func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:hosted_pages_write" +
+			"\n- cidaas:hosted_pages_read" +
+			"\n- cidaas:hosted_pages_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of the resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"hosted_page_group_name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -104,9 +111,10 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 			},
 			"default_locale": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("en"),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The default locale for hosted pages e.g. `en-US`.",
+				Default:             stringdefault.StaticString("en"),
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						func() []string {
@@ -121,22 +129,25 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				// TODO: add a custom plan modifier later to validate the same and throw compile time error
 			},
 			"hosted_pages": schema.ListNestedAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "List of hosted pages with their respective attributes",
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"hosted_page_id": schema.StringAttribute{
-							Required: true,
+							Required:            true,
+							MarkdownDescription: "The identifier for the hosted page, e.g., `register_success`.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(allowedHotedPageIds...),
 							},
 						},
 						"locale": schema.StringAttribute{
-							Optional: true,
-							Computed: true,
-							Default:  stringdefault.StaticString("en"),
+							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "The locale for the hosted page, e.g., `en-US`.",
+							Default:             stringdefault.StaticString("en"),
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
@@ -149,7 +160,8 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							},
 						},
 						"url": schema.StringAttribute{
-							Required: true,
+							Required:            true,
+							MarkdownDescription: "The URL for the hosted page.",
 							Validators: []validator.String{
 								stringvalidator.RegexMatches(
 									regexp.MustCompile(`^https://.+$`),
@@ -158,19 +170,22 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							},
 						},
 						"content": schema.StringAttribute{
-							Optional: true,
+							Optional:            true,
+							MarkdownDescription: "The conent of the hosted page.",
 						},
 					},
 				},
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was last updated.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

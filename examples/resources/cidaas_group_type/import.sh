@@ -1,0 +1,1 @@
+terraform import cidaas_group_type.resource_name group_type

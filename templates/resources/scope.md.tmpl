@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: ""
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+
+### V2 to V3 Migration:
+If you are migrating from v2 to v3, please note the following changes in the v3 version:
+
+- The `locale`, `language`, `title` and `description` attributes have been removed and replaced with a `localized_descriptions` block that supports a scope with multiple locale with better internationalization. Earlier only one locale was supported by the terraform plugin.
+- `localized_descriptions` is a list of objects, each containing:
+  - locale
+  - title
+  - description
+- The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided.
+
+## old configuration:
+```terraform
+resource "scope" "sample" {
+  locale                = "en-US"
+  language              = "en-US"
+  title                 = "terraform title"
+  description           = "terraform description"
+  security_level        = "PUBLIC"
+  scope_key             = "terraform-test-scope"
+  required_user_consent = false
+  group_name            = []
+}
+```
+
+## Example Usage(V3 configuration)
+
+{{ tffile "examples/resources/cidaas_scope/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import cidaas_scope.resource_name scope_key
+```

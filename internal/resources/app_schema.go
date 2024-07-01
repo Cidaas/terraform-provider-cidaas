@@ -23,15 +23,27 @@ import (
 
 func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The App resource allows creation and management of clients in Cidaas system." +
+			" When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource." +
+			" If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data." +
+			" Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:apps_read" +
+			"\n- cidaas:apps_write" +
+			"\n- cidaas:apps_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The ID of the resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"client_type": schema.StringAttribute{
 				Optional: true,
+				MarkdownDescription: "The type of the client. The allowed values are " +
+					"SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVE" +
+					"IOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY",
 				PlanModifiers: []planmodifier.String{
 					&stringCustomRequired{},
 				},
@@ -43,7 +55,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"accent_color": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("#ef4923"),
+				MarkdownDescription: "The accent color of the client. e.g., `#f7941d`. The value must be a valid hex color" +
+					"The default is set to `#ef4923`.",
+				Default: stringdefault.StaticString("#ef4923"),
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
@@ -54,7 +68,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"primary_color": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("#f7941d"),
+				MarkdownDescription: "The primary color of the client. e.g., `#ef4923`. The value must be a valid hex color" +
+					"The default is set to `#f7941d`.",
+				Default: stringdefault.StaticString("#f7941d"),
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
@@ -65,6 +81,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"media_type": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				MarkdownDescription: "The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGE" +
+					"The default is set to `IMAGE`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"VIDEO", "IMAGE"}...),
 				},
@@ -73,6 +91,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"content_align": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				MarkdownDescription: "The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHT" +
+					"The default is set to `CENTER`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
 				},
@@ -82,6 +102,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				ElementType: types.StringType,
 				Computed:    true,
 				Optional:    true,
+				MarkdownDescription: "allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAME" +
+					"The default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
@@ -92,8 +114,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				})),
 			},
 			"redirect_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Redirect URIs for OAuth2 client.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
@@ -107,8 +130,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"allowed_logout_urls": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Allowed logout URLs for OAuth2 client.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
@@ -122,69 +146,82 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"enable_deduplication": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Enable deduplication.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"auto_login_after_register": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Automatically login after registration. Default is set to `false` while creating an app.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"enable_passwordless_auth": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Enable passwordless authentication. Default is set to `true` while creating an app.",
+				Default:             booldefault.StaticBool(true),
 			},
 			"register_with_login_information": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Register with login information. Default is set to `false` while creating an app.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"allow_disposable_email": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Allow disposable email addresses. Default is set to `false` while creating an app.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"validate_phone_number": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "if enabled, phone number is validaed. Default is set to `false` while creating an app.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"fds_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Flag to enable or disable fraud detection system. By default, it is enabled when a client is created",
+				Default:             booldefault.StaticBool(true),
 			},
 			"hosted_page_group": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("default"),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hosted page group.",
+				Default:             stringdefault.StaticString("default"),
 			},
 			"client_name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "Name of the client.",
 			},
 			"client_display_name": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The display name of the client.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"company_name": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The name of the company that the client belongs to.",
 				PlanModifiers: []planmodifier.String{
 					&stringCustomRequired{},
 				},
 			},
 			"company_address": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The company address.",
 				PlanModifiers: []planmodifier.String{
 					&stringCustomRequired{},
 				},
 			},
 			"company_website": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL of the company website.",
 				PlanModifiers: []planmodifier.String{
 					&stringCustomRequired{},
 				},
@@ -196,52 +233,61 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"allowed_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config",
 				PlanModifiers: []planmodifier.Set{
 					&setCustomRequired{},
 				},
 			},
 			"response_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The response types of the client. The default value is set to `['code','token', 'id_token']`",
 				Default: setdefault.StaticValue(basetypes.NewSetValueMust(types.StringType, []attr.Value{
 					types.StringValue("code"), types.StringValue("token"), types.StringValue("id_token"),
 				})),
 			},
 			"grant_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Computed:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`",
 				Default: setdefault.StaticValue(basetypes.NewSetValueMust(types.StringType, []attr.Value{
 					types.StringValue("implicit"), types.StringValue("authorization_code"), types.StringValue("password"), types.StringValue("refresh_token"),
 				})),
 			},
 			"login_providers": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "With this attribute one can setup login provider to the client.",
+				Optional:            true,
 			},
 			"additional_access_token_payload": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "Access token payload defination.",
+				Optional:            true,
 			},
 			"required_fields": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The required fields while registering to the client.",
+				Optional:            true,
 			},
 			"is_hybrid_app": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"allowed_web_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of the web origins allowed to access the client.",
+				Optional:            true,
 			},
 			"allowed_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "List of the origins allowed to access the client.",
+				Optional:            true,
 			},
 			"mobile_settings": schema.SingleNestedAttribute{
 				Optional: true,
@@ -275,33 +321,40 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					})),
 			},
 			"default_max_age": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The default maximum age for the token in seconds. Default is 86400 seconds (24 hours).",
+				Default:             int64default.StaticInt64(86400),
 			},
 			"token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The lifetime of the token in seconds. Default is 86400 seconds (24 hours).",
+				Default:             int64default.StaticInt64(86400),
 			},
 			"id_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(86400),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The lifetime of the id_token in seconds. Default is 86400 seconds (24 hours).",
+				Default:             int64default.StaticInt64(86400),
 			},
 			"refresh_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(15780000),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The lifetime of the refresh token in seconds. Default is 15780000 seconds.",
+				Default:             int64default.StaticInt64(15780000),
 			},
 			"template_group_id": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  stringdefault.StaticString("default"),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The id of the template group to be configured for commenication. Default is set to the system default group.",
+				Default:             stringdefault.StaticString("default"),
 			},
 			"client_id": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				MarkdownDescription: "The client_id is the unqique identifier of the app. It's an optional attribute." +
+					" If not provided, cidaas will gererate one for you and the state will be updated with the same",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -310,12 +363,15 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:  true,
 				Computed:  true,
 				Sensitive: true,
+				MarkdownDescription: "The client_id is the unqique identifier of the app. It's an optional attribute." +
+					" If not provided, cidaas will gererate one for you and the state will be updated with the same",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"policy_uri": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL to the policy of a client.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -324,7 +380,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"tos_uri": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL to the TOS of a client.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -333,7 +390,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"imprint_uri": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL to the imprint page.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -342,8 +400,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"contacts": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "The contacts of the client.",
 			},
 			"token_endpoint_auth_method": schema.StringAttribute{
 				Optional: true,
@@ -360,13 +419,15 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:    true,
 			},
 			"editable": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(true),
+				MarkdownDescription: "Flag to define if your client is editable or not. Default is `true`.",
 			},
 			"web_message_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "A list of URLs for web messages used.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(
@@ -377,7 +438,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"social_providers": schema.ListNestedAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc...",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
@@ -390,7 +452,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"custom_providers": schema.ListNestedAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
@@ -418,7 +481,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"saml_providers": schema.ListNestedAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "A list of SAML identity providers that users can authenticate with.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
@@ -446,7 +510,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"ad_providers": schema.ListNestedAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "A list of Active Directory identity providers that users can authenticate with.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
@@ -474,14 +539,16 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"jwe_enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Flag to specify whether JSON Web Encryption (JWE) should be enabled for encrypting data.",
+				Default:             booldefault.StaticBool(false),
 			},
 			"user_consent": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Specifies whether user consent is required or not. Default is `false`",
+				Default:             booldefault.StaticBool(false),
 			},
 			"allowed_groups": schema.ListNestedAttribute{
 				Optional: true,
@@ -667,21 +734,25 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Default: stringdefault.StaticString("CENTER"),
 			},
 			"mfa": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Configuration settings for Multi-Factor Authentication (MFA).",
 				Attributes: map[string]schema.Attribute{
 					"setting": schema.StringAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "Specifies the Multi-Factor Authentication (MFA) setting. Allowed values are 'OFF', 'ALWAYS', 'SMART', 'TIME_BASED' and 'SMART_PLUS_TIME_BASED'.",
 						Validators: []validator.String{
 							stringvalidator.OneOf([]string{"OFF", "ALWAYS", "SMART", "TIME_BASED", "SMART_PLUS_TIME_BASED"}...),
 						},
 					},
 					"time_interval_in_seconds": schema.Int64Attribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "Optional time interval in seconds for time-based Multi-Factor Authentication.",
 					},
 					"allowed_methods": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
+						ElementType:         types.StringType,
+						Optional:            true,
+						MarkdownDescription: "Optional set of allowed MFA methods.",
 					},
 				},
 				Default: objectdefault.StaticValue(types.ObjectValueMust(
@@ -816,7 +887,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:    true,
 			},
 			"login_spi": schema.SingleNestedAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "A map defining the Login SPI configuration.",
 				Attributes: map[string]schema.Attribute{
 					"oauth_client_id": schema.StringAttribute{
 						Optional: true,
@@ -827,7 +899,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"background_uri": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL to the background image of the client.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -839,7 +912,8 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"video_url": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The URL to the video of the client.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -851,13 +925,16 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional: true,
 			},
 			"application_meta_data": schema.MapAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "A map to add metadata of a client.",
 			},
 			"allow_guest_login": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				MarkdownDescription: "Flag to specify whether guest users are allowed to access functionalities of the client." +
+					" Default is set to `false`",
+				Default: booldefault.StaticBool(false),
 			},
 			"common_configs": getCommonConfig(),
 		},
@@ -867,6 +944,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 func getCommonConfig() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional: true,
+		MarkdownDescription: "The `common_configs` attribute is used for sharing the same configuration across multiple cidaas_app resources." +
+			" It is a map of some attributes from the main configuration." +
+			" Please check the list of the attributes that it supports in the common_confis section." +
+			" if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app",
 		PlanModifiers: []planmodifier.Object{
 			&commonConfigConflictVerifier{},
 		},

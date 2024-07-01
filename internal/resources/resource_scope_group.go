@@ -53,9 +53,15 @@ func (r *ScopeGroupResource) Configure(_ context.Context, req resource.Configure
 
 func (r *ScopeGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:scopes_read" +
+			"\n- cidaas:scopes_write" +
+			"\n- cidaas:scopes_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of th resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -68,18 +74,22 @@ func (r *ScopeGroupResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				PlanModifiers: []planmodifier.String{
 					&validators.UniqueIdentifier{},
 				},
+				MarkdownDescription: "The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.",
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The `description` attribute provides details about the scope of the group, explaining its purpose.",
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the resource was last updated.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

@@ -51,24 +51,34 @@ func (r *RoleResource) Configure(_ context.Context, req resource.ConfigureReques
 
 func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system." +
+			" This resource allows you to configure and define custom roles to suit your application's specific access control requirements." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:roles_read" +
+			"\n- cidaas:roles_write" +
+			"\n- cidaas:roles_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The ID of the role resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"role": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: "The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.",
 				PlanModifiers: []planmodifier.String{
 					&validators.UniqueIdentifier{},
 				},
 			},
 			"name": schema.StringAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "The name of the role.",
 			},
 			"description": schema.StringAttribute{
-				Optional: true,
+				Optional:            true,
+				MarkdownDescription: "The `description` attribute provides details about the role, explaining its purpose.",
 			},
 		},
 	}

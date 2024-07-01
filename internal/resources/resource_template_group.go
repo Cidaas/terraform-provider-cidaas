@@ -82,9 +82,16 @@ func (r *TemplateGroupResource) Configure(_ context.Context, req resource.Config
 
 func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The cidaas_template_group resource in the provider is used to define and manage templates groups within the Cidaas system." +
+			" Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:templates_read" +
+			"\n- cidaas:templates_write" +
+			"\n- cidaas:templates_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The ID of the resource",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -94,41 +101,48 @@ func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(15),
 				},
+				MarkdownDescription: "The group_id of the Template Group. The group_id is used to import an existing template group.",
 			},
 			"email_sender_config": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The `email_sender_config` is used to configure your email sender.",
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
-						Computed: true,
+						Computed:            true,
+						MarkdownDescription: "The `ID` of the configured email sender.",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"from_email": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The email from address from which the emails will be sent when the specific group is configured.",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"from_name": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The `from_name` attribute is the display name that appears in the 'From' field of the emails.",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"reply_to": schema.StringAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The `reply_to` attribute is the email address where replies should be directed.",
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
 						},
 					},
 					"sender_names": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
+						ElementType:         types.StringType,
+						Optional:            true,
+						MarkdownDescription: "The `sender_names` attribute defines the names associated with email senders.",
 					},
 				},
 				Default: objectdefault.StaticValue(types.ObjectValueMust(
@@ -148,8 +162,9 @@ func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 					})),
 			},
 			"sms_sender_config": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The configuration of the SMS sender.",
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Computed: true,
@@ -178,8 +193,9 @@ func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 					})),
 			},
 			"ivr_sender_config": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The configuration of the IVR sender.",
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Computed: true,
@@ -203,8 +219,9 @@ func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 					})),
 			},
 			"push_sender_config": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The configuration of the PUSH notification sender.",
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Computed: true,
