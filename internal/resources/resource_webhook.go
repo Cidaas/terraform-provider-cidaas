@@ -94,15 +94,24 @@ func (r *WebhookResource) Configure(_ context.Context, req resource.ConfigureReq
 
 func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system." +
+			" This resource allows you to configure webhooks with different authentication options." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:webhook_read" +
+			"\n- cidaas:webhook_read" +
+			"\n- cidaas:webhook_read",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The unique identifier of the webhook resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"auth_type": schema.StringAttribute{
 				Required: true,
+				Description: "The attribute auth_type is to define how this url is secured from your end." +
+					"The allowed values are `APIKEY`, `TOTP` and `CIDAAS_OAUTH2`",
 				Validators: []validator.String{
 					stringvalidator.OneOf(cidaas.AllowedAuthType...),
 				},
@@ -111,7 +120,8 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"url": schema.StringAttribute{
-				Required: true,
+				Required:    true,
+				Description: "The webhook url that needs to be called when an event occurs.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^https://.+$`),
@@ -122,6 +132,7 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"events": schema.SetAttribute{
 				ElementType: types.StringType,
 				Required:    true,
+				Description: "A set of events that trigger the webhook.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
@@ -130,10 +141,12 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"apikey_config": schema.SingleNestedAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY.",
 				Attributes: map[string]schema.Attribute{
 					"placeholder": schema.StringAttribute{
-						Required: true,
+						Required:    true,
+						Description: "The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							stringvalidator.RegexMatches(
@@ -144,12 +157,16 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					},
 					"placement": schema.StringAttribute{
 						Required: true,
+						Description: "The placement of the API key in the request (e.g., query)." +
+							"The allowed value are `header` and `query`.",
 						Validators: []validator.String{
 							stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
 						},
 					},
 					"key": schema.StringAttribute{
 						Required: true,
+						Description: "The API key that will be used to authenticate the webhook request." +
+							"The key that will be passed in the request header or in query param as configured in the attribute `placement`",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 						},
@@ -157,10 +174,12 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"totp_config": schema.SingleNestedAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP.",
 				Attributes: map[string]schema.Attribute{
 					"placeholder": schema.StringAttribute{
-						Required: true,
+						Required:    true,
+						Description: "A placeholder value for the TOTP.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 							stringvalidator.RegexMatches(
@@ -171,12 +190,15 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					},
 					"placement": schema.StringAttribute{
 						Required: true,
+						Description: "The placement of the TOTP in the request." +
+							"The allowed value are `header` and `query`.",
 						Validators: []validator.String{
 							stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
 						},
 					},
 					"key": schema.StringAttribute{
-						Required: true,
+						Required:    true,
+						Description: "The key used for TOTP authentication.",
 						Validators: []validator.String{
 							stringvalidator.LengthAtLeast(1),
 						},
@@ -184,26 +206,31 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"cidaas_auth_config": schema.SingleNestedAttribute{
-				Optional: true,
+				Optional:    true,
+				Description: "Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2.",
 				Attributes: map[string]schema.Attribute{
 					"client_id": schema.StringAttribute{
-						Required: true,
+						Required:    true,
+						Description: "The client ID for Cidaas authentication.",
 					},
 				},
 			},
 			"disable": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				Optional:    true,
+				Computed:    true,
+				Description: "Flag to disable the webhook.",
+				Default:     booldefault.StaticBool(false),
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the webhook was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed: true,
+				Computed:    true,
+				Description: "The timestamp when the webhook was last updated.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
