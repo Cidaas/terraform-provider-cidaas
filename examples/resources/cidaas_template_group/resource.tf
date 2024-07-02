@@ -5,12 +5,12 @@
 
 // sample1
 resource "cidaas_template_group" "sample-tg-1" {
-  group_id = "sample_group_two"
+  group_id = "sample_group"
 }
 
 // sample2
 resource "cidaas_template_group" "sample-tg-2" {
-  group_id = "sample_group"
+  group_id = "group_another"
   email_sender_config = {
     from_email = "noreply@cidaas.de"
     from_name  = "Kube-dev"

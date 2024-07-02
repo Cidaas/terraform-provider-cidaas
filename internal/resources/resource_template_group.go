@@ -101,7 +101,8 @@ func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 				Validators: []validator.String{
 					stringvalidator.LengthAtMost(15),
 				},
-				MarkdownDescription: "The group_id of the Template Group. The group_id is used to import an existing template group.",
+				MarkdownDescription: "The group_id of the Template Group. The group_id is used to import an existing template group." +
+					" The maximum allowed length of a group_id is **15** characters.",
 			},
 			"email_sender_config": schema.SingleNestedAttribute{
 				Optional:            true,
