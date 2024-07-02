@@ -45,7 +45,7 @@ resource "cidaas_app" "sample_three" {
   common_configs      = var.common_config
 }
 
-// Here client_type will be override from SINGLE_PAGE(common_config.client_type) to IOS
+# Here client_type will be overridden from SINGLE_PAGE(common_config.client_type) to IOS
 resource "cidaas_app" "sample_four" {
   client_name    = "Sample Terraform Application Four"
   client_type    = "IOS"
