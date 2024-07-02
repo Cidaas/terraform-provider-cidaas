@@ -5,7 +5,7 @@ subcategory: ""
 description: |-
   The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system. This resource allows you to configure webhooks with different authentication options.
   Ensure that the below scopes are assigned to the client with the specified client_id:
-  cidaas:webhook_readcidaas:webhook_readcidaas:webhook_read
+  cidaas:webhook_readcidaas:webhook_writecidaas:webhook_delete
 ---
 
 # cidaas_webhook (Resource)
@@ -14,8 +14,8 @@ The Webhook resource in the provider facilitates integration of webhooks in the 
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:webhook_read
-- cidaas:webhook_read
-- cidaas:webhook_read
+- cidaas:webhook_write
+- cidaas:webhook_delete
 
 ## Example Usage
 

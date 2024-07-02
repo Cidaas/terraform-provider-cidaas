@@ -98,8 +98,8 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			" This resource allows you to configure webhooks with different authentication options." +
 			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 			"\n- cidaas:webhook_read" +
-			"\n- cidaas:webhook_read" +
-			"\n- cidaas:webhook_read",
+			"\n- cidaas:webhook_write" +
+			"\n- cidaas:webhook_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

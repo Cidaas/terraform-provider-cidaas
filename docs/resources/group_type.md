@@ -21,7 +21,7 @@ The Group Type, managed through the `cidaas_group_type` resource in the provider
 If you are migrating from v2 to v3, please note that `cidaas_user_group_category` has been renamed to `cidaas_group_type`.
 Please update your Terraform configuration files accordingly to ensure compatibility with the latest version(v3).
 
-## Example Usage(V3 configuration)
+## Example Usage
 
 ```terraform
 resource "cidaas_group_type" "sample" {

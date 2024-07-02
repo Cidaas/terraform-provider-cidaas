@@ -4,7 +4,7 @@ subcategory: ""
 description: |-
   This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
-  cidaas:provider_readcidaas:provider_write
+  cidaas:providers_readcidaas:providers_write
 ---
 
 # cidaas_custom_provider (Resource)
@@ -12,8 +12,8 @@ description: |-
 This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:provider_read
-- cidaas:provider_write
+- cidaas:providers_read
+- cidaas:providers_write
 
 
 ### V2 to V3 Migration:
@@ -25,7 +25,6 @@ If you are migrating from v2 to v3, please note the following changes in the v3 
 ## Old configuration
 
 ```terraform
-...
 resource "cidaas_custom_provider" "sample" {
   ...
   scopes {

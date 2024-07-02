@@ -27,12 +27,12 @@ The cidaas_template_group resource in the provider is used to define and manage 
 
 // sample1
 resource "cidaas_template_group" "sample-tg-1" {
-  group_id = "sample_group_two"
+  group_id = "sample_group"
 }
 
 // sample2
 resource "cidaas_template_group" "sample-tg-2" {
-  group_id = "sample_group"
+  group_id = "group_another"
   email_sender_config = {
     from_email = "noreply@cidaas.de"
     from_name  = "Kube-dev"
@@ -64,7 +64,7 @@ resource "cidaas_template_group" "sample-tg-2" {
 
 ### Required
 
-- `group_id` (String) The group_id of the Template Group. The group_id is used to import an existing template group.
+- `group_id` (String) The group_id of the Template Group. The group_id is used to import an existing template group. The maximum allowed length of a group_id is **15** characters.
 
 ### Optional
 
