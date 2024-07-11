@@ -144,7 +144,7 @@ If you are migrating from v2 to v3, please note the following changes in the v3 
         display_name  = "sample-custom-provider"
         type          = "CUSTOM_OPENID_CONNECT"
         is_provider_visible = true
-        domains = ["https://cidaas.de/]
+        domains = ["cidaas.de"]
     },
     {
         logo_url      = "https://cidaas.com/logo-url"
@@ -152,11 +152,59 @@ If you are migrating from v2 to v3, please note the following changes in the v3 
         display_name  = "sample-custom-provider"
         type          = "CUSTOM_OPENID_CONNECT"
         is_provider_visible = true
-        domains = ["https://cidaas.de/]
+        domains = ["cidaas.de"]
     },
   ]
  }
  ```
+### Handling schema change error for existing state
+If you encounter the following error message when the below specified attributes are present in the state, please follow the steps to fix the error:
+
+```shell
+Error: Unable to Read Previously Saved State for UpgradeResourceState
+...
+There was an error reading the saved resource state using the current resource schema.
+...
+AttributeName("group_selection"): invalid JSON, expected "{", got "["
+```
+
+#### Affected Attributes:
+- group_selection
+- login_spi
+- mfa
+- mobile_settings
+
+To resolve this issue, manually update the Terraform state file by following these steps:
+
+1. Open the state file (`terraform.tfstate`) and locate the `cidaas_app.<resource_name_in_your_config>` resource.
+2. Search for the affected attributes listed above.
+3. Update their types to JSON objects. Ensure they are set as objects (`{}`) and not arrays (`[]`).
+
+##### Example:
+
+Before:
+```json
+"group_selection": [
+  {
+    "selectable_groups" : ["developer-users"]
+    "selectable_group_types" : ["sample"]
+    "always_show_group_selection" : null
+  }
+]
+```
+
+After:
+```json
+"group_selection": {
+  "selectable_groups" : ["developer-users"]
+  "selectable_group_types" : ["sample"]
+  "always_show_group_selection" : null
+}
+```
+
+Alternatively, you can resolve the issue by deleting the existing state of the specific resource and importing it from Cidaas.
+However, this approach can be risky, so please proceed with caution.
+Ensure you only delete the specific resource from the state file that is causing the error, not the entire file or any other resources.
 
 ### V3 App Resource Highlights:
 
