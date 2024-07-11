@@ -119,14 +119,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "Redirect URIs for OAuth2 client.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
 				PlanModifiers: []planmodifier.Set{
 					&setCustomRequired{},
 				},
@@ -135,14 +127,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "Allowed logout URLs for OAuth2 client.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
 				PlanModifiers: []planmodifier.Set{
 					&setCustomRequired{},
 				},
@@ -226,12 +210,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				MarkdownDescription: "The URL of the company website.",
 				PlanModifiers: []planmodifier.String{
 					&stringCustomRequired{},
-				},
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
 				},
 			},
 			"allowed_scopes": schema.SetAttribute{
@@ -374,32 +352,14 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"policy_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the policy of a client.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"tos_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the TOS of a client.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"imprint_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the imprint page.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"contacts": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -430,14 +390,6 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "A list of URLs for web messages used.",
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
 			},
 			"social_providers": schema.ListNestedAttribute{
 				Optional:            true,
@@ -778,30 +730,12 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"logo_uri": schema.StringAttribute{
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"initiate_login_uri": schema.StringAttribute{
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"registration_client_uri": schema.StringAttribute{
 				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"registration_access_token": schema.StringAttribute{
 				Optional: true,
@@ -906,22 +840,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"video_url": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the video of the client.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"bot_captcha_ref": schema.StringAttribute{
 				Optional: true,
@@ -979,26 +901,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 			"redirect_uris": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
 			},
 			"allowed_logout_urls": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^https://.+$`),
-							"must be a valid URL starting with https://",
-						),
-					),
-				},
 			},
 			"allowed_web_origins": schema.SetAttribute{
 				ElementType: types.StringType,

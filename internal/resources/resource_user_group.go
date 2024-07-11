@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
@@ -114,12 +113,6 @@ func (r *UserGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"logo_url": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "URL for the user group's logo",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"description": schema.StringAttribute{
 				Optional:            true,

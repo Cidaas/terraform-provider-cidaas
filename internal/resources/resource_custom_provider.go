@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
@@ -141,12 +140,6 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"logo_url": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL for the provider's logo.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"standard_type": schema.StringAttribute{
 				Optional:            true,
@@ -167,33 +160,14 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"authorization_endpoint": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The URL for authorization of the provider.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"token_endpoint": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The URL to generate token with this provider.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"userinfo_endpoint": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The URL to fetch user details using this provider.",
-				Validators: []validator.String{
-					// hcpvalidator.URL(),
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			// In plan Set deletes an existing record and create a whole new one, so preferred list. However, to allow only unique values use set
 			"scopes": schema.ListNestedAttribute{

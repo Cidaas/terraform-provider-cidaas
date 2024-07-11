@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.1
+
+#### Removed
+- **URL Validation**: Removed strict URL validation that enforced URLs to start with `https://`.
+
 ### 3.0.0
 
 This new release is based on Terraform Plugin Framework and is designed to be mostly backwards compatible with existing implementations. It offers several benefits including enhanced performance, improved debugging capabilities and streamlined development processes. Specific advantages include:
