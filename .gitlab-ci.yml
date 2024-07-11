@@ -23,5 +23,5 @@ acceptance_test:
 # Manually create releases for better changelog and tag maintenance.
 release:
   stage: release
-  rules:
-    - when: never
+  only:
+    - never
