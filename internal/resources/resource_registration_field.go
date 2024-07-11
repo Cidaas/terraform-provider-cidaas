@@ -29,13 +29,15 @@ import (
 
 const layout = "2006-01-02T15:04:05Z"
 
-var allowedDataTypes = []string{"TEXT", "NUMBER", "SELECT", "MULTISELECT", "RADIO", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
-	"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE"}
+var allowedDataTypes = []string{
+	"TEXT", "NUMBER", "SELECT", "MULTISELECT", "RADIO", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
+	"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE",
+}
 
 type RegFieldConfig struct {
 	ID                                  types.String `tfsdk:"id"`
 	BaseDataType                        types.String `tfsdk:"base_data_type"`
-	ParentGroupId                       types.String `tfsdk:"parent_group_id"`
+	ParentGroupID                       types.String `tfsdk:"parent_group_id"`
 	FieldType                           types.String `tfsdk:"field_type"`
 	DataType                            types.String `tfsdk:"data_type"`
 	FieldKey                            types.String `tfsdk:"field_key"`
@@ -287,7 +289,7 @@ func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
-										var validLocals = make([]string, len(util.Locals)) //nolint:gofumpt
+										validLocals := make([]string, len(util.Locals))
 										for i, locale := range util.Locals {
 											validLocals[i] = locale.LocaleString
 										}
@@ -297,7 +299,7 @@ func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 						},
 						"name": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Then name of the field in the local configured. for exmaple: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.",
+							MarkdownDescription: "The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.",
 						},
 						"max_length_msg": schema.StringAttribute{
 							Optional:            true,
@@ -459,7 +461,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.BaseDataType = util.StringValueOrNull(&res.Data.BaseDataType)
-	state.ParentGroupId = util.StringValueOrNull(&res.Data.ParentGroupID)
+	state.ParentGroupID = util.StringValueOrNull(&res.Data.ParentGroupID)
 	state.FieldType = util.StringValueOrNull(&res.Data.FieldType)
 	state.DataType = util.StringValueOrNull(&res.Data.DataType)
 	state.FieldKey = util.StringValueOrNull(&res.Data.FieldKey)
@@ -613,7 +615,7 @@ func (r *RegFieldResource) ImportState(ctx context.Context, req resource.ImportS
 	resource.ImportStatePassthroughID(ctx, path.Root("field_key"), req, resp)
 }
 
-func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.RegistrationFieldConfig, diag.Diagnostics) {
+func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.RegistrationFieldConfig, diag.Diagnostics) { //nolint:gocognit
 	var regConfig cidaas.RegistrationFieldConfig
 	regConfig.Internal = plan.Internal.ValueBool()
 	regConfig.ReadOnly = plan.ReadOnly.ValueBool()
@@ -625,7 +627,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.Enabled = plan.Enabled.ValueBool()
 	regConfig.IsGroup = plan.IsGroup.ValueBool()
 	regConfig.IsList = plan.IsList.ValueBool()
-	regConfig.ParentGroupID = plan.ParentGroupId.ValueString()
+	regConfig.ParentGroupID = plan.ParentGroupID.ValueString()
 	regConfig.FieldType = plan.FieldType.ValueString()
 	regConfig.FieldKey = plan.FieldKey.ValueString()
 	regConfig.DataType = plan.DataType.ValueString()
@@ -796,8 +798,7 @@ func (v validateIsMaxMinMsgAvailable) MarkdownDescription(ctx context.Context) s
 	return v.Description(ctx)
 }
 
-func (v validateIsMaxMinMsgAvailable) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
-
+func (v validateIsMaxMinMsgAvailable) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) { //nolint:gocognit
 	var config RegFieldConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
@@ -882,7 +883,7 @@ func (v fieldTypeModifier) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v fieldTypeModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (v fieldTypeModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() && req.ConfigValue.Equal(types.StringValue("SYSTEM")) {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configuration",
@@ -921,7 +922,7 @@ func (v dateValidator) MarkdownDescription(_ context.Context) string {
 	return v.Description(context.Background())
 }
 
-func (v dateValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+func (v dateValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
@@ -997,8 +998,10 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 		}
 	}
 
-	noAttributesDataTypes := []string{"TEXT", "NUMBER", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
-		"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE"}
+	noAttributesDataTypes := []string{
+		"TEXT", "NUMBER", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
+		"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE",
+	}
 	if util.StringInSlice(req.ConfigValue.ValueString(), noAttributesDataTypes) {
 		for _, v := range config.localTexts {
 			if len(v.Attributes) > 0 {

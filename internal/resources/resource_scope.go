@@ -139,7 +139,7 @@ func (r *ScopeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
-										var validLocals = make([]string, len(util.Locals)) //nolint:gofumpt
+										validLocals := make([]string, len(util.Locals))
 										for i, locale := range util.Locals {
 											validLocals[i] = locale.LocaleString
 										}

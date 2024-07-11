@@ -281,7 +281,7 @@ For more samples on common_configs, please refer to the examples folder.
 
 - `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
 - `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
-- `additional_access_token_payload` (Set of String) Access token payload defination.
+- `additional_access_token_payload` (Set of String) Access token payload definition.
 - `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
 - `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
 - `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))

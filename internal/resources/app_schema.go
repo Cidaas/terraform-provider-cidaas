@@ -48,8 +48,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					&stringCustomRequired{},
 				},
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
-						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY"}...),
+					stringvalidator.OneOf([]string{
+						"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
+						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY",
+					}...),
 				},
 			},
 			"accent_color": schema.StringAttribute{
@@ -265,7 +267,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"additional_access_token_payload": schema.SetAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "Access token payload defination.",
+				MarkdownDescription: "Access token payload definition.",
 				Optional:            true,
 			},
 			"required_fields": schema.SetAttribute{
@@ -961,8 +963,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 			"client_type": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
-						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY"}...),
+					stringvalidator.OneOf([]string{
+						"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
+						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY",
+					}...),
 				},
 			},
 			"company_address": schema.StringAttribute{

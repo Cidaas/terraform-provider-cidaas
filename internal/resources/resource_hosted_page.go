@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-var allowedHotedPageIds = []string{
+var allowedHotedPageIDs = []string{
 	"register_success", "password_forgot_init", "verification_init", "verification_complete", "reactivate_verification_method",
 	"device_init_code", "password_set", "password_set_success", "register_additional_info", "consent_preview", "mfa_required", "consent_scopes",
 	"logout_success", "status", "group_selection", "login", "register", "error", "account_deduplication", "device_success_page",
@@ -118,7 +118,7 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						func() []string {
-							var validLocals = make([]string, len(util.Locals)) //nolint:gofumpt
+							validLocals := make([]string, len(util.Locals))
 							for i, locale := range util.Locals {
 								validLocals[i] = locale.LocaleString
 							}
@@ -140,7 +140,7 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Required:            true,
 							MarkdownDescription: "The identifier for the hosted page, e.g., `register_success`.",
 							Validators: []validator.String{
-								stringvalidator.OneOf(allowedHotedPageIds...),
+								stringvalidator.OneOf(allowedHotedPageIDs...),
 							},
 						},
 						"locale": schema.StringAttribute{
@@ -151,7 +151,7 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									func() []string {
-										var validLocals = make([]string, len(util.Locals)) //nolint:gofumpt
+										validLocals := make([]string, len(util.Locals))
 										for i, locale := range util.Locals {
 											validLocals[i] = locale.LocaleString
 										}
@@ -194,7 +194,7 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 	}
 }
 
-func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl
 	var plan HostedPageConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extractHostedPages(ctx)...)

@@ -318,8 +318,7 @@ func extractSetValues(ctx context.Context, dest *basetypes.SetValue, src []strin
 	return nil
 }
 
-func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, diag.Diagnostics) {
-
+func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, diag.Diagnostics) { //nolint:gocognit
 	setStringValue := func(value, commonConfigValue types.String, target *string) {
 		if !value.IsNull() {
 			*target = value.ValueString()
@@ -627,10 +626,9 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	return &app, diags
 }
 
-func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config *AppConfig) resource.ReadResponse {
+func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config *AppConfig) resource.ReadResponse { //nolint:gocognit
 	var d diag.Diagnostics
 	resp := resource.ReadResponse{}
-	// only applicable for the required varaibles
 	if config.CommonConfigs.IsNull() {
 		state.CompanyName = util.StringValueOrNull(&res.Data.CompanyName)
 		state.CompanyWebsite = util.StringValueOrNull(&res.Data.CompanyWebsite)
@@ -732,7 +730,7 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 		}
 
 		var customProviderMetaObjectValues []attr.Value
-		for _, cp := range res.Data.CustomProviders {
+		for _, cp := range res.Data.CustomProviders { //nolint:dupl
 			objValue := types.ObjectValueMust(
 				providerObjectType.AttrTypes,
 				map[string]attr.Value{
@@ -748,7 +746,8 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 						return types.SetValueMust(types.StringType, func() []attr.Value {
 							var temp []attr.Value
 							for _, role := range cp.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
+								val := role
+								temp = append(temp, util.StringValueOrNull(&val))
 							}
 							return temp
 						}())
@@ -763,7 +762,7 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 		}
 
 		var samlProviderMetaObjectValues []attr.Value
-		for _, saml := range res.Data.SamlProviders {
+		for _, saml := range res.Data.SamlProviders { //nolint:dupl
 			objValue := types.ObjectValueMust(
 				providerObjectType.AttrTypes,
 				map[string]attr.Value{
@@ -779,7 +778,8 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 						return types.SetValueMust(types.StringType, func() []attr.Value {
 							var temp []attr.Value
 							for _, role := range saml.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
+								val := role
+								temp = append(temp, util.StringValueOrNull(&val))
 							}
 							return temp
 						}())
@@ -795,7 +795,7 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 		}
 
 		var adProviderMetaObjectValues []attr.Value
-		for _, ad := range res.Data.AdProviders {
+		for _, ad := range res.Data.AdProviders { //nolint:dupl
 			objValue := types.ObjectValueMust(
 				providerObjectType.AttrTypes,
 				map[string]attr.Value{
@@ -811,7 +811,8 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 						return types.SetValueMust(types.StringType, func() []attr.Value {
 							var temp []attr.Value
 							for _, role := range ad.Domains {
-								temp = append(temp, util.StringValueOrNull(&role))
+								val := role
+								temp = append(temp, util.StringValueOrNull(&val))
 							}
 							return temp
 						}())
@@ -843,14 +844,16 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 					"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 						var temp []attr.Value
 						for _, role := range ag.Roles {
-							temp = append(temp, util.StringValueOrNull(&role))
+							val := role
+							temp = append(temp, util.StringValueOrNull(&val))
 						}
 						return temp
 					}()),
 					"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 						var temp []attr.Value
 						for _, role := range ag.DefaultRoles {
-							temp = append(temp, util.StringValueOrNull(&role))
+							val := role
+							temp = append(temp, util.StringValueOrNull(&val))
 						}
 						return temp
 					}()),
@@ -873,14 +876,16 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 					"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 						var temp []attr.Value
 						for _, role := range oag.Roles {
-							temp = append(temp, util.StringValueOrNull(&role))
+							val := role
+							temp = append(temp, util.StringValueOrNull(&val))
 						}
 						return temp
 					}()),
 					"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 						var temp []attr.Value
 						for _, role := range oag.DefaultRoles {
-							temp = append(temp, util.StringValueOrNull(&role))
+							val := role
+							temp = append(temp, util.StringValueOrNull(&val))
 						}
 						return temp
 					}()),
@@ -1470,7 +1475,8 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 
 	metaData := map[string]attr.Value{}
 	for key, value := range res.Data.ApplicationMetaData {
-		metaData[key] = util.StringValueOrNull(&value)
+		val := value
+		metaData[key] = util.StringValueOrNull(&val)
 	}
 
 	if len(res.Data.ApplicationMetaData) > 0 {
@@ -1556,14 +1562,16 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 				"roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range aglg.Roles {
-						temp = append(temp, util.StringValueOrNull(&role))
+						val := role
+						temp = append(temp, util.StringValueOrNull(&val))
 					}
 					return temp
 				}()),
 				"default_roles": types.SetValueMust(types.StringType, func() []attr.Value {
 					var temp []attr.Value
 					for _, role := range aglg.DefaultRoles {
-						temp = append(temp, util.StringValueOrNull(&role))
+						val := role
+						temp = append(temp, util.StringValueOrNull(&val))
 					}
 					return temp
 				}()),
@@ -1579,13 +1587,17 @@ func updateStateModel(ctx context.Context, res cidaas.AppResponse, state, config
 	return resp
 }
 
-var _ planmodifier.Object = commonConfigConflictVerifier{}
-var _ planmodifier.String = stringCustomRequired{}
-var _ planmodifier.Set = setCustomRequired{}
+var (
+	_ planmodifier.Object = commonConfigConflictVerifier{}
+	_ planmodifier.String = stringCustomRequired{}
+	_ planmodifier.Set    = setCustomRequired{}
+)
 
-type commonConfigConflictVerifier struct{}
-type stringCustomRequired struct{}
-type setCustomRequired struct{}
+type (
+	commonConfigConflictVerifier struct{}
+	stringCustomRequired         struct{}
+	setCustomRequired            struct{}
+)
 
 func (v commonConfigConflictVerifier) Description(_ context.Context) string {
 	return "Verifies the availability of config details for the provided auth_type."
@@ -1635,9 +1647,9 @@ func (v commonConfigConflictVerifier) PlanModifyObject(ctx context.Context, req 
 	diags := req.ConfigValue.As(ctx, &commonConfig, basetypes.ObjectAsOptions{})
 	resp.Diagnostics.Append(diags...)
 
-	var company_name types.String
+	var companyName types.String
 
-	diags = req.Config.GetAttribute(ctx, path.Root("company_name"), &company_name)
+	diags = req.Config.GetAttribute(ctx, path.Root("company_name"), &companyName)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -1648,7 +1660,7 @@ func (v commonConfigConflictVerifier) PlanModifyObject(ctx context.Context, req 
 		"  - If you need to override any specific attribute for a particular resource, you can supply the main configuration attribute directly within the resource block.\n" +
 		"  - If your configuration involves a single resource or if the common configuration attributes are not shared across multiple resources we do not suggest using common_configs."
 
-	if !commonConfig.CompanyName.IsNull() && company_name.ValueString() != "" {
+	if !commonConfig.CompanyName.IsNull() && companyName.ValueString() != "" {
 		resp.Diagnostics.AddWarning(
 			`Identical attributes found in both main config and common_configs in some cidaas_app resources.`+
 				`The values from the main config will be used and the values in common_configs will be ignored for those identical attributes.`,

@@ -374,7 +374,7 @@ For more samples on common_configs, please refer to the examples folder.
 
 - `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
 - `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
-- `additional_access_token_payload` (Set of String) Access token payload defination.
+- `additional_access_token_payload` (Set of String) Access token payload definition.
 - `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
 - `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
 - `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
@@ -1120,7 +1120,7 @@ If you are migrating from v2 to v3, please note that `cidaas_registration_page_f
 | attributes         |      description                             |
 |---------------------| ----------------------------------------------|
 | locale | The locale of the field. example: de-DE |
-| name |Then name of the field in the local configured. for exmaple: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`|
+| name |The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`|
 | max_length_msg | warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string |
 | min_length_msg | warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string |
 | required_msg | When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field |
@@ -1282,7 +1282,7 @@ resource "cidaas_registration_field" "text" {
 
 Required:
 
-- `name` (String) Then name of the field in the local configured. for exmaple: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
+- `name` (String) The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
 
 Optional:
 

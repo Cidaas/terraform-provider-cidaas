@@ -66,10 +66,10 @@ func NewTemplateGroup(httpClient util.HTTPClientInterface) TemplateGroupService 
 	return &TemplateGroup{HTTPClient: httpClient}
 }
 
-func (rf *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
-	rf.HTTPClient.SetURL(fmt.Sprintf("%s/%s", rf.HTTPClient.GetHost(), "templates-srv/groups"))
-	rf.HTTPClient.SetMethod(http.MethodPost)
-	res, err := rf.HTTPClient.MakeRequest(tg)
+func (t *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
+	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups"))
+	t.HTTPClient.SetMethod(http.MethodPost)
+	res, err := t.HTTPClient.MakeRequest(tg)
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +82,10 @@ func (rf *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, 
 	return &response, nil
 }
 
-func (rf *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
-	rf.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", rf.HTTPClient.GetHost(), "templates-srv/groups", tg.GroupID))
-	rf.HTTPClient.SetMethod(http.MethodPut)
-	res, err := rf.HTTPClient.MakeRequest(tg)
+func (t *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
+	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", tg.GroupID))
+	t.HTTPClient.SetMethod(http.MethodPut)
+	res, err := t.HTTPClient.MakeRequest(tg)
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +98,10 @@ func (rf *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, 
 	return &response, nil
 }
 
-func (r *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
-	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", r.HTTPClient.GetHost(), "templates-srv/groups", groupID))
-	r.HTTPClient.SetMethod(http.MethodGet)
-	res, err := r.HTTPClient.MakeRequest(nil)
+func (t *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
+	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", groupID))
+	t.HTTPClient.SetMethod(http.MethodGet)
+	res, err := t.HTTPClient.MakeRequest(nil)
 	if res.StatusCode == http.StatusNoContent {
 		resp := &TemplateGroupResponse{
 			Status: http.StatusNoContent,
@@ -120,10 +120,10 @@ func (r *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
 	return &response, nil
 }
 
-func (r *TemplateGroup) Delete(groupID string) error {
-	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", r.HTTPClient.GetHost(), "templates-srv/groups", groupID))
-	r.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := r.HTTPClient.MakeRequest(nil)
+func (t *TemplateGroup) Delete(groupID string) error {
+	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", groupID))
+	t.HTTPClient.SetMethod(http.MethodDelete)
+	res, err := t.HTTPClient.MakeRequest(nil)
 	if err != nil {
 		return err
 	}

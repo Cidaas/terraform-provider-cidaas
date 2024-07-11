@@ -239,7 +239,7 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 	}
 }
 
-func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl
 	var plan WebhookConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extractAuthConfigs(ctx)...)

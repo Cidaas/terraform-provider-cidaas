@@ -87,10 +87,10 @@ func NewRegField(httpClient util.HTTPClientInterface) RegFieldService {
 	return &RegField{HTTPClient: httpClient}
 }
 
-func (rf *RegField) Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error) {
-	rf.HTTPClient.SetURL(fmt.Sprintf("%s/%s", rf.HTTPClient.GetHost(), "fieldsetup-srv/fields"))
-	rf.HTTPClient.SetMethod(http.MethodPost)
-	res, err := rf.HTTPClient.MakeRequest(rfc)
+func (r *RegField) Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error) {
+	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s", r.HTTPClient.GetHost(), "fieldsetup-srv/fields"))
+	r.HTTPClient.SetMethod(http.MethodPost)
+	res, err := r.HTTPClient.MakeRequest(rfc)
 	if err != nil {
 		return nil, err
 	}

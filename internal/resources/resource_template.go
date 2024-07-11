@@ -92,7 +92,7 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						func() []string {
-							var validLocals = make([]string, len(util.Locals))
+							validLocals := make([]string, len(util.Locals))
 							for i, locale := range util.Locals {
 								validLocals[i] = strings.ToLower(locale.LocaleString)
 							}
@@ -281,12 +281,10 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 			"The cidaas_template state has been destroyed. However, deleting system template for a specific template_key is not supported in cidaas system.",
 			"Alternatively, you can delete the template_group, but please note that this will remove all system templates within that group.",
 		)
-		return
 	} else {
 		err := r.cidaasClient.Template.Delete(state.TemplateKey.ValueString(), state.TemplateType.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("failed to delete template", fmt.Sprintf("Error: %s", err.Error()))
-			return
 		}
 	}
 }
@@ -322,7 +320,7 @@ func (r *TemplateResource) ImportState(ctx context.Context, req resource.ImportS
 		return
 	}
 
-	var validLocals = make([]string, len(util.Locals))
+	validLocals := make([]string, len(util.Locals))
 	for i, l := range util.Locals {
 		validLocals[i] = strings.ToLower(l.LocaleString)
 	}
@@ -402,7 +400,7 @@ func (v systemTemplateValidator) MarkdownDescription(ctx context.Context) string
 	return v.Description(ctx)
 }
 
-func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) { //nolint:gocognit
 	var config, state TemplateConfig
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if !req.StateValue.IsNull() {
@@ -455,7 +453,7 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 			)
 			return
 		}
-		var templateKeys = make([]string, len(masterList.Data))
+		templateKeys := make([]string, len(masterList.Data))
 		masterListMap := map[string]cidaas.MasterList{}
 		for i, v := range masterList.Data {
 			templateKeys[i] = v.TemplateKey
@@ -469,7 +467,7 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 			)
 			return
 		}
-		var allowedTemplateTypes = make([]string, len(masterListMap[config.TemplateKey.ValueString()].TemplateTypes))
+		allowedTemplateTypes := make([]string, len(masterListMap[config.TemplateKey.ValueString()].TemplateTypes))
 		processingTypesByTemplateType := map[string][]string{}
 		processingTypes := map[string]cidaas.ProcessingType{}
 

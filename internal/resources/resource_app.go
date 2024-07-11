@@ -124,8 +124,7 @@ func (r *AppResource) ImportState(ctx context.Context, req resource.ImportStateR
 }
 
 // set default here
-func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-
+func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) { //nolint:gocognit
 	if req.Plan.Raw.IsNull() {
 		return
 	}
