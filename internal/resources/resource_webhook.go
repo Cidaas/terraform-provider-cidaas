@@ -122,12 +122,6 @@ func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"url": schema.StringAttribute{
 				Required:    true,
 				Description: "The webhook url that needs to be called when an event occurs.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^https://.+$`),
-						"must be a valid URL starting with https://",
-					),
-				},
 			},
 			"events": schema.SetAttribute{
 				ElementType: types.StringType,

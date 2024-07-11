@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -162,12 +161,6 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						"url": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The URL for the hosted page.",
-							Validators: []validator.String{
-								stringvalidator.RegexMatches(
-									regexp.MustCompile(`^https://.+$`),
-									"must be a valid URL starting with https://",
-								),
-							},
 						},
 						"content": schema.StringAttribute{
 							Optional:            true,
