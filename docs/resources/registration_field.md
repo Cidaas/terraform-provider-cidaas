@@ -43,7 +43,7 @@ If you are migrating from v2 to v3, please note that `cidaas_registration_page_f
 | attributes         |      description                             |
 |---------------------| ----------------------------------------------|
 | locale | The locale of the field. example: de-DE |
-| name |Then name of the field in the local configured. for exmaple: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`|
+| name |The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`|
 | max_length_msg | warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string |
 | min_length_msg | warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string |
 | required_msg | When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field |
@@ -205,7 +205,7 @@ resource "cidaas_registration_field" "text" {
 
 Required:
 
-- `name` (String) Then name of the field in the local configured. for exmaple: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
+- `name` (String) The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
 
 Optional:
 

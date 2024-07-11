@@ -379,12 +379,13 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 
 	hasCustomfield := false
 	for key, value := range res.Data.UserinfoFields {
+		val := value
 		if strings.HasPrefix(key, "customFields.") {
-			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&value)
+			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&val)
 			hasCustomfield = true
 		} else {
 			metadataAttributeTypes[key] = types.StringType
-			metadataAttributes[key] = util.StringValueOrNull(&value)
+			metadataAttributes[key] = util.StringValueOrNull(&val)
 		}
 	}
 	metadataAttributeTypes["custom_fields"] = types.MapType{ElemType: types.StringType}

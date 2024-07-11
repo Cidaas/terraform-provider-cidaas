@@ -19,7 +19,7 @@ func (v UniqueIdentifier) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v UniqueIdentifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (v UniqueIdentifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() || req.PlanValue.IsUnknown() || req.ConfigValue.IsUnknown() {
 		return
 	}
