@@ -3,8 +3,9 @@ package cidaas
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"net/http"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 )
 
 type SocialProviderModel struct {
@@ -13,7 +14,7 @@ type SocialProviderModel struct {
 	ClientSecret          string                `json:"client_secret,omitempty"`
 	Name                  string                `json:"name,omitempty"`
 	ProviderName          string                `json:"provider_name,omitempty"`
-	Claims                ClaimsModel           `json:"claims,omitempty"`
+	Claims                *ClaimsModel          `json:"claims,omitempty"`
 	EnabledForAdminPortal bool                  `json:"enabled_for_admin_portal"`
 	Enabled               bool                  `json:"enabled"`
 	Scopes                []string              `json:"scopes"`
@@ -27,12 +28,12 @@ type ClaimsModel struct {
 
 type RequiredClaimsModel struct {
 	UserInfo []string `json:"user_info,omitempty"`
-	IdToken  []string `json:"id_token,omitempty"`
+	IDToken  []string `json:"id_token,omitempty"`
 }
 
 type OptionalClaimsModel struct {
 	UserInfo []string `json:"user_info,omitempty"`
-	IdToken  []string `json:"id_token,omitempty"`
+	IDToken  []string `json:"id_token,omitempty"`
 }
 
 type UserInfoFieldsModel struct {
@@ -53,16 +54,16 @@ type SocialProvider struct {
 }
 
 type SocialProviderService interface {
-	UpsertSocialProvider(cp *SocialProviderModel) (*SocialProviderResponse, error)
-	GetSocialProvider(providerName, providerId string) (*SocialProviderResponse, error)
-	DeleteSocialProvider(providerName, providerId string) error
+	Upsert(cp *SocialProviderModel) (*SocialProviderResponse, error)
+	Get(providerName, providerID string) (*SocialProviderResponse, error)
+	Delete(providerName, providerID string) error
 }
 
 func NewSocialProvider(httpClient util.HTTPClientInterface) SocialProviderService {
 	return &SocialProvider{HTTPClient: httpClient}
 }
 
-func (c *SocialProvider) UpsertSocialProvider(cp *SocialProviderModel) (*SocialProviderResponse, error) {
+func (c *SocialProvider) Upsert(cp *SocialProviderModel) (*SocialProviderResponse, error) {
 	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers"))
 	c.HTTPClient.SetMethod(http.MethodPost)
 	res, err := c.HTTPClient.MakeRequest(cp)
@@ -78,8 +79,8 @@ func (c *SocialProvider) UpsertSocialProvider(cp *SocialProviderModel) (*SocialP
 	return &response, nil
 }
 
-func (c *SocialProvider) GetSocialProvider(providerName, providerId string) (*SocialProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerId))
+func (c *SocialProvider) Get(providerName, providerID string) (*SocialProviderResponse, error) {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerID))
 	c.HTTPClient.SetMethod(http.MethodGet)
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
@@ -94,8 +95,8 @@ func (c *SocialProvider) GetSocialProvider(providerName, providerId string) (*So
 	return &response, nil
 }
 
-func (c *SocialProvider) DeleteSocialProvider(providerName, providerId string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerId))
+func (c *SocialProvider) Delete(providerName, providerID string) error {
+	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/multi/providers", providerName, providerID))
 	c.HTTPClient.SetMethod(http.MethodDelete)
 	res, err := c.HTTPClient.MakeRequest(nil)
 	if err != nil {
