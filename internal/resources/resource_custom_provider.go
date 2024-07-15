@@ -119,7 +119,8 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 		MarkdownDescription: "This example demonstrates the configuration of a custom provider resource for interacting with Cidaas." +
 			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 			"\n- cidaas:providers_read" +
-			"\n- cidaas:providers_write",
+			"\n- cidaas:providers_write" +
+			"\n- cidaas:providers_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,

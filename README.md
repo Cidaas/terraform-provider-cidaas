@@ -856,6 +856,7 @@ This example demonstrates the configuration of a custom provider resource for in
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:providers_read
 - cidaas:providers_write
+- cidaas:providers_delete
 
 
 ### V2 to V3 Migration:
@@ -1585,6 +1586,7 @@ The `cidaas_social_provider` resource allows you to configure and manage social 
  Ensure that the below scopes are assigned to the client:
 - cidaas:providers_read
 - cidaas:providers_write
+- cidaas:providers_delete
 
 ## Example Usage
 

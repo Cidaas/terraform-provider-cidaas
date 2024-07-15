@@ -4,7 +4,7 @@ subcategory: ""
 description: |-
   This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
-  cidaas:providers_readcidaas:providers_write
+  cidaas:providers_readcidaas:providers_writecidaas:providers_delete
 ---
 
 # cidaas_custom_provider (Resource)
@@ -14,6 +14,7 @@ This example demonstrates the configuration of a custom provider resource for in
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:providers_read
 - cidaas:providers_write
+- cidaas:providers_delete
 
 
 ### V2 to V3 Migration:

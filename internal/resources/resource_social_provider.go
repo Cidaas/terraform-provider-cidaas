@@ -139,7 +139,8 @@ func (r *SocialProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 			"\n Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others." +
 			"\n\n Ensure that the below scopes are assigned to the client:" +
 			"\n- cidaas:providers_read" +
-			"\n- cidaas:providers_write",
+			"\n- cidaas:providers_write" +
+			"\n- cidaas:providers_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
