@@ -536,13 +536,17 @@ func setUserInfoFields(state *SocialProviderConfig, ufs []cidaas.UserInfoFieldsM
 	} else {
 		var ufObjectValues []attr.Value
 		for _, uf := range ufs {
+			innerKey := uf.InnerKey
+			externalKey := uf.ExternalKey
+			isCustomField := uf.IsCustomField
+			isSystemField := uf.IsSystemField
 			objValue := types.ObjectValueMust(
 				ufObjectType.AttrTypes,
 				map[string]attr.Value{
-					"inner_key":       util.StringValueOrNull(&uf.InnerKey),
-					"external_key":    util.StringValueOrNull(&uf.ExternalKey),
-					"is_custom_field": util.BoolValueOrNull(&uf.IsCustomField),
-					"is_system_field": util.BoolValueOrNull(&uf.IsSystemField),
+					"inner_key":       util.StringValueOrNull(&innerKey),
+					"external_key":    util.StringValueOrNull(&externalKey),
+					"is_custom_field": util.BoolValueOrNull(&isCustomField),
+					"is_system_field": util.BoolValueOrNull(&isSystemField),
 				})
 			ufObjectValues = append(ufObjectValues, objValue)
 		}
