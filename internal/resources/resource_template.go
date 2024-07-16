@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -121,7 +121,6 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(allowedTemplateTypes...),
-					&templateTypeValidator{},
 				},
 				PlanModifiers: []planmodifier.String{
 					&validators.UniqueIdentifier{},
@@ -131,13 +130,9 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Required:            true,
 				MarkdownDescription: "The content of the template.",
 			},
-			// subject only applicable for email
 			"subject": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Applicable only for template_type EMAIL. It represents the subject of an email.",
-				Validators: []validator.String{
-					&subjectValidator{},
-				},
 			},
 			"template_owner": schema.StringAttribute{
 				Computed: true,
@@ -186,9 +181,40 @@ func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 	}
 }
 
+func (r *TemplateResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config TemplateConfig
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if config.TemplateType.ValueString() == "EMAIL" && config.Subject.IsNull() {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configuration",
+			"The attribute subject can not be empty when template_type is EMAIL",
+		)
+		return
+	}
+	if !config.Subject.IsNull() && config.TemplateType.ValueString() != "EMAIL" {
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configuration",
+			"The attribute subject is only allowed when template_type is EMAIL",
+		)
+		return
+	}
+	if !config.IsSystemTemplate.ValueBool() &&
+		(!config.GroupID.IsNull() || !config.ProcessingType.IsNull() || !config.VerificationType.IsNull() || !config.UsageType.IsNull()) {
+		message := "Attributes group_id, processing_type, verification_type and usage_type are not allowed in when is_system_template is set to false." +
+			"\nTo create a system template, set is_system_template to true. Otherwise, remove these attributes from the configuration for a custom template."
+		resp.Diagnostics.AddError(
+			"Unexpected Resource Configuration",
+			message,
+		)
+		return
+	}
+}
+
 func (r *TemplateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan TemplateConfig
+	var plan, config TemplateConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	resp.Diagnostics.Append(validateSystemTemplateConfig(config)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -357,40 +383,9 @@ func prepareTemplateModel(plan TemplateConfig) *cidaas.TemplateModel {
 	return &template
 }
 
-// custom validations
-var (
-	_ validator.String  = subjectValidator{}
-	_ validator.String  = templateTypeValidator{}
-	_ planmodifier.Bool = systemTemplateValidator{}
-)
+var _ planmodifier.Bool = systemTemplateValidator{}
 
-type (
-	subjectValidator        struct{}
-	systemTemplateValidator struct{}
-	templateTypeValidator   struct{}
-)
-
-func (v subjectValidator) Description(_ context.Context) string {
-	return "Checks if template_type is email when subject is provided"
-}
-
-func (v subjectValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v subjectValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if !req.ConfigValue.IsNull() {
-		var config TemplateConfig
-		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-		if config.TemplateType.ValueString() != "EMAIL" {
-			resp.Diagnostics.AddError(
-				"Unexpected Resource Configuration",
-				"The attribute subject is only allowed when template_type is EMAIL",
-			)
-			return
-		}
-	}
-}
+type systemTemplateValidator struct{}
 
 func (v systemTemplateValidator) Description(_ context.Context) string {
 	return "Validates system template configuration"
@@ -428,30 +423,25 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 					"Unexpected Resource Configuration",
 					fmt.Sprintf("Attribute usage_type can't be modified. Existing value %s, got %s", state.UsageType.ValueString(), config.UsageType.ValueString()))
 			}
-			return
-		}
-		res, err := cidaasClient.TemplateGroup.Get(config.GroupID.ValueString())
-		if res.Status == http.StatusNoContent {
+		} else if config.GroupID.IsUnknown() {
 			resp.Diagnostics.AddError(
-				"Invalid group_id",
-				fmt.Sprintf("Template group not found by the provider group_id  %s", config.GroupID.ValueString()),
+				"Unexpected Resource Configuration",
+				"Attribute group_id can't be empty when creating a system template.",
 			)
-			return
 		}
-		if err != nil {
-			resp.Diagnostics.AddError(
-				fmt.Sprintf("Failed to verify provided template group_id %s. Please check whether the provided group_id is valid.", config.GroupID.ValueString()),
-				err.Error(),
-			)
-			return
-		}
+	}
+}
+
+func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //nolint:gocognit
+	var diags diag.Diagnostics
+	if config.IsSystemTemplate.ValueBool() {
 		masterList, err := cidaasClient.Template.GetMasterList(config.GroupID.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				fmt.Sprintf("Failed to read the settings list for the provided group_id %s. Please check whether the provided group_id is valid.", config.GroupID.ValueString()),
 				err.Error(),
 			)
-			return
+			return diags
 		}
 		templateKeys := make([]string, len(masterList.Data))
 		masterListMap := map[string]cidaas.MasterList{}
@@ -461,11 +451,11 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 		}
 
 		if !util.StringInSlice(config.TemplateKey.ValueString(), templateKeys) {
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				"Unexpected Resource Configuration",
 				fmt.Sprintf("Invalid template_key for system template. The template_key must be one of %+v, got: %s", templateKeys, config.TemplateKey.ValueString()),
 			)
-			return
+			return diags
 		}
 		allowedTemplateTypes := make([]string, len(masterListMap[config.TemplateKey.ValueString()].TemplateTypes))
 		processingTypesByTemplateType := map[string][]string{}
@@ -483,37 +473,37 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 			processingTypesByTemplateType[v.TemplateType] = p
 		}
 		if !util.StringInSlice(config.TemplateType.ValueString(), allowedTemplateTypes) {
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				"Unexpected Resource Configuration",
 				fmt.Sprintf("Invalid template_type for system template %s. Allowed template types %+v, got: %s", config.TemplateKey.ValueString(), allowedTemplateTypes, config.TemplateType.ValueString()),
 			)
-			return
+			return diags
 		}
 
 		if len(processingTypesByTemplateType[config.TemplateType.ValueString()]) > 0 {
 			if config.ProcessingType.IsNull() {
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					fmt.Sprintf("Attribute processing_type is required for system template with template_key %s and template_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString()),
 				)
-				return
+				return diags
 			}
 			if !util.StringInSlice(config.ProcessingType.ValueString(), processingTypesByTemplateType[config.TemplateType.ValueString()]) {
 				message := fmt.Sprintf("Invalid processing_type for system template with template_key %s and template_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString()) +
 					fmt.Sprintf("Allowed processing types %+v, got: %s", processingTypesByTemplateType[config.TemplateType.ValueString()], config.ProcessingType.String())
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					message,
 				)
-				return
+				return diags
 			}
 		} else if config.ProcessingType.IsNull() || (!config.ProcessingType.IsNull() && config.ProcessingType.ValueString() != "GENERAL") {
 			message := "The attribute \033[1mprocessing_type\033[0m must be set to \033[1mGENERAL\033[0m for the provided configuration."
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				"Unexpected Resource Configuration",
 				message,
 			)
-			return
+			return diags
 		}
 
 		var allowedUsageTypes []string
@@ -527,90 +517,60 @@ func (v systemTemplateValidator) PlanModifyBool(ctx context.Context, req planmod
 			if config.VerificationType.IsNull() {
 				message := fmt.Sprintf("Attribute verification_type is required for system template with template_key %s, template_type %s and processing_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString()) +
 					fmt.Sprintf("Allowed verification_types %+v", allowedVerificationTypes)
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					message,
 				)
-				return
+				return diags
 			}
 
 			if !util.StringInSlice(config.VerificationType.ValueString(), allowedVerificationTypes) {
 				message := fmt.Sprintf("Invalid verification_type for system template with template_key %s, template_type %s and processing_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString()) +
 					fmt.Sprintf("Allowed verification_types %+v, got: %s", allowedVerificationTypes, config.VerificationType.String())
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					message,
 				)
-				return
+				return diags
 			}
 		} else if !config.VerificationType.IsNull() {
 			message := fmt.Sprintf("Unsupported attribute verification_type for the system template with template_key %s, template_type %s and processing_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString()) +
 				"Please try another combination of template_key, template_type, processing_type and verification_type or remove this attribute from the configuration."
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				"Unexpected Resource Configuration",
 				message,
 			)
-			return
+			return diags
 		}
 
 		if len(allowedUsageTypes) > 0 {
 			if config.UsageType.IsNull() {
 				message := fmt.Sprintf("Attribute usage_type is required for system template with template_key %s, template_type %s, processing_type %s and verification_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString(), config.VerificationType.ValueString()) +
 					fmt.Sprintf("Allowed usage_types %+v", allowedUsageTypes)
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					message,
 				)
-				return
+				return diags
 			}
 
 			if !util.StringInSlice(config.UsageType.ValueString(), allowedUsageTypes) {
 				message := fmt.Sprintf("Invalid usage_type for system template with template_key %s, template_type %s, processing_type %s and verification_type %s.", config.TemplateKey.ValueString(), config.TemplateType.ValueString(), config.ProcessingType.ValueString(), config.VerificationType.ValueString()) +
 					fmt.Sprintf("Allowed usage_types %+v, got: %s", allowedUsageTypes, config.UsageType.String())
-				resp.Diagnostics.AddError(
+				diags.AddError(
 					"Unexpected Resource Configuration",
 					message,
 				)
-				return
+				return diags
 			}
 		} else if config.UsageType.IsNull() || (!config.UsageType.IsNull() && config.UsageType.ValueString() != "GENERAL") {
 			message := "The attribute \033[1musage_type\033[0m  must be set to \033[1mGENERAL\033[0m for the provided configuration."
-			resp.Diagnostics.AddError(
+			diags.AddError(
 				"Unexpected Resource Configuration",
 				message,
 			)
-			return
-		}
-	} else if !config.GroupID.IsNull() || !config.ProcessingType.IsNull() || !config.VerificationType.IsNull() || !config.UsageType.IsNull() {
-		message := "Attributes group_id, processing_type, verification_type and usage_type are not allowed in when is_system_template is set to false." +
-			"To create a system template, set is_system_template to true. Otherwise, remove these attributes from the configuration for a custom template."
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configuration",
-			message,
-		)
-		return
-
-	}
-}
-
-func (v templateTypeValidator) Description(_ context.Context) string {
-	return "validates template_types and it's dependencies"
-}
-
-func (v templateTypeValidator) MarkdownDescription(ctx context.Context) string {
-	return v.Description(ctx)
-}
-
-func (v templateTypeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if !req.ConfigValue.IsNull() {
-		var config TemplateConfig
-		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-		if req.ConfigValue.ValueString() == "EMAIL" && config.Subject.IsNull() {
-			resp.Diagnostics.AddError(
-				"Unexpected Resource Configuration",
-				"The attribute subject can not be empty when template_type is EMAIL",
-			)
-			return
+			return diags
 		}
 	}
+	return diags
 }
