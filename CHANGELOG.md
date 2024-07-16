@@ -1,5 +1,15 @@
 ## Changelog
 
+### 3.0.2
+
+#### Enhancements
+
+- **Validation Update:** `group_id` is now required when `is_system_template=true` in resource cidaas_template.
+
+#### Fixes
+
+- **Validation Removed:** Removed the validation that checked the availability of template group by `group_id` in Cidaas before creating a template as the api sometimes may fail to fetch the template group immediately after its creation.
+
 ### 3.0.1
 
 #### Removed
