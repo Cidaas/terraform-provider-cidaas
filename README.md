@@ -11,6 +11,14 @@
 * Social Login (e.g. Facebook, Google, LinkedIn and more) as well as Enterprise Identity Provider (e.g. SAML or AD) 
 * Security in Machine-to-Machine (M2M) and IoT
 
+<a href="https://terraform.io">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/terraform_logo_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset=".github/terraform_logo_light.svg">
+    <img src=".github/terraform_logo_light.svg" alt="Terraform logo" title="Terraform" align="right" height="50">
+  </picture>
+</a>
+
 # Terraform Provider for Cidaas
 
 The Terraform provider for Cidaas enables interaction with Cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities. From managing applications to configuring custom providers, the Terraform provider enhances the user's capacity to define, provision and manipulate their Cidaas resources.
