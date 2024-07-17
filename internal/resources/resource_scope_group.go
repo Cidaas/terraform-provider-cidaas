@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -110,9 +111,9 @@ func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.AddError("failed to create scope group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
-	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -124,14 +125,11 @@ func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest,
 		resp.Diagnostics.AddError("failed to read scope group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.ID = types.StringValue(res.Data.ID)
-	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
-	state.GroupName = types.StringValue(res.Data.GroupName)
-
-	if res.Data.Description != "" {
-		state.Description = types.StringValue(res.Data.Description)
-	}
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
+	state.GroupName = util.StringValueOrNull(&res.Data.GroupName)
+	state.Description = util.StringValueOrNull(&res.Data.Description)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

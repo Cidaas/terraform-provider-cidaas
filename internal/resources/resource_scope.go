@@ -179,8 +179,8 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 		resp.Diagnostics.AddError("failed to create scope", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ScopeOwner = types.StringValue(response.Data.ScopeOwner)
-	plan.ID = types.StringValue(response.Data.ID)
+	plan.ScopeOwner = util.StringValueOrNull(&response.Data.ScopeOwner)
+	plan.ID = util.StringValueOrNull(&response.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -193,21 +193,14 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	state.ID = types.StringValue(res.Data.ID)
-	state.ScopeKey = types.StringValue(res.Data.ScopeKey)
-	state.SecurityLevel = types.StringValue(res.Data.SecurityLevel)
-	state.RequiredUserConsent = types.BoolValue(res.Data.RequiredUserConsent)
-	state.ScopeOwner = types.StringValue(res.Data.ScopeOwner)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.ScopeKey = util.StringValueOrNull(&res.Data.ScopeKey)
+	state.SecurityLevel = util.StringValueOrNull(&res.Data.SecurityLevel)
+	state.RequiredUserConsent = util.BoolValueOrNull(&res.Data.RequiredUserConsent)
+	state.ScopeOwner = util.StringValueOrNull(&res.Data.ScopeOwner)
+	state.GroupName = util.SetValueOrNull(res.Data.GroupName)
 
-	var d diag.Diagnostics
-	if len(res.Data.GroupName) > 0 {
-		state.GroupName, d = types.SetValueFrom(ctx, types.StringType, res.Data.GroupName)
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
+	var diag diag.Diagnostics
 	var objectValues []attr.Value
 	localeDescription := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -218,16 +211,19 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 
 	for _, sc := range res.Data.LocaleWiseDescription {
+		local := sc.Locale
+		title := sc.Title
+		description := sc.Description
 		objValue := types.ObjectValueMust(localeDescription.AttrTypes, map[string]attr.Value{
-			"locale":      types.StringValue(sc.Locale),
-			"title":       types.StringValue(sc.Title),
-			"description": types.StringValue(sc.Description),
+			"locale":      util.StringValueOrNull(&local),
+			"title":       util.StringValueOrNull(&title),
+			"description": util.StringValueOrNull(&description),
 		})
 		objectValues = append(objectValues, objValue)
 	}
 
-	state.LocalizedDescription, d = types.ListValueFrom(ctx, localeDescription, objectValues)
-	resp.Diagnostics.Append(d...)
+	state.LocalizedDescription, diag = types.ListValueFrom(ctx, localeDescription, objectValues)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

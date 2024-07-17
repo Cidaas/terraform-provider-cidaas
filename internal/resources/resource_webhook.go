@@ -247,9 +247,9 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("failed to create group type", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
-	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -261,22 +261,14 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError("failed to read webhook", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.ID = types.StringValue(res.Data.ID)
-	state.AuthType = types.StringValue(res.Data.AuthType)
-	state.URL = types.StringValue(res.Data.URL)
-	state.Disable = types.BoolValue(res.Data.Disable)
-	state.ID = types.StringValue(res.Data.ID)
-	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
-
-	if len(res.Data.Events) > 0 {
-		events, diag := types.SetValueFrom(ctx, types.StringType, res.Data.Events)
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.Events = events
-	}
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.AuthType = util.StringValueOrNull(&res.Data.AuthType)
+	state.URL = util.StringValueOrNull(&res.Data.URL)
+	state.Disable = util.BoolValueOrNull(&res.Data.Disable)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
+	state.Events = util.SetValueOrNull(res.Data.Events)
 
 	authConfig := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -288,9 +280,9 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	if res.Data.APIKeyDetails.Apikey != "" {
 		apiKeyConfig, diags := types.ObjectValue(authConfig.AttrTypes, map[string]attr.Value{
-			"placeholder": types.StringValue(res.Data.APIKeyDetails.ApikeyPlaceholder),
-			"placement":   types.StringValue(res.Data.APIKeyDetails.ApikeyPlacement),
-			"key":         types.StringValue(res.Data.APIKeyDetails.Apikey),
+			"placeholder": util.StringValueOrNull(&res.Data.APIKeyDetails.ApikeyPlaceholder),
+			"placement":   util.StringValueOrNull(&res.Data.APIKeyDetails.ApikeyPlacement),
+			"key":         util.StringValueOrNull(&res.Data.APIKeyDetails.Apikey),
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -300,9 +292,9 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	if res.Data.TotpDetails.TotpKey != "" {
 		totpConfig, diags := types.ObjectValue(authConfig.AttrTypes, map[string]attr.Value{
-			"placeholder": types.StringValue(res.Data.TotpDetails.TotpPlaceholder),
-			"placement":   types.StringValue(res.Data.TotpDetails.TotpPlacement),
-			"key":         types.StringValue(res.Data.TotpDetails.TotpKey),
+			"placeholder": util.StringValueOrNull(&res.Data.TotpDetails.TotpPlaceholder),
+			"placement":   util.StringValueOrNull(&res.Data.TotpDetails.TotpPlacement),
+			"key":         util.StringValueOrNull(&res.Data.TotpDetails.TotpKey),
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -315,7 +307,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		oauthConfig, diags := types.ObjectValue(map[string]attr.Type{
 			"client_id": types.StringType,
 		}, map[string]attr.Value{
-			"client_id": types.StringValue(res.Data.CidaasAuthDetails.ClientID),
+			"client_id": util.StringValueOrNull(&res.Data.CidaasAuthDetails.ClientID),
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {

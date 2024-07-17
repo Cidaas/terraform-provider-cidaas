@@ -100,7 +100,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 		resp.Diagnostics.AddError("failed to create role", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(response.Data.Role)
+	plan.ID = util.StringValueOrNull(&response.Data.Role)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -135,7 +135,7 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		resp.Diagnostics.AddError("failed to update role", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(response.Data.Role)
+	plan.ID = util.StringValueOrNull(&response.Data.Role)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

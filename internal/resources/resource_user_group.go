@@ -224,7 +224,6 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	var plan, state UserGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}

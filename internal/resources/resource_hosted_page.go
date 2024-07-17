@@ -125,7 +125,7 @@ func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest,
 						}()...),
 				},
 				// if hosted_page not found by the local provided in the hosted_pages map, the api throws ambigious data error.
-				// TODO: add a custom plan modifier later to validate the same and throw compile time error
+				// TODO: add a custom plan modifier later to validate the same and throw plan time error
 			},
 			"hosted_pages": schema.ListNestedAttribute{
 				Required:            true,
@@ -201,9 +201,9 @@ func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.AddError("failed to create hosted page", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
-	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -219,11 +219,11 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	state.ID = types.StringValue(res.Data.ID)
-	state.HostedPageGroupName = types.StringValue(res.Data.ID)
-	state.DefaultLocale = types.StringValue(res.Data.DefaultLocale)
-	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.HostedPageGroupName = util.StringValueOrNull(&res.Data.ID)
+	state.DefaultLocale = util.StringValueOrNull(&res.Data.DefaultLocale)
+	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 
 	hostedPages := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -236,11 +236,15 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 
 	var objectValues []attr.Value
 	for _, sc := range res.Data.HostedPages {
+		hostedPageID := sc.HostedPageID
+		local := sc.Locale
+		url := sc.URL
+		conent := sc.Content
 		objValue := types.ObjectValueMust(hostedPages.AttrTypes, map[string]attr.Value{
-			"hosted_page_id": types.StringValue(sc.HostedPageID),
-			"locale":         types.StringValue(sc.Locale),
-			"url":            types.StringValue(sc.URL),
-			"content":        types.StringValue(sc.Content),
+			"hosted_page_id": util.StringValueOrNull(&hostedPageID),
+			"locale":         util.StringValueOrNull(&local),
+			"url":            util.StringValueOrNull(&url),
+			"content":        util.StringValueOrNull(&conent),
 		})
 		objectValues = append(objectValues, objValue)
 	}
