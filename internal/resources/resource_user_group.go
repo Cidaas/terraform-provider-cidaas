@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -198,25 +198,21 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 		resp.Diagnostics.AddError("failed to read user group", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.ID = types.StringValue(res.Data.ID)
-	state.GroupType = types.StringValue(res.Data.GroupType)
-	state.GroupID = types.StringValue(res.Data.GroupID)
-	state.GroupName = types.StringValue(res.Data.GroupName)
-	state.ParentID = types.StringValue(res.Data.ParentID)
-	state.LogoURL = types.StringValue(res.Data.LogoURL)
-	state.Description = types.StringValue(res.Data.Description)
-	state.MakeFirstUserAdmin = types.BoolValue(res.Data.MakeFirstUserAdmin)
-	state.MemberProfileVisibility = types.StringValue(res.Data.MemberProfileVisibility)
-	state.NoneMemberProfileVisibility = types.StringValue(res.Data.NoneMemberProfileVisibility)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.GroupType = util.StringValueOrNull(&res.Data.GroupType)
+	state.GroupID = util.StringValueOrNull(&res.Data.GroupID)
+	state.GroupName = util.StringValueOrNull(&res.Data.GroupName)
+	state.ParentID = util.StringValueOrNull(&res.Data.ParentID)
+	state.LogoURL = util.StringValueOrNull(&res.Data.LogoURL)
+	state.Description = util.StringValueOrNull(&res.Data.Description)
+	state.MakeFirstUserAdmin = util.BoolValueOrNull(&res.Data.MakeFirstUserAdmin)
+	state.MemberProfileVisibility = util.StringValueOrNull(&res.Data.MemberProfileVisibility)
+	state.NoneMemberProfileVisibility = util.StringValueOrNull(&res.Data.NoneMemberProfileVisibility)
 	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
 	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
 
-	cfAttributes := map[string]attr.Value{}
-	for key, value := range res.Data.CustomFields {
-		cfAttributes[key] = types.StringValue(value)
-	}
-	cf, d := types.MapValue(types.StringType, cfAttributes)
-	resp.Diagnostics.Append(d...)
+	cf, diags := util.MapValueOrNull(&res.Data.CustomFields)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -228,6 +224,7 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	var plan, state UserGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}

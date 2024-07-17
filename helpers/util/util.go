@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -77,4 +78,16 @@ func TimeValueOrNull(value *time.Time) types.String {
 		return types.StringValue(value.Format("2006-01-02T15:04:05Z"))
 	}
 	return types.StringNull()
+}
+
+func MapValueOrNull(value *map[string]string) (types.Map, diag.Diagnostics) {
+	if value == nil || len(*value) < 1 {
+		return types.MapNull(types.StringType), nil
+	}
+	mapAttributes := map[string]attr.Value{}
+	for key, value := range *value {
+		mapAttributes[key] = types.StringValue(value)
+	}
+	cf, diag := types.MapValue(types.StringType, mapAttributes)
+	return cf, diag
 }
