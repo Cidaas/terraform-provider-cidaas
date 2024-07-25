@@ -10,17 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func InterfaceArray2StringArray(interfaceArray []interface{}) []string {
-	result := make([]string, 0)
-	//nolint:forcetypeassert
-	for _, txt := range interfaceArray {
-		if txt != nil {
-			result = append(result, txt.(string))
-		}
-	}
-	return result
-}
-
 func responseToStringConvert(resp *http.Response) string {
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

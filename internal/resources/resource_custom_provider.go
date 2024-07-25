@@ -330,10 +330,13 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	for _, sc := range res.Data.Scopes.Scopes {
+		scopeName := sc.ScopeName
+		required := sc.Required
+		recommended := sc.Recommended
 		objValue := types.ObjectValueMust(scopeObjectType.AttrTypes, map[string]attr.Value{
-			"scope_name":  util.StringValueOrNull(&sc.ScopeName),
-			"required":    util.BoolValueOrNull(&sc.Required),
-			"recommended": util.BoolValueOrNull(&sc.Recommended),
+			"scope_name":  util.StringValueOrNull(&scopeName),
+			"required":    util.BoolValueOrNull(&required),
+			"recommended": util.BoolValueOrNull(&recommended),
 		})
 		objectValues = append(objectValues, objValue)
 	}
