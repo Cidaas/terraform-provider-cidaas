@@ -417,7 +417,7 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.CustomProviders.IsNull() {
+	if config.CustomProviders.IsNull() { //nolint:dupl
 		if !config.commonConfigs.CustomProviders.IsNull() {
 			plan.CustomProviders = plan.commonConfigs.CustomProviders
 		} else if !plan.CustomProviders.IsNull() && !plan.CustomProviders.IsUnknown() {
@@ -447,7 +447,7 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.SamlProviders.IsNull() {
+	if config.SamlProviders.IsNull() { //nolint:dupl
 		if !config.commonConfigs.SamlProviders.IsNull() {
 			plan.SamlProviders = plan.commonConfigs.SamlProviders
 		} else if !plan.SamlProviders.IsNull() && !plan.SamlProviders.IsUnknown() {
@@ -477,7 +477,7 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.AdProviders.IsNull() {
+	if config.AdProviders.IsNull() { //nolint:dupl
 		if !config.commonConfigs.AdProviders.IsNull() {
 			plan.AdProviders = plan.commonConfigs.AdProviders
 		} else if !plan.AdProviders.IsNull() && !plan.AdProviders.IsUnknown() {
@@ -507,7 +507,7 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.AllowedGroups.IsNull() {
+	if config.AllowedGroups.IsNull() { //nolint:dupl
 		if !config.commonConfigs.AllowedGroups.IsNull() {
 			plan.AllowedGroups = plan.commonConfigs.AllowedGroups
 		} else if !plan.AllowedGroups.IsNull() && !plan.AllowedGroups.IsUnknown() {
@@ -531,7 +531,7 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.OperationsAllowedGroups.IsNull() {
+	if config.OperationsAllowedGroups.IsNull() { //nolint:dupl
 		if !config.commonConfigs.OperationsAllowedGroups.IsNull() {
 			plan.OperationsAllowedGroups = plan.commonConfigs.OperationsAllowedGroups
 		} else if !plan.OperationsAllowedGroups.IsNull() && !plan.OperationsAllowedGroups.IsUnknown() {
