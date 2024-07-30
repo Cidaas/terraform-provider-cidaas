@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -62,13 +61,16 @@ type RegFieldConfig struct {
 }
 
 type LocalTexts struct {
-	Locale       types.String  `tfsdk:"locale"`
-	Name         types.String  `tfsdk:"name"`
-	MaxLengthMsg types.String  `tfsdk:"max_length_msg"`
-	MinLengthMsg types.String  `tfsdk:"min_length_msg"`
-	RequiredMsg  types.String  `tfsdk:"required_msg"`
-	Attributes   []*Attributes `tfsdk:"attributes"`
-	ConsentLabel types.Object  `tfsdk:"consent_label"`
+	Locale       types.String `tfsdk:"locale"`
+	Name         types.String `tfsdk:"name"`
+	MaxLengthMsg types.String `tfsdk:"max_length_msg"`
+	MinLengthMsg types.String `tfsdk:"min_length_msg"`
+	RequiredMsg  types.String `tfsdk:"required_msg"`
+	Attributes   types.List   `tfsdk:"attributes"`
+	ConsentLabel types.Object `tfsdk:"consent_label"`
+
+	attributes []*Attributes
+	consent    *Consent
 }
 
 type Attributes struct {
@@ -418,13 +420,24 @@ func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 
 func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if !rfc.FieldDefinition.IsNull() {
+	if !rfc.FieldDefinition.IsNull() && !rfc.FieldDefinition.IsUnknown() {
 		rfc.fieldDefinition = &FieldDefinition{}
-		diags = rfc.FieldDefinition.As(ctx, rfc.fieldDefinition, basetypes.ObjectAsOptions{})
+		diags.Append(rfc.FieldDefinition.As(ctx, rfc.fieldDefinition, basetypes.ObjectAsOptions{})...)
 	}
-	if !rfc.LocalTexts.IsNull() {
+	if !rfc.LocalTexts.IsNull() && !rfc.LocalTexts.IsUnknown() {
 		rfc.localTexts = make([]*LocalTexts, 0, len(rfc.LocalTexts.Elements()))
-		diags = rfc.LocalTexts.ElementsAs(ctx, &rfc.localTexts, false)
+		diags.Append(rfc.LocalTexts.ElementsAs(ctx, &rfc.localTexts, false)...)
+		for _, localText := range rfc.localTexts {
+			if !localText.Attributes.IsNull() && !localText.Attributes.IsUnknown() {
+				localText.attributes = make([]*Attributes, 0, len(localText.Attributes.Elements()))
+				diags.Append(localText.Attributes.ElementsAs(ctx, &localText.attributes, false)...)
+			}
+
+			if !localText.ConsentLabel.IsNull() && !localText.ConsentLabel.IsUnknown() {
+				localText.consent = &Consent{}
+				diags.Append(localText.ConsentLabel.As(ctx, localText.consent, basetypes.ObjectAsOptions{})...)
+			}
+		}
 	}
 	return diags
 }
@@ -652,7 +665,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	}
 
 	var attrKeys []string
-	setLocalTexts := func(source []*LocalTexts, target *[]*cidaas.LocaleText) error {
+	setLocalTexts := func(source []*LocalTexts, target *[]*cidaas.LocaleText) {
 		for _, s := range source {
 			tempLocalText := &cidaas.LocaleText{
 				Locale:            s.Locale.ValueString(),
@@ -663,37 +676,28 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 				RequiredMsg:       s.RequiredMsg.ValueString(),
 			}
 			cidaasAttribues := []*cidaas.Attribute{}
-			for _, v := range s.Attributes {
+
+			for _, v := range s.attributes {
 				cidaasAttribues = append(cidaasAttribues, &cidaas.Attribute{
 					Key:   v.Key.ValueString(),
 					Value: v.Value.ValueString(),
 				})
 				attrKeys = append(attrKeys, v.Key.ValueString())
 			}
-			if len(s.Attributes) > 0 {
+			if len(s.attributes) > 0 {
 				tempLocalText.Attributes = cidaasAttribues
 			}
-			if !s.ConsentLabel.IsNull() {
-				consent := Consent{}
-				diag = s.ConsentLabel.As(ctx, &consent, basetypes.ObjectAsOptions{})
-				if diag.HasError() {
-					return errors.New("failed to parse consent_label")
-				}
+			if !s.ConsentLabel.IsNull() && !s.ConsentLabel.IsUnknown() {
 				tempLocalText.ConsentLabel = &cidaas.Consent{
-					Label:     consent.Label.ValueString(),
-					LabelText: consent.LabelText.ValueString(),
+					Label:     s.consent.Label.ValueString(),
+					LabelText: s.consent.LabelText.ValueString(),
 				}
 			}
 			*target = append(*target, tempLocalText)
 		}
-		return nil
 	}
-	if len(plan.localTexts) > 0 {
-		err := setLocalTexts(plan.localTexts, &regConfig.LocaleTexts)
-		if err != nil {
-			diag.AddError("Failed ti create registration field request payload", err.Error())
-			return nil, diag
-		}
+	if !plan.LocalTexts.IsNull() && !plan.LocalTexts.IsUnknown() && len(plan.localTexts) > 0 {
+		setLocalTexts(plan.localTexts, &regConfig.LocaleTexts)
 	}
 
 	if !plan.FieldDefinition.IsNull() {
@@ -975,12 +979,13 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 
 	attrKeysRequiredDataTypes := []string{"SELECT", "RADIO", "MULTISELECT"}
 	if util.StringInSlice(req.ConfigValue.ValueString(), attrKeysRequiredDataTypes) {
-		for _, v := range config.localTexts {
-			if !(len(v.Attributes) > 0) {
+		for _, s := range config.localTexts {
+			if !s.Attributes.IsNull() && !s.Attributes.IsUnknown() && !(len(s.attributes) > 0) {
 				resp.Diagnostics.AddError(
 					"Unexpected Resource Configuration",
 					fmt.Sprintf("Attributes local_texts[i].attributes can not be empty when data_type is %s.", req.ConfigValue.ValueString()),
 				)
+
 			}
 		}
 	}
@@ -1004,7 +1009,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 	if util.StringInSlice(req.ConfigValue.ValueString(), noAttributesDataTypes) {
 		for _, v := range config.localTexts {
-			if len(v.Attributes) > 0 {
+			if len(v.attributes) > 0 {
 				resp.Diagnostics.AddError(
 					"Unexpected Resource Configuration",
 					fmt.Sprintf("param local_texts[i].attributes not allowed in config when the data_type is %s.", req.ConfigValue.ValueString()),
