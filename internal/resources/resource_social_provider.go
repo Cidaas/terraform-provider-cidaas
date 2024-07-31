@@ -397,19 +397,19 @@ func (r *SocialProvider) ImportState(ctx context.Context, req resource.ImportSta
 
 func (sp *SocialProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if !sp.Claims.IsNull() {
+	if !sp.Claims.IsNull() && !sp.Claims.IsUnknown() {
 		sp.claims = &Claims{}
 		diags = sp.Claims.As(ctx, sp.claims, basetypes.ObjectAsOptions{})
-		if !sp.claims.OptionalClaims.IsNull() {
+		if !sp.claims.OptionalClaims.IsNull() && !sp.claims.OptionalClaims.IsUnknown() {
 			sp.claims.optionalClaims = &ClaimConfigs{}
 			diags = sp.claims.OptionalClaims.As(ctx, &sp.claims.optionalClaims, basetypes.ObjectAsOptions{})
 		}
-		if !sp.claims.RequiredClaims.IsNull() {
+		if !sp.claims.RequiredClaims.IsNull() && !sp.claims.RequiredClaims.IsUnknown() {
 			sp.claims.requiredClaims = &ClaimConfigs{}
 			diags = sp.claims.RequiredClaims.As(ctx, &sp.claims.requiredClaims, basetypes.ObjectAsOptions{})
 		}
 	}
-	if !sp.UserInfoFields.IsNull() {
+	if !sp.UserInfoFields.IsNull() && !sp.UserInfoFields.IsUnknown() {
 		sp.userInfoFields = make([]*UserInfoFields, 0, len(sp.UserInfoFields.Elements()))
 		diags = sp.UserInfoFields.ElementsAs(ctx, &sp.userInfoFields, false)
 	}

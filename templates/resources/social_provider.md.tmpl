@@ -13,6 +13,23 @@ description: |-
 
 {{ tffile "examples/resources/cidaas_social_provider/resource.tf" }}
 
+### Configuring a Social Provider to a Client
+To configure a social provider for a client in your Terraform configuration, you need to update the `cidaas_app` resources with the details from the `cidaas_social_provider` resource. Below is an example demonstrating how you can configure a social provider for a client:
+
+```terraform
+resource "cidaas_app" "app_sample" {
+  ...
+  social_providers = [
+    {
+      provider_name = cidaas_social_provider.sample.provider_name
+      social_id     = cidaas_social_provider.sample.id
+      display_name  = "google"
+    }
+  ]
+...
+}
+```
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import
