@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,12 +42,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"client_type": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				MarkdownDescription: "The type of the client. The allowed values are " +
 					"SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVE" +
 					"IOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY",
-				PlanModifiers: []planmodifier.String{
-					&stringCustomRequired{},
-				},
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{
 						"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
@@ -56,49 +55,57 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"accent_color": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				MarkdownDescription: "The accent color of the client. e.g., `#f7941d`. The value must be a valid hex color" +
 					"The default is set to `#ef4923`.",
-				Default: stringdefault.StaticString("#ef4923"),
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
 						"accent_color must be a valid hex color",
 					),
 				},
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"primary_color": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				MarkdownDescription: "The primary color of the client. e.g., `#ef4923`. The value must be a valid hex color" +
 					"The default is set to `#f7941d`.",
-				Default: stringdefault.StaticString("#f7941d"),
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
 						"must be a valid hex color",
 					),
 				},
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"media_type": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				MarkdownDescription: "The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGE" +
 					"The default is set to `IMAGE`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"VIDEO", "IMAGE"}...),
 				},
-				Default: stringdefault.StaticString("IMAGE"),
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"content_align": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				MarkdownDescription: "The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHT" +
 					"The default is set to `CENTER`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
 				},
-				Default: stringdefault.StaticString("CENTER"),
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_login_with": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -118,18 +125,14 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"redirect_uris": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Redirect URIs for OAuth2 client.",
-				PlanModifiers: []planmodifier.Set{
-					&setCustomRequired{},
-				},
 			},
 			"allowed_logout_urls": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Allowed logout URLs for OAuth2 client.",
-				PlanModifiers: []planmodifier.Set{
-					&setCustomRequired{},
-				},
 			},
 			"enable_deduplication": schema.BoolAttribute{
 				Optional:            true,
@@ -175,9 +178,11 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"hosted_page_group": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "Hosted page group.",
-				Default:             stringdefault.StaticString("default"),
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"client_name": schema.StringAttribute{
 				Required:            true,
@@ -193,32 +198,24 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"company_name": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The name of the company that the client belongs to.",
-				PlanModifiers: []planmodifier.String{
-					&stringCustomRequired{},
-				},
 			},
 			"company_address": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The company address.",
-				PlanModifiers: []planmodifier.String{
-					&stringCustomRequired{},
-				},
 			},
 			"company_website": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The URL of the company website.",
-				PlanModifiers: []planmodifier.String{
-					&stringCustomRequired{},
-				},
 			},
 			"allowed_scopes": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config",
-				PlanModifiers: []planmodifier.Set{
-					&setCustomRequired{},
-				},
 			},
 			"response_types": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -238,10 +235,15 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					types.StringValue("implicit"), types.StringValue("authorization_code"), types.StringValue("password"), types.StringValue("refresh_token"),
 				})),
 			},
+			// common_config attr
 			"login_providers": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "With this attribute one can setup login provider to the client.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"additional_access_token_payload": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -259,15 +261,25 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				MarkdownDescription: "Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.",
 				Default:             booldefault.StaticBool(false),
 			},
+			// common_config attr
 			"allowed_web_origins": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of the web origins allowed to access the client.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
+			// common_config attr
 			"allowed_origins": schema.SetAttribute{
 				ElementType:         types.StringType,
 				MarkdownDescription: "List of the origins allowed to access the client.",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"mobile_settings": schema.SingleNestedAttribute{
 				Optional: true,
@@ -286,19 +298,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						Optional: true,
 					},
 				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"team_id":      types.StringType,
-						"bundle_id":    types.StringType,
-						"package_name": types.StringType,
-						"key_hash":     types.StringType,
-					},
-					map[string]attr.Value{
-						"team_id":      types.StringNull(),
-						"bundle_id":    types.StringNull(),
-						"package_name": types.StringNull(),
-						"key_hash":     types.StringNull(),
-					})),
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"default_max_age": schema.Int64Attribute{
 				Optional:            true,
@@ -326,9 +328,11 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"template_group_id": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The id of the template group to be configured for commenication. Default is set to the system default group.",
-				Default:             stringdefault.StaticString("default"),
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"client_id": schema.StringAttribute{
 				Optional: true,
@@ -352,14 +356,26 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"policy_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the policy of a client.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"tos_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the TOS of a client.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"imprint_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the imprint page.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"contacts": schema.SetAttribute{
 				ElementType:         types.StringType,
@@ -369,12 +385,16 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"token_endpoint_auth_method": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("client_secret_post"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"token_endpoint_auth_signing_alg": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("RS256"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"default_acr_values": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -393,6 +413,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"social_providers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc...",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -404,9 +425,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"custom_providers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -433,9 +458,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"saml_providers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A list of SAML identity providers that users can authenticate with.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -462,9 +491,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"ad_providers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A list of Active Directory identity providers that users can authenticate with.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -488,8 +521,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
 							Optional:    true,
+							Computed:    true,
+							Default:     setdefault.StaticValue(types.SetNull(types.StringType)),
 						},
 					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"jwe_enabled": schema.BoolAttribute{
@@ -506,6 +544,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"allowed_groups": schema.ListNestedAttribute{
 				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
@@ -520,6 +559,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional:    true,
 						},
 					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"operations_allowed_groups": schema.ListNestedAttribute{
@@ -538,6 +580,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional:    true,
 						},
 					},
+				},
+				Computed: true,
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"enabled": schema.BoolAttribute{
@@ -559,9 +605,14 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
+			// common_config attr
 			"allowed_mfa": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"captcha_ref": schema.StringAttribute{
 				Optional: true,
@@ -576,6 +627,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"communication_medium_verification": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"email_verification_required": schema.BoolAttribute{
 				Optional: true,
@@ -587,13 +642,23 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 			},
+			// common_config attr
 			"allowed_roles": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
+			// common_config attr
 			"default_roles": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"enable_classical_provider": schema.BoolAttribute{
 				Optional: true,
@@ -613,7 +678,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"bot_provider": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("CIDAAS"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"allow_guest_login_groups": schema.ListNestedAttribute{
 				Optional: true,
@@ -631,6 +698,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional:    true,
 						},
 					},
+				},
+				PlanModifiers: []planmodifier.List{
+					listplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"is_login_success_page_enabled": schema.BoolAttribute{
@@ -654,6 +724,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"group_selection": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"always_show_group_selection": schema.BoolAttribute{
 						Optional: true,
@@ -666,6 +737,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						ElementType: types.StringType,
 						Optional:    true,
 					},
+				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"group_types": schema.SetAttribute{
@@ -681,11 +755,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"logo_align": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
 				},
-				Default: stringdefault.StaticString("CENTER"),
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"mfa": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -709,81 +785,138 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						MarkdownDescription: "Optional set of allowed MFA methods.",
 					},
 				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"setting":                  types.StringType,
-						"time_interval_in_seconds": types.Int64Type,
-						"allowed_methods": types.SetType{
-							ElemType: types.StringType,
-						},
-					},
-					map[string]attr.Value{
-						"setting":                  types.StringValue("OFF"),
-						"time_interval_in_seconds": types.Int64Null(),
-						"allowed_methods":          types.SetNull(types.StringType),
-					})),
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"webfinger": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("no_redirection"),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"logo_uri": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"initiate_login_uri": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"registration_client_uri": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"registration_access_token": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"client_uri": schema.StringAttribute{
 				Optional: true,
 			},
 			"jwks_uri": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"jwks": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"sector_identifier_uri": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"subject_type": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id_token_signed_response_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id_token_encrypted_response_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"id_token_encrypted_response_enc": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"userinfo_signed_response_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"userinfo_encrypted_response_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"userinfo_encrypted_response_enc": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"request_object_signing_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"request_object_encryption_alg": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"request_object_encryption_enc": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"request_uris": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -792,13 +925,23 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"description": schema.StringAttribute{
 				Optional: true,
 			},
+			// common_config attr
 			"default_scopes": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
+			// common_config attr
 			"pending_scopes": schema.SetAttribute{
 				ElementType: types.StringType,
 				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"consent_page_group": schema.StringAttribute{
 				Optional: true,
@@ -824,6 +967,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"login_spi": schema.SingleNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A map defining the Login SPI configuration.",
 				Attributes: map[string]schema.Attribute{
 					"oauth_client_id": schema.StringAttribute{
@@ -833,13 +977,13 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						Optional: true,
 					},
 				},
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"background_uri": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The URL to the background image of the client.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"video_url": schema.StringAttribute{
 				Optional:            true,
@@ -872,9 +1016,6 @@ func getCommonConfig() schema.SingleNestedAttribute {
 			" It is a map of some attributes from the main configuration." +
 			" Please check the list of the attributes that it supports in the common_confis section." +
 			" if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app",
-		PlanModifiers: []planmodifier.Object{
-			&commonConfigConflictVerifier{},
-		},
 		Attributes: map[string]schema.Attribute{
 			"company_name": schema.StringAttribute{
 				Optional: true,
@@ -1073,6 +1214,12 @@ func getCommonConfig() schema.SingleNestedAttribute {
 			},
 			"accent_color": schema.StringAttribute{
 				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
+						"must be a valid hex color",
+					),
+				},
 			},
 			"primary_color": schema.StringAttribute{
 				Optional: true,
@@ -1180,11 +1327,9 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				Attributes: map[string]schema.Attribute{
 					"setting": schema.StringAttribute{
 						Optional: true,
-						Computed: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf([]string{"OFF", "ALWAYS", "SMART", "TIME_BASED", "SMART_PLUS_TIME_BASED"}...),
 						},
-						Default: stringdefault.StaticString("OFF"),
 					},
 					"time_interval_in_seconds": schema.Int64Attribute{
 						Optional: true,

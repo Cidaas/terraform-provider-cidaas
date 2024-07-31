@@ -138,9 +138,9 @@ func (r *GroupTypeResource) Create(ctx context.Context, req resource.CreateReque
 		resp.Diagnostics.AddError("failed to create group type", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
-	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -152,21 +152,14 @@ func (r *GroupTypeResource) Read(ctx context.Context, req resource.ReadRequest, 
 		resp.Diagnostics.AddError("failed to read group type", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.ID = types.StringValue(res.Data.ID)
-	state.CreatedAt = types.StringValue(res.Data.CreatedTime)
-	state.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
-	state.RoleMode = types.StringValue(res.Data.RoleMode)
-	state.GroupType = types.StringValue(res.Data.GroupType)
-	state.Description = types.StringValue(res.Data.Description)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
+	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
+	state.RoleMode = util.StringValueOrNull(&res.Data.RoleMode)
+	state.GroupType = util.StringValueOrNull(&res.Data.GroupType)
+	state.Description = util.StringValueOrNull(&res.Data.Description)
+	state.AllowedRoles = util.SetValueOrNull(res.Data.AllowedRoles)
 
-	if len(res.Data.AllowedRoles) > 0 {
-		allowedRoles, diag := types.SetValueFrom(ctx, types.StringType, res.Data.AllowedRoles)
-		resp.Diagnostics.Append(diag...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-		state.AllowedRoles = allowedRoles
-	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 

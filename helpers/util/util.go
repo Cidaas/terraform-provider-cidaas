@@ -6,19 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
-
-func InterfaceArray2StringArray(interfaceArray []interface{}) []string {
-	result := make([]string, 0)
-	//nolint:forcetypeassert
-	for _, txt := range interfaceArray {
-		if txt != nil {
-			result = append(result, txt.(string))
-		}
-	}
-	return result
-}
 
 func responseToStringConvert(resp *http.Response) string {
 	bodyBytes, err := io.ReadAll(resp.Body)
@@ -77,4 +67,16 @@ func TimeValueOrNull(value *time.Time) types.String {
 		return types.StringValue(value.Format("2006-01-02T15:04:05Z"))
 	}
 	return types.StringNull()
+}
+
+func MapValueOrNull(value *map[string]string) (types.Map, diag.Diagnostics) {
+	if value == nil || len(*value) < 1 {
+		return types.MapNull(types.StringType), nil
+	}
+	mapAttributes := map[string]attr.Value{}
+	for key, value := range *value {
+		mapAttributes[key] = types.StringValue(value)
+	}
+	cf, diag := types.MapValue(types.StringType, mapAttributes)
+	return cf, diag
 }

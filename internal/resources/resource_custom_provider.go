@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -180,11 +181,15 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 						},
 						"required": schema.BoolAttribute{
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "Indicates if the scope is required.",
+							Default:             booldefault.StaticBool(false),
 						},
 						"recommended": schema.BoolAttribute{
 							MarkdownDescription: "Indicates if the scope is recommended.",
 							Optional:            true,
+							Computed:            true,
+							Default:             booldefault.StaticBool(false),
 						},
 					},
 				},
@@ -288,7 +293,7 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("failed to create custom provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	plan.ID = types.StringValue(res.Data.ID)
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -301,28 +306,20 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.Diagnostics.AddError("failed to read custom provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
-	state.StandardType = types.StringValue(res.Data.StandardType)
-	state.AuthorizationEndpoint = types.StringValue(res.Data.AuthorizationEndpoint)
-	state.TokenEndpoint = types.StringValue(res.Data.TokenEndpoint)
-	state.ProviderName = types.StringValue(res.Data.ProviderName)
-	state.DisplayName = types.StringValue(res.Data.DisplayName)
-	state.LogoURL = types.StringValue(res.Data.LogoURL)
-	state.UserinfoEndpoint = types.StringValue(res.Data.UserinfoEndpoint)
-	state.ID = types.StringValue(res.Data.ID)
-	state.ScopeDisplayLabel = types.StringValue(res.Data.Scopes.DisplayLabel)
-	state.ClientID = types.StringValue(res.Data.ClientID)
-	state.ClientSecret = types.StringValue(res.Data.ClientSecret)
+	state.StandardType = util.StringValueOrNull(&res.Data.StandardType)
+	state.AuthorizationEndpoint = util.StringValueOrNull(&res.Data.AuthorizationEndpoint)
+	state.TokenEndpoint = util.StringValueOrNull(&res.Data.TokenEndpoint)
+	state.ProviderName = util.StringValueOrNull(&res.Data.ProviderName)
+	state.DisplayName = util.StringValueOrNull(&res.Data.DisplayName)
+	state.LogoURL = util.StringValueOrNull(&res.Data.LogoURL)
+	state.UserinfoEndpoint = util.StringValueOrNull(&res.Data.UserinfoEndpoint)
+	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.ScopeDisplayLabel = util.StringValueOrNull(&res.Data.Scopes.DisplayLabel)
+	state.ClientID = util.StringValueOrNull(&res.Data.ClientID)
+	state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
+	state.Domains = util.SetValueOrNull(res.Data.Domains)
 
-	var d diag.Diagnostics
-
-	if len(res.Data.Domains) > 0 {
-		state.Domains, d = types.SetValueFrom(ctx, types.StringType, res.Data.Domains)
-		resp.Diagnostics.Append(d...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
+	var diag diag.Diagnostics
 	var objectValues []attr.Value
 	scopeObjectType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -333,16 +330,19 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	for _, sc := range res.Data.Scopes.Scopes {
+		scopeName := sc.ScopeName
+		required := sc.Required
+		recommended := sc.Recommended
 		objValue := types.ObjectValueMust(scopeObjectType.AttrTypes, map[string]attr.Value{
-			"scope_name":  types.StringValue(sc.ScopeName),
-			"required":    types.BoolValue(sc.Required),
-			"recommended": types.BoolValue(sc.Recommended),
+			"scope_name":  util.StringValueOrNull(&scopeName),
+			"required":    util.BoolValueOrNull(&required),
+			"recommended": util.BoolValueOrNull(&recommended),
 		})
 		objectValues = append(objectValues, objValue)
 	}
 
-	state.Scopes, d = types.ListValueFrom(ctx, scopeObjectType, objectValues)
-	resp.Diagnostics.Append(d...)
+	state.Scopes, diag = types.ListValueFrom(ctx, scopeObjectType, objectValues)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -369,8 +369,8 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		metadataAttributes["custom_fields"] = types.MapNull(types.StringType)
 	}
 
-	state.UserinfoFields, d = types.ObjectValue(metadataAttributeTypes, metadataAttributes)
-	resp.Diagnostics.Append(d...)
+	state.UserinfoFields, diag = types.ObjectValue(metadataAttributeTypes, metadataAttributes)
+	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
