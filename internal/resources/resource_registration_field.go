@@ -315,7 +315,7 @@ func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 							Optional:            true,
 							MarkdownDescription: "When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.",
 						},
-						// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localised attribute values are specified here
+						// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localized attribute values are specified here
 						"attributes": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section.",
@@ -985,7 +985,6 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 					"Unexpected Resource Configuration",
 					fmt.Sprintf("Attributes local_texts[i].attributes can not be empty when data_type is %s.", req.ConfigValue.ValueString()),
 				)
-
 			}
 		}
 	}
