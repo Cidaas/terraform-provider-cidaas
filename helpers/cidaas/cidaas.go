@@ -23,6 +23,7 @@ type Client struct {
 	RegField       RegFieldService
 	TemplateGroup  TemplateGroupService
 	Template       TemplateService
+	PasswordPolicy PasswordPolicyService
 }
 
 type ClientConfig struct {
