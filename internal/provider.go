@@ -72,6 +72,7 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewTemplateResource,
 		cidaasResource.NewPasswordPolicy,
 		cidaasResource.NewConsentResource,
+		cidaasResource.NewConsentVersionResource,
 	}
 }
 

@@ -26,6 +26,7 @@ type Client struct {
 	Template       TemplateService
 	PasswordPolicy PasswordPolicyService
 	Consent        ConsentService
+	ConsentVersion ConsentVersionService
 }
 
 type ClientConfig struct {
@@ -79,6 +80,7 @@ func NewClient(config ClientConfig) (*Client, error) {
 		PasswordPolicy: NewPasswordPolicy(config),
 		ConsentGroup:   NewConsentGroup(config),
 		Consent:        NewConsent(config),
+		ConsentVersion: NewConsentVersion(config),
 	}
 	return client, nil
 }

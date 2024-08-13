@@ -58,15 +58,22 @@ func (r *ConsentResource) Configure(_ context.Context, req resource.ConfigureReq
 
 func (r *ConsentResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		MarkdownDescription: "The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas." +
+			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+			"\n- cidaas:tenant_consent_read" +
+			"\n- cidaas:tenant_consent_write" +
+			"\n- cidaas:tenant_consent_delete",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The unique identifier of the consent resource.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The name of the consent.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -75,7 +82,8 @@ func (r *ConsentResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"consent_group_id": schema.StringAttribute{
-				Required: true,
+				Required:            true,
+				MarkdownDescription: "The `consent_group_id` to which the consent belongs.",
 				Validators: []validator.String{
 					stringvalidator.LengthAtLeast(1),
 				},
@@ -84,18 +92,21 @@ func (r *ConsentResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				},
 			},
 			"enabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The flag to enable or disable a speicific consent. By default, the value is set to `true`",
+				Default:             booldefault.StaticBool(true),
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The timestamp when the consent version was created.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"updated_at": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				MarkdownDescription: "The timestamp when the consent version was last updated.",
 			},
 		},
 	}
@@ -137,11 +148,15 @@ func (r *ConsentResource) Read(ctx context.Context, req resource.ReadRequest, re
 		for _, instance := range res.Data {
 			if instance.ConsentName == state.Name.ValueString() {
 				isAvailable = true
-				state.ID = util.StringValueOrNull(&instance.ID)
-				state.Name = util.StringValueOrNull(&instance.ConsentName)
+				id := instance.ID
+				consentName := instance.ConsentName
+				createdTime := instance.CreatedTime
+				updatedTime := instance.UpdatedTime
+				state.ID = util.StringValueOrNull(&id)
+				state.Name = util.StringValueOrNull(&consentName)
 				state.Enabled = types.BoolValue(instance.Enabled)
-				state.CreatedAt = util.StringValueOrNull(&instance.CreatedTime)
-				state.UpdatedAt = util.StringValueOrNull(&instance.UpdatedTime)
+				state.CreatedAt = util.StringValueOrNull(&createdTime)
+				state.UpdatedAt = util.StringValueOrNull(&updatedTime)
 			}
 		}
 	}
