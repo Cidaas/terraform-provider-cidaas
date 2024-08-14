@@ -1,5 +1,16 @@
 ## Changelog
 
+### 3.0.4
+#### Bug Fix
+
+- **custom provider schema fix:** The issue with the sub attribute not aligning with the schema of the custom provider has been resolved.
+- **app shcme fix**: The app resource's list nested attributes are now updated to align with the Cidaas API response.
+
+### 3.0.3
+#### Enhancements
+
+- **Enhanced State Management:** Fixed state inconsistencies for attributes computed by Cidaas APIs due to dependencies or API support changes.
+
 ### 3.0.2
 
 #### Enhancements
