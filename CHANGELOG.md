@@ -4,7 +4,7 @@
 #### Bug Fix
 
 - **custom provider schema fix:** The issue with the sub attribute not aligning with the schema of the custom provider has been resolved.
-- **app shcme fix**: The app resource's list nested attributes are now updated to align with the Cidaas API response.
+- **app schema fix**: The app resource's list nested attributes are now updated to align with the Cidaas API response.
 
 ### 3.0.3
 #### Enhancements
