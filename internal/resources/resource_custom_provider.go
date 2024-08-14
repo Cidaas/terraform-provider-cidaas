@@ -74,6 +74,7 @@ type UserInfoField struct {
 	PhoneNumber       types.String `tfsdk:"phone_number"`
 	MobileNumber      types.String `tfsdk:"mobile_number"`
 	Address           types.String `tfsdk:"address"`
+	Sub               types.String `tfsdk:"sub"`
 	CustomFields      types.Map    `tfsdk:"custom_fields"`
 }
 
@@ -262,6 +263,9 @@ func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, res
 					"address": schema.StringAttribute{
 						Optional: true,
 					},
+					"sub": schema.StringAttribute{
+						Optional: true,
+					},
 					"custom_fields": schema.MapAttribute{
 						ElementType: types.StringType,
 						Optional:    true,
@@ -354,13 +358,23 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	hasCustomfield := false
 	for key, value := range res.Data.UserinfoFields {
 		val := value
+		supportedUserInfoFields := []string{"name", "family_name", "given_name", "middle_name", "nickname", "preferred_username",
+			"profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale", "updated_at", "email", "email_verified",
+			"phone_number", "mobile_number", "address", "sub"}
+
 		if strings.HasPrefix(key, "customFields.") {
 			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&val)
 			hasCustomfield = true
-		} else {
+		} else if util.StringInSlice(key, supportedUserInfoFields) {
 			metadataAttributeTypes[key] = types.StringType
 			metadataAttributes[key] = util.StringValueOrNull(&val)
 		}
+	}
+
+	// The sub attribute is handled separately to support in userinfo configuration. The attribute is not available in admin ui
+	if _, exists := metadataAttributes["sub"]; !exists {
+		metadataAttributeTypes["sub"] = types.StringType
+		metadataAttributes["sub"] = types.StringNull()
 	}
 	metadataAttributeTypes["custom_fields"] = types.MapType{ElemType: types.StringType}
 	if hasCustomfield {
@@ -465,6 +479,7 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 		uf["phone_number"] = plan.userinfoFields.PhoneNumber.ValueString()
 		uf["mobile_number"] = plan.userinfoFields.MobileNumber.ValueString()
 		uf["address"] = plan.userinfoFields.Address.ValueString()
+		uf["sub"] = plan.userinfoFields.Sub.ValueString()
 
 		if len(plan.userinfoFields.CustomFields.Elements()) > 0 {
 			var cfMap map[string]string
@@ -503,6 +518,7 @@ func userInfoDefaultValue() basetypes.ObjectValue {
 			"phone_number":       types.StringType,
 			"mobile_number":      types.StringType,
 			"address":            types.StringType,
+			"sub":                types.StringType,
 			"custom_fields":      types.MapType{ElemType: types.StringType},
 		},
 		map[string]attr.Value{
@@ -525,6 +541,7 @@ func userInfoDefaultValue() basetypes.ObjectValue {
 			"phone_number":       types.StringValue("phone_number"),
 			"mobile_number":      types.StringValue("mobile_number"),
 			"address":            types.StringValue("address"),
+			"sub":                types.StringValue("sub"),
 			"custom_fields":      types.MapNull(types.StringType),
 		})
 }
