@@ -447,12 +447,31 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	// SocialProviders
 	if !plan.SocialProviders.IsNull() && len(plan.socialProviders) > 0 {
 		target := []cidaas.ISocialProviderData{}
-		for _, sp := range plan.socialProviders {
-			target = append(target, cidaas.ISocialProviderData{
-				ProviderName: sp.ProviderName.ValueString(),
-				SocialID:     sp.SocialID.ValueString(),
+		var objectValues []attr.Value
+		spObjectType := types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"provider_name": types.StringType,
+				"social_id":     types.StringType,
+			},
+		}
+		objValue := types.ObjectValueMust(
+			spObjectType.AttrTypes,
+			map[string]attr.Value{
+				"provider_name": types.StringNull(),
+				"social_id":     types.StringNull(),
 			})
+		objectValues = append(objectValues, objValue)
+		emptyProvider := types.ListValueMust(spObjectType, objectValues)
+		if plan.SocialProviders.Equal(emptyProvider) {
 			app.SocialProviders = target
+		} else {
+			for _, sp := range plan.socialProviders {
+				target = append(target, cidaas.ISocialProviderData{
+					ProviderName: sp.ProviderName.ValueString(),
+					SocialID:     sp.SocialID.ValueString(),
+				})
+				app.SocialProviders = target
+			}
 		}
 	}
 
@@ -470,7 +489,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 				Type:              cp.Type.ValueString(),
 				DisplayName:       cp.DisplayName.ValueString(),
 				LogoURL:           cp.LogoURL.ValueString(),
-				IsProviderVisible: cp.IsProviderVisible.ValueBool(),
+				IsProviderVisible: cp.IsProviderVisible.ValueBoolPointer(),
 			}
 			diags := cp.Domains.ElementsAs(ctx, &temp.Domains, false)
 			if diags.HasError() {
@@ -481,62 +500,124 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		return nil
 	}
 
+	var objectValues []attr.Value
+	spObjectType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"provider_name":       types.StringType,
+			"display_name":        types.StringType,
+			"logo_url":            types.StringType,
+			"type":                types.StringType,
+			"is_provider_visible": types.BoolType,
+			"domains":             types.SetType{ElemType: types.StringType},
+		},
+	}
+	objValue := types.ObjectValueMust(
+		spObjectType.AttrTypes,
+		map[string]attr.Value{
+			"provider_name":       types.StringNull(),
+			"display_name":        types.StringNull(),
+			"logo_url":            types.StringNull(),
+			"type":                types.StringNull(),
+			"is_provider_visible": types.BoolNull(),
+			"domains":             types.SetNull(types.StringType),
+		})
+	objectValues = append(objectValues, objValue)
+	emptyProvider := types.ListValueMust(spObjectType, objectValues)
+
 	// CustomProviders
 	if !plan.CustomProviders.IsNull() && len(plan.customProviders) > 0 {
-		diags.Append(setProviders(ctx, plan.customProviders, &app.CustomProviders)...)
-		if diags.HasError() {
-			return nil, diags
+		if plan.CustomProviders.Equal(emptyProvider) {
+			app.CustomProviders = []cidaas.IProviderMetadData{}
+		} else {
+			diags.Append(setProviders(ctx, plan.customProviders, &app.CustomProviders)...)
+			if diags.HasError() {
+				return nil, diags
+			}
 		}
 	}
 
 	// SamlProviders
 	if !plan.SamlProviders.IsNull() && len(plan.samlProviders) > 0 {
-		diags.Append(setProviders(ctx, plan.samlProviders, &app.SamlProviders)...)
-		if diags.HasError() {
-			return nil, diags
+		if plan.SamlProviders.Equal(emptyProvider) {
+			app.SamlProviders = []cidaas.IProviderMetadData{}
+		} else {
+			diags.Append(setProviders(ctx, plan.samlProviders, &app.SamlProviders)...)
+			if diags.HasError() {
+				return nil, diags
+			}
 		}
 	}
 	// AdProviders
 	if !plan.AdProviders.IsNull() && len(plan.adProviders) > 0 {
-		diags.Append(setProviders(ctx, plan.adProviders, &app.AdProviders)...)
-		if diags.HasError() {
-			return nil, diags
+		if plan.AdProviders.Equal(emptyProvider) {
+			app.AdProviders = []cidaas.IProviderMetadData{}
+		} else {
+			diags.Append(setProviders(ctx, plan.adProviders, &app.AdProviders)...)
+			if diags.HasError() {
+				return nil, diags
+			}
 		}
 	}
 
+	var allowedGroupObjectValues []attr.Value
+	agObjectType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"group_id":      types.StringType,
+			"roles":         types.SetType{ElemType: types.StringType},
+			"default_roles": types.SetType{ElemType: types.StringType},
+		},
+	}
+	value := types.ObjectValueMust(
+		agObjectType.AttrTypes,
+		map[string]attr.Value{
+			"group_id":      types.StringNull(),
+			"roles":         types.SetNull(types.StringType),
+			"default_roles": types.SetNull(types.StringType),
+		})
+	allowedGroupObjectValues = append(allowedGroupObjectValues, value)
+	emptyAllowedGroups := types.ListValueMust(agObjectType, allowedGroupObjectValues)
+
 	// AllowedGroups
 	if !plan.AllowedGroups.IsNull() && len(plan.allowedGroups) > 0 {
-		for _, ag := range plan.allowedGroups {
-			temp := cidaas.IAllowedGroups{
-				GroupID: ag.GroupID.ValueString(),
+		if plan.AllowedGroups.Equal(emptyAllowedGroups) {
+			app.AllowedGroups = []cidaas.IAllowedGroups{}
+		} else {
+			for _, ag := range plan.allowedGroups {
+				temp := cidaas.IAllowedGroups{
+					GroupID: ag.GroupID.ValueString(),
+				}
+				diags := ag.Roles.ElementsAs(ctx, &temp.Roles, false)
+				if diags.HasError() {
+					return nil, diags
+				}
+				diags = ag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
+				if diags.HasError() {
+					return nil, diags
+				}
+				app.AllowedGroups = append(app.AllowedGroups, temp)
 			}
-			diags := ag.Roles.ElementsAs(ctx, &temp.Roles, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-			diags = ag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-			app.AllowedGroups = append(app.AllowedGroups, temp)
 		}
 	}
 
 	// OperationsAllowedGroups
 	if !plan.OperationsAllowedGroups.IsNull() && len(plan.operationsAllowedGroups) > 0 {
-		for _, oag := range plan.operationsAllowedGroups {
-			temp := cidaas.IAllowedGroups{
-				GroupID: oag.GroupID.ValueString(),
+		if plan.OperationsAllowedGroups.Equal(emptyAllowedGroups) {
+			app.OperationsAllowedGroups = []cidaas.IAllowedGroups{}
+		} else {
+			for _, oag := range plan.operationsAllowedGroups {
+				temp := cidaas.IAllowedGroups{
+					GroupID: oag.GroupID.ValueString(),
+				}
+				diags := oag.Roles.ElementsAs(ctx, &temp.Roles, false)
+				if diags.HasError() {
+					return nil, diags
+				}
+				diags = oag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
+				if diags.HasError() {
+					return nil, diags
+				}
+				app.OperationsAllowedGroups = append(app.OperationsAllowedGroups, temp)
 			}
-			diags := oag.Roles.ElementsAs(ctx, &temp.Roles, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-			diags = oag.DefaultRoles.ElementsAs(ctx, &temp.DefaultRoles, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-			app.OperationsAllowedGroups = append(app.OperationsAllowedGroups, temp)
 		}
 	}
 
@@ -760,28 +841,22 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 			"social_id":     types.StringType,
 		},
 	}
-	if len(res.Data.SocialProviders) > 0 {
-		for _, sp := range res.Data.SocialProviders {
-			providerName := sp.ProviderName
-			socialID := sp.SocialID
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name": util.StringValueOrNull(&providerName),
-					"social_id":     util.StringValueOrNull(&socialID),
-				})
-			spObjectValues = append(spObjectValues, objValue)
+
+	if (operation == IMPORT || operation == READ) || len(state.CustomProviders.Elements()) > 0 {
+		if len(res.Data.SocialProviders) > 0 {
+			for _, sp := range res.Data.SocialProviders {
+				providerName := sp.ProviderName
+				socialID := sp.SocialID
+				objValue := types.ObjectValueMust(
+					spObjectType.AttrTypes,
+					map[string]attr.Value{
+						"provider_name": util.StringValueOrNull(&providerName),
+						"social_id":     util.StringValueOrNull(&socialID),
+					})
+				spObjectValues = append(spObjectValues, objValue)
+			}
+			state.SocialProviders = types.ListValueMust(spObjectType, spObjectValues)
 		}
-		state.SocialProviders = types.ListValueMust(spObjectType, spObjectValues)
-	} else {
-		objValue := types.ObjectValueMust(
-			spObjectType.AttrTypes,
-			map[string]attr.Value{
-				"provider_name": types.StringNull(),
-				"social_id":     types.StringNull(),
-			})
-		spObjectValues = append(spObjectValues, objValue)
-		state.SocialProviders = types.ListValueMust(spObjectType, spObjectValues)
 	}
 
 	providerObjectType := types.ObjectType{
@@ -810,30 +885,24 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 						"display_name":        util.StringValueOrNull(&displayName),
 						"logo_url":            util.StringValueOrNull(&logoURL),
 						"type":                util.StringValueOrNull(&providerType),
-						"is_provider_visible": types.BoolValue(provider.IsProviderVisible),
+						"is_provider_visible": util.BoolValueOrNull(provider.IsProviderVisible),
 						"domains":             util.SetValueOrNull(provider.Domains),
 					})
 				providerMetaObjectValues = append(providerMetaObjectValues, objValue)
 			}
-		} else {
-			objValue := types.ObjectValueMust(
-				providerObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name":       types.StringNull(),
-					"display_name":        types.StringNull(),
-					"logo_url":            types.StringNull(),
-					"type":                types.StringNull(),
-					"is_provider_visible": types.BoolValue(false),
-					"domains":             types.SetNull(types.StringType),
-				})
-			providerMetaObjectValues = append(providerMetaObjectValues, objValue)
 		}
 		return providerMetaObjectValues
 	}
 
-	state.CustomProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.CustomProviders))
-	state.SamlProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.SamlProviders))
-	state.AdProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.AdProviders))
+	if len(res.Data.CustomProviders) > 0 && ((operation == IMPORT || operation == READ) || len(state.CustomProviders.Elements()) > 0) {
+		state.CustomProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.CustomProviders))
+	}
+	if len(res.Data.SamlProviders) > 0 && ((operation == IMPORT || operation == READ) || len(state.SamlProviders.Elements()) > 0) {
+		state.SamlProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.SamlProviders))
+	}
+	if len(res.Data.AdProviders) > 0 && ((operation == IMPORT || operation == READ) || len(state.AdProviders.Elements()) > 0) {
+		state.AdProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(res.Data.AdProviders))
+	}
 
 	allowedGroupsObjectType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -857,36 +926,33 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 					})
 				allowedGroupObjectValues = append(allowedGroupObjectValues, objValue)
 			}
-		} else {
-			objValue := types.ObjectValueMust(
-				allowedGroupsObjectType.AttrTypes,
-				map[string]attr.Value{
-					"group_id":      types.StringNull(),
-					"roles":         types.SetNull(types.StringType),
-					"default_roles": types.SetNull(types.StringType),
-				})
-			allowedGroupObjectValues = append(allowedGroupObjectValues, objValue)
 		}
 		return allowedGroupObjectValues
 	}
 
-	state.AllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(res.Data.AllowedGroups))
-	state.OperationsAllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(res.Data.OperationsAllowedGroups))
+	if len(res.Data.AllowedGroups) > 0 && ((operation == IMPORT || operation == READ) || len(state.AllowedGroups.Elements()) > 0) {
+		state.AllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(res.Data.AllowedGroups))
+	}
+	if len(res.Data.OperationsAllowedGroups) > 0 && ((operation == IMPORT || operation == READ) || len(state.OperationsAllowedGroups.Elements()) > 0) {
+		state.OperationsAllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(res.Data.OperationsAllowedGroups))
+	}
 
-	if len(res.Data.AllowGuestLoginGroups) > 0 {
-		var allowedGroupObjectValues []attr.Value
-		for _, group := range res.Data.AllowGuestLoginGroups {
-			groupID := group.GroupID
-			objValue := types.ObjectValueMust(
-				allowedGroupsObjectType.AttrTypes,
-				map[string]attr.Value{
-					"group_id":      util.StringValueOrNull(&groupID),
-					"roles":         util.SetValueOrNull(group.Roles),
-					"default_roles": util.SetValueOrNull(group.DefaultRoles),
-				})
-			allowedGroupObjectValues = append(allowedGroupObjectValues, objValue)
+	if (operation == IMPORT || operation == READ) || len(state.AllowGuestLoginGroups.Elements()) > 0 {
+		if len(res.Data.AllowGuestLoginGroups) > 0 {
+			var allowedGroupObjectValues []attr.Value
+			for _, group := range res.Data.AllowGuestLoginGroups {
+				groupID := group.GroupID
+				objValue := types.ObjectValueMust(
+					allowedGroupsObjectType.AttrTypes,
+					map[string]attr.Value{
+						"group_id":      util.StringValueOrNull(&groupID),
+						"roles":         util.SetValueOrNull(group.Roles),
+						"default_roles": util.SetValueOrNull(group.DefaultRoles),
+					})
+				allowedGroupObjectValues = append(allowedGroupObjectValues, objValue)
+			}
+			state.AllowGuestLoginGroups = types.ListValueMust(allowedGroupsObjectType, allowedGroupObjectValues)
 		}
-		state.AllowGuestLoginGroups = types.ListValueMust(allowedGroupsObjectType, allowedGroupObjectValues)
 	}
 
 	metaData := map[string]attr.Value{}

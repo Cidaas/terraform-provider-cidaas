@@ -395,164 +395,28 @@ func (r *AppResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanReq
 		}
 	}
 
-	if config.SocialProviders.IsNull() {
-		if !config.commonConfigs.SocialProviders.IsNull() {
-			plan.SocialProviders = plan.commonConfigs.SocialProviders
-		} else if !plan.SocialProviders.IsNull() && !plan.SocialProviders.IsUnknown() {
-			var spObjectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"provider_name": types.StringType,
-					"social_id":     types.StringType,
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name": types.StringNull(),
-					"social_id":     types.StringNull(),
-				})
-			spObjectValues = append(spObjectValues, objValue)
-			plan.SocialProviders = types.ListValueMust(spObjectType, spObjectValues)
-		}
+	if config.SocialProviders.IsNull() && !config.commonConfigs.SocialProviders.IsNull() {
+		plan.SocialProviders = plan.commonConfigs.SocialProviders
 	}
 
-	if config.CustomProviders.IsNull() { //nolint:dupl
-		if !config.commonConfigs.CustomProviders.IsNull() {
-			plan.CustomProviders = plan.commonConfigs.CustomProviders
-		} else if !plan.CustomProviders.IsNull() && !plan.CustomProviders.IsUnknown() {
-			var objectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"provider_name":       types.StringType,
-					"display_name":        types.StringType,
-					"logo_url":            types.StringType,
-					"type":                types.StringType,
-					"is_provider_visible": types.BoolType,
-					"domains":             types.SetType{ElemType: types.StringType},
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name":       types.StringNull(),
-					"display_name":        types.StringNull(),
-					"logo_url":            types.StringNull(),
-					"type":                types.StringNull(),
-					"is_provider_visible": types.BoolValue(false),
-					"domains":             types.SetNull(types.StringType),
-				})
-			objectValues = append(objectValues, objValue)
-			plan.CustomProviders = types.ListValueMust(spObjectType, objectValues)
-		}
+	if config.CustomProviders.IsNull() && !config.commonConfigs.CustomProviders.IsNull() {
+		plan.CustomProviders = plan.commonConfigs.CustomProviders
 	}
 
-	if config.SamlProviders.IsNull() { //nolint:dupl
-		if !config.commonConfigs.SamlProviders.IsNull() {
-			plan.SamlProviders = plan.commonConfigs.SamlProviders
-		} else if !plan.SamlProviders.IsNull() && !plan.SamlProviders.IsUnknown() {
-			var objectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"provider_name":       types.StringType,
-					"display_name":        types.StringType,
-					"logo_url":            types.StringType,
-					"type":                types.StringType,
-					"is_provider_visible": types.BoolType,
-					"domains":             types.SetType{ElemType: types.StringType},
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name":       types.StringNull(),
-					"display_name":        types.StringNull(),
-					"logo_url":            types.StringNull(),
-					"type":                types.StringNull(),
-					"is_provider_visible": types.BoolValue(false),
-					"domains":             types.SetNull(types.StringType),
-				})
-			objectValues = append(objectValues, objValue)
-			plan.SamlProviders = types.ListValueMust(spObjectType, objectValues)
-		}
+	if config.SamlProviders.IsNull() && !config.commonConfigs.SamlProviders.IsNull() {
+		plan.SamlProviders = plan.commonConfigs.SamlProviders
 	}
 
-	if config.AdProviders.IsNull() { //nolint:dupl
-		if !config.commonConfigs.AdProviders.IsNull() {
-			plan.AdProviders = plan.commonConfigs.AdProviders
-		} else if !plan.AdProviders.IsNull() && !plan.AdProviders.IsUnknown() {
-			var objectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"provider_name":       types.StringType,
-					"display_name":        types.StringType,
-					"logo_url":            types.StringType,
-					"type":                types.StringType,
-					"is_provider_visible": types.BoolType,
-					"domains":             types.SetType{ElemType: types.StringType},
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"provider_name":       types.StringNull(),
-					"display_name":        types.StringNull(),
-					"logo_url":            types.StringNull(),
-					"type":                types.StringNull(),
-					"is_provider_visible": types.BoolValue(false),
-					"domains":             types.SetNull(types.StringType),
-				})
-			objectValues = append(objectValues, objValue)
-			plan.AdProviders = types.ListValueMust(spObjectType, objectValues)
-		}
+	if config.AdProviders.IsNull() && !config.commonConfigs.AdProviders.IsNull() {
+		plan.AdProviders = plan.commonConfigs.AdProviders
 	}
 
-	if config.AllowedGroups.IsNull() { //nolint:dupl
-		if !config.commonConfigs.AllowedGroups.IsNull() {
-			plan.AllowedGroups = plan.commonConfigs.AllowedGroups
-		} else if !plan.AllowedGroups.IsNull() && !plan.AllowedGroups.IsUnknown() {
-			var objectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"group_id":      types.StringType,
-					"roles":         types.SetType{ElemType: types.StringType},
-					"default_roles": types.SetType{ElemType: types.StringType},
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"group_id":      types.StringNull(),
-					"roles":         types.SetNull(types.StringType),
-					"default_roles": types.SetNull(types.StringType),
-				})
-			objectValues = append(objectValues, objValue)
-			plan.AllowedGroups = types.ListValueMust(spObjectType, objectValues)
-		}
+	if config.AllowedGroups.IsNull() && !config.commonConfigs.AllowedGroups.IsNull() {
+		plan.AllowedGroups = plan.commonConfigs.AllowedGroups
 	}
 
-	if config.OperationsAllowedGroups.IsNull() { //nolint:dupl
-		if !config.commonConfigs.OperationsAllowedGroups.IsNull() {
-			plan.OperationsAllowedGroups = plan.commonConfigs.OperationsAllowedGroups
-		} else if !plan.OperationsAllowedGroups.IsNull() && !plan.OperationsAllowedGroups.IsUnknown() {
-			var objectValues []attr.Value
-			spObjectType := types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"group_id":      types.StringType,
-					"roles":         types.SetType{ElemType: types.StringType},
-					"default_roles": types.SetType{ElemType: types.StringType},
-				},
-			}
-			objValue := types.ObjectValueMust(
-				spObjectType.AttrTypes,
-				map[string]attr.Value{
-					"group_id":      types.StringNull(),
-					"roles":         types.SetNull(types.StringType),
-					"default_roles": types.SetNull(types.StringType),
-				})
-			objectValues = append(objectValues, objValue)
-			plan.OperationsAllowedGroups = types.ListValueMust(spObjectType, objectValues)
-		}
+	if config.OperationsAllowedGroups.IsNull() && !config.commonConfigs.OperationsAllowedGroups.IsNull() {
+		plan.OperationsAllowedGroups = plan.commonConfigs.OperationsAllowedGroups
 	}
 	resp.Plan.Set(ctx, plan)
 }
