@@ -219,7 +219,7 @@ type IProviderMetadData struct {
 	ProviderName      string   `json:"provider_name,omitempty"`
 	DisplayName       string   `json:"display_name,omitempty"`
 	Type              string   `json:"type,omitempty"`
-	IsProviderVisible bool     `json:"isProviderVisible,omitempty"`
+	IsProviderVisible *bool    `json:"isProviderVisible,omitempty"`
 	Domains           []string `json:"domains,omitempty"`
 }
 

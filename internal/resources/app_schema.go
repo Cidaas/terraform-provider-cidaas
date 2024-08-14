@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
@@ -418,25 +418,30 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"social_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"provider_name": types.StringType,
+							"social_id":     types.StringType,
+						},
+					}, []attr.Value{})),
 			},
 			"custom_providers": schema.ListNestedAttribute{
-				Optional:            true,
+				Optional: true,
+				// if empty and common_config has it's value then assigned the same. so marked computed
 				Computed:            true,
 				MarkdownDescription: "A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -445,12 +450,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -458,9 +461,17 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"provider_name":       types.StringType,
+							"display_name":        types.StringType,
+							"logo_url":            types.StringType,
+							"type":                types.StringType,
+							"is_provider_visible": types.BoolType,
+							"domains":             types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"saml_providers": schema.ListNestedAttribute{
 				Optional:            true,
@@ -469,7 +480,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -478,12 +489,10 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -491,9 +500,17 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"provider_name":       types.StringType,
+							"display_name":        types.StringType,
+							"logo_url":            types.StringType,
+							"type":                types.StringType,
+							"is_provider_visible": types.BoolType,
+							"domains":             types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"ad_providers": schema.ListNestedAttribute{
 				Optional:            true,
@@ -502,7 +519,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -511,24 +528,28 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
 							Optional:    true,
-							Computed:    true,
-							Default:     setdefault.StaticValue(types.SetNull(types.StringType)),
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"provider_name":       types.StringType,
+							"display_name":        types.StringType,
+							"logo_url":            types.StringType,
+							"type":                types.StringType,
+							"is_provider_visible": types.BoolType,
+							"domains":             types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"jwe_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -548,7 +569,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"roles": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -560,16 +581,22 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"group_id":      types.StringType,
+							"roles":         types.SetType{ElemType: types.StringType},
+							"default_roles": types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"operations_allowed_groups": schema.ListNestedAttribute{
 				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"roles": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -581,10 +608,14 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-				Computed: true,
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"group_id":      types.StringType,
+							"roles":         types.SetType{ElemType: types.StringType},
+							"default_roles": types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"enabled": schema.BoolAttribute{
 				Optional: true,
@@ -684,10 +715,11 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"allow_guest_login_groups": schema.ListNestedAttribute{
 				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"roles": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -699,9 +731,14 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						},
 					},
 				},
-				PlanModifiers: []planmodifier.List{
-					listplanmodifier.UseStateForUnknown(),
-				},
+				Default: listdefault.StaticValue(types.ListValueMust(
+					types.ObjectType{
+						AttrTypes: map[string]attr.Type{
+							"group_id":      types.StringType,
+							"roles":         types.SetType{ElemType: types.StringType},
+							"default_roles": types.SetType{ElemType: types.StringType},
+						},
+					}, []attr.Value{})),
 			},
 			"is_login_success_page_enabled": schema.BoolAttribute{
 				Optional: true,
@@ -1084,10 +1121,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"social_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -1097,7 +1134,7 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -1106,12 +1143,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -1125,7 +1160,7 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -1134,12 +1169,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -1153,7 +1186,7 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"provider_name": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"display_name": schema.StringAttribute{
 							Optional: true,
@@ -1162,12 +1195,10 @@ func getCommonConfig() schema.SingleNestedAttribute {
 							Optional: true,
 						},
 						"type": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"is_provider_visible": schema.BoolAttribute{
 							Optional: true,
-							Computed: true,
-							Default:  booldefault.StaticBool(false),
 						},
 						"domains": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -1181,7 +1212,7 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"roles": schema.SetAttribute{
 							ElementType: types.StringType,
@@ -1199,7 +1230,7 @@ func getCommonConfig() schema.SingleNestedAttribute {
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"group_id": schema.StringAttribute{
-							Required: true,
+							Optional: true,
 						},
 						"roles": schema.SetAttribute{
 							ElementType: types.StringType,
