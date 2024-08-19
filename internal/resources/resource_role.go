@@ -97,7 +97,7 @@ func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, r
 	}
 	response, err := r.cidaasClient.Role.UpsertRole(role)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create role", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&response.Data.Role)
@@ -109,7 +109,7 @@ func (r *RoleResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	response, err := r.cidaasClient.Role.GetRole(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read role", util.FormatErrorMessage(err))
 		return
 	}
 	state.Role = util.StringValueOrNull(&response.Data.Role)
@@ -132,7 +132,7 @@ func (r *RoleResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 	response, err := r.cidaasClient.Role.UpsertRole(role)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update role", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&response.Data.Role)
@@ -147,7 +147,7 @@ func (r *RoleResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	}
 	err := r.cidaasClient.Role.DeleteRole(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete role", util.FormatErrorMessage(err))
 		return
 	}
 }
