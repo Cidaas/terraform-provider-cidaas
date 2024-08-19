@@ -438,29 +438,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				// if empty and common_config has it's value then assigned the same. so marked computed
 				Computed:            true,
 				MarkdownDescription: "A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				NestedObject:        providerMetadDataSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -477,29 +455,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "A list of SAML identity providers that users can authenticate with.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				NestedObject:        providerMetadDataSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -516,29 +472,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "A list of Active Directory identity providers that users can authenticate with.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				NestedObject:        providerMetadDataSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -564,23 +498,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Default:             booldefault.StaticBool(false),
 			},
 			"allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Optional: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				Optional:     true,
+				Computed:     true,
+				NestedObject: allowedGroupsSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -591,23 +511,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					}, []attr.Value{})),
 			},
 			"operations_allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Optional: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				Optional:     true,
+				Computed:     true,
+				NestedObject: allowedGroupsSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -714,23 +620,9 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				},
 			},
 			"allow_guest_login_groups": schema.ListNestedAttribute{
-				Optional: true,
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Optional: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
+				Optional:     true,
+				Computed:     true,
+				NestedObject: allowedGroupsSchema,
 				Default: listdefault.StaticValue(types.ListValueMust(
 					types.ObjectType{
 						AttrTypes: map[string]attr.Type{
@@ -1041,336 +933,346 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					" Default is set to `false`",
 				Default: booldefault.StaticBool(false),
 			},
-			"common_configs": getCommonConfig(),
+			"common_configs": commonConfigSchema,
 		},
 	}
 }
 
-func getCommonConfig() schema.SingleNestedAttribute {
-	return schema.SingleNestedAttribute{
-		Optional: true,
-		MarkdownDescription: "The `common_configs` attribute is used for sharing the same configuration across multiple cidaas_app resources." +
-			" It is a map of some attributes from the main configuration." +
-			" Please check the list of the attributes that it supports in the common_confis section." +
-			" if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app",
-		Attributes: map[string]schema.Attribute{
-			"company_name": schema.StringAttribute{
-				Optional: true,
+var providerMetadDataSchema = schema.NestedAttributeObject{
+	Attributes: map[string]schema.Attribute{
+		"provider_name": schema.StringAttribute{
+			Optional: true,
+		},
+		"display_name": schema.StringAttribute{
+			Optional: true,
+		},
+		"logo_url": schema.StringAttribute{
+			Optional: true,
+		},
+		"type": schema.StringAttribute{
+			Optional: true,
+		},
+		"is_provider_visible": schema.BoolAttribute{
+			Optional: true,
+		},
+		"domains": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+	},
+}
+
+var allowedGroupsSchema = schema.NestedAttributeObject{
+	Attributes: map[string]schema.Attribute{
+		"group_id": schema.StringAttribute{
+			Optional: true,
+		},
+		"roles": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"default_roles": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+	},
+}
+
+var commonConfigSchema = schema.SingleNestedAttribute{
+	Optional: true,
+	MarkdownDescription: "The `common_configs` attribute is used for sharing the same configuration across multiple cidaas_app resources." +
+		" It is a map of some attributes from the main configuration." +
+		" Please check the list of the attributes that it supports in the common_confis section." +
+		" if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app",
+	Attributes: map[string]schema.Attribute{
+		"company_name": schema.StringAttribute{
+			Optional: true,
+		},
+		"company_website": schema.StringAttribute{
+			Optional: true,
+		},
+		"client_type": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{
+					"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
+					"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY",
+				}...),
 			},
-			"company_website": schema.StringAttribute{
-				Optional: true,
-			},
-			"client_type": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{
-						"SINGLE_PAGE", "REGULAR_WEB", "NON_INTERACTIVE",
-						"IOS", "ANDROID", "WINDOWS_MOBILE", "DESKTOP", "MOBILE", "DEVICE", "THIRD_PARTY",
-					}...),
-				},
-			},
-			"company_address": schema.StringAttribute{
-				Optional: true,
-			},
-			"allowed_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"redirect_uris": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_logout_urls": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_web_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_origins": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"login_providers": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"default_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"pending_scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_mfa": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allowed_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"default_roles": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"social_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"social_id": schema.StringAttribute{
-							Optional: true,
-						},
-					},
-				},
-			},
-			"custom_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"saml_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"ad_providers": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"provider_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"display_name": schema.StringAttribute{
-							Optional: true,
-						},
-						"logo_url": schema.StringAttribute{
-							Optional: true,
-						},
-						"type": schema.StringAttribute{
-							Optional: true,
-						},
-						"is_provider_visible": schema.BoolAttribute{
-							Optional: true,
-						},
-						"domains": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Optional: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"operations_allowed_groups": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"group_id": schema.StringAttribute{
-							Optional: true,
-						},
-						"roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-						"default_roles": schema.SetAttribute{
-							ElementType: types.StringType,
-							Optional:    true,
-						},
-					},
-				},
-			},
-			"accent_color": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
-						"must be a valid hex color",
-					),
-				},
-			},
-			"primary_color": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
-						"must be a valid hex color",
-					),
-				},
-			},
-			"media_type": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"VIDEO", "IMAGE"}...),
-				},
-			},
-			"hosted_page_group": schema.StringAttribute{
-				Optional: true,
-			},
-			"template_group_id": schema.StringAttribute{
-				Optional: true,
-			},
-			"bot_provider": schema.StringAttribute{
-				Optional: true,
-			},
-			"logo_align": schema.StringAttribute{
-				Optional: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
-				},
-			},
-			"webfinger": schema.StringAttribute{
-				Optional: true,
-			},
-			"default_max_age": schema.Int64Attribute{
-				Optional: true,
-			},
-			"token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-			},
-			"id_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-			},
-			"refresh_token_lifetime_in_seconds": schema.Int64Attribute{
-				Optional: true,
-			},
-			"allow_guest_login": schema.BoolAttribute{
-				Optional: true,
-			},
-			"enable_deduplication": schema.BoolAttribute{
-				Optional: true,
-			},
-			"auto_login_after_register": schema.BoolAttribute{
-				Optional: true,
-			},
-			"enable_passwordless_auth": schema.BoolAttribute{
-				Optional: true,
-			},
-			"register_with_login_information": schema.BoolAttribute{
-				Optional: true,
-			},
-			"fds_enabled": schema.BoolAttribute{
-				Optional: true,
-			},
-			"is_hybrid_app": schema.BoolAttribute{
-				Optional: true,
-			},
-			"editable": schema.BoolAttribute{
-				Optional: true,
-			},
-			"enabled": schema.BoolAttribute{
-				Optional: true,
-			},
-			"always_ask_mfa": schema.BoolAttribute{
-				Optional: true,
-			},
-			"email_verification_required": schema.BoolAttribute{
-				Optional: true,
-			},
-			"enable_classical_provider": schema.BoolAttribute{
-				Optional: true,
-			},
-			"is_remember_me_selected": schema.BoolAttribute{
-				Optional: true,
-			},
-			"response_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"grant_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-			},
-			"allow_login_with": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Validators: []validator.Set{
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
-					),
-				},
-			},
-			"mfa": schema.SingleNestedAttribute{
-				Optional: true,
+		},
+		"company_address": schema.StringAttribute{
+			Optional: true,
+		},
+		"allowed_scopes": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"redirect_uris": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allowed_logout_urls": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allowed_web_origins": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allowed_origins": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"login_providers": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"default_scopes": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"pending_scopes": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allowed_mfa": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allowed_roles": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"default_roles": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"social_providers": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
-					"setting": schema.StringAttribute{
-						Optional: true,
-						Validators: []validator.String{
-							stringvalidator.OneOf([]string{"OFF", "ALWAYS", "SMART", "TIME_BASED", "SMART_PLUS_TIME_BASED"}...),
-						},
-					},
-					"time_interval_in_seconds": schema.Int64Attribute{
+					"provider_name": schema.StringAttribute{
 						Optional: true,
 					},
-					"allowed_methods": schema.SetAttribute{
+					"social_id": schema.StringAttribute{
+						Optional: true,
+					},
+				},
+			},
+		},
+		"custom_providers": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"provider_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"display_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"logo_url": schema.StringAttribute{
+						Optional: true,
+					},
+					"type": schema.StringAttribute{
+						Optional: true,
+					},
+					"is_provider_visible": schema.BoolAttribute{
+						Optional: true,
+					},
+					"domains": schema.SetAttribute{
 						ElementType: types.StringType,
 						Optional:    true,
 					},
 				},
 			},
 		},
-	}
+		"saml_providers": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"provider_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"display_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"logo_url": schema.StringAttribute{
+						Optional: true,
+					},
+					"type": schema.StringAttribute{
+						Optional: true,
+					},
+					"is_provider_visible": schema.BoolAttribute{
+						Optional: true,
+					},
+					"domains": schema.SetAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+					},
+				},
+			},
+		},
+		"ad_providers": schema.ListNestedAttribute{
+			Optional: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"provider_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"display_name": schema.StringAttribute{
+						Optional: true,
+					},
+					"logo_url": schema.StringAttribute{
+						Optional: true,
+					},
+					"type": schema.StringAttribute{
+						Optional: true,
+					},
+					"is_provider_visible": schema.BoolAttribute{
+						Optional: true,
+					},
+					"domains": schema.SetAttribute{
+						ElementType: types.StringType,
+						Optional:    true,
+					},
+				},
+			},
+		},
+		"allowed_groups": schema.ListNestedAttribute{
+			Optional:     true,
+			NestedObject: allowedGroupsSchema,
+		},
+		"operations_allowed_groups": schema.ListNestedAttribute{
+			Optional:     true,
+			NestedObject: allowedGroupsSchema,
+		},
+		"accent_color": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
+					"must be a valid hex color",
+				),
+			},
+		},
+		"primary_color": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`),
+					"must be a valid hex color",
+				),
+			},
+		},
+		"media_type": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"VIDEO", "IMAGE"}...),
+			},
+		},
+		"hosted_page_group": schema.StringAttribute{
+			Optional: true,
+		},
+		"template_group_id": schema.StringAttribute{
+			Optional: true,
+		},
+		"bot_provider": schema.StringAttribute{
+			Optional: true,
+		},
+		"logo_align": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"CENTER", "LEFT", "RIGHT"}...),
+			},
+		},
+		"webfinger": schema.StringAttribute{
+			Optional: true,
+		},
+		"default_max_age": schema.Int64Attribute{
+			Optional: true,
+		},
+		"token_lifetime_in_seconds": schema.Int64Attribute{
+			Optional: true,
+		},
+		"id_token_lifetime_in_seconds": schema.Int64Attribute{
+			Optional: true,
+		},
+		"refresh_token_lifetime_in_seconds": schema.Int64Attribute{
+			Optional: true,
+		},
+		"allow_guest_login": schema.BoolAttribute{
+			Optional: true,
+		},
+		"enable_deduplication": schema.BoolAttribute{
+			Optional: true,
+		},
+		"auto_login_after_register": schema.BoolAttribute{
+			Optional: true,
+		},
+		"enable_passwordless_auth": schema.BoolAttribute{
+			Optional: true,
+		},
+		"register_with_login_information": schema.BoolAttribute{
+			Optional: true,
+		},
+		"fds_enabled": schema.BoolAttribute{
+			Optional: true,
+		},
+		"is_hybrid_app": schema.BoolAttribute{
+			Optional: true,
+		},
+		"editable": schema.BoolAttribute{
+			Optional: true,
+		},
+		"enabled": schema.BoolAttribute{
+			Optional: true,
+		},
+		"always_ask_mfa": schema.BoolAttribute{
+			Optional: true,
+		},
+		"email_verification_required": schema.BoolAttribute{
+			Optional: true,
+		},
+		"enable_classical_provider": schema.BoolAttribute{
+			Optional: true,
+		},
+		"is_remember_me_selected": schema.BoolAttribute{
+			Optional: true,
+		},
+		"response_types": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"grant_types": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+		},
+		"allow_login_with": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			Validators: []validator.Set{
+				setvalidator.ValueStringsAre(
+					stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
+				),
+			},
+		},
+		"mfa": schema.SingleNestedAttribute{
+			Optional: true,
+			Attributes: map[string]schema.Attribute{
+				"setting": schema.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.OneOf([]string{"OFF", "ALWAYS", "SMART", "TIME_BASED", "SMART_PLUS_TIME_BASED"}...),
+					},
+				},
+				"time_interval_in_seconds": schema.Int64Attribute{
+					Optional: true,
+				},
+				"allowed_methods": schema.SetAttribute{
+					ElementType: types.StringType,
+					Optional:    true,
+				},
+			},
+		},
+	},
 }
