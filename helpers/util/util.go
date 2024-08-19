@@ -1,6 +1,8 @@
 package util
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -79,4 +81,31 @@ func MapValueOrNull(value *map[string]string) (types.Map, diag.Diagnostics) {
 	}
 	cf, diag := types.MapValue(types.StringType, mapAttributes)
 	return cf, diag
+}
+
+func ProcessResponse(res *http.Response, target interface{}) error {
+	if target != nil {
+		err := json.NewDecoder(res.Body).Decode(target)
+		if err != nil {
+			return fmt.Errorf("failed to decode response body, %w", err)
+		}
+	}
+	return nil
+}
+
+func HandleResponseError(res *http.Response, err error) error {
+	if err != nil {
+		if res != nil && res.Body != nil {
+			defer res.Body.Close()
+		}
+		return err
+	}
+	return nil
+}
+
+func FormatErrorMessage(err error) string {
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err.Error())
+	}
+	return ""
 }

@@ -293,8 +293,7 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 	}
 	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(cp)
 	if err != nil {
-		// TODO: move fmt.Sprintf("Error: %s", err.Error()) in all to a util function
-		resp.Diagnostics.AddError("failed to create custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create custom provider", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
@@ -307,7 +306,7 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 
 	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(state.ProviderName.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read custom provider", util.FormatErrorMessage(err))
 		return
 	}
 	state.StandardType = util.StringValueOrNull(&res.Data.StandardType)
@@ -406,7 +405,7 @@ func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest,
 	cp.ID = state.ID.ValueString()
 	err := r.cidaasClient.CustomProvider.UpdateCustomProvider(cp)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update custom provider", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update custom provider", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -420,7 +419,7 @@ func (r *CustomProvider) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 	err := r.cidaasClient.CustomProvider.DeleteCustomProvider(state.ProviderName.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete custom provier", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete custom provier", util.FormatErrorMessage(err))
 		return
 	}
 }

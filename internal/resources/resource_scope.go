@@ -176,7 +176,7 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 	response, err := r.cidaasClient.Scope.Upsert(*scopePayload)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create scope", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create scope", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ScopeOwner = util.StringValueOrNull(&response.Data.ScopeOwner)
@@ -189,7 +189,7 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.Scope.Get(state.ScopeKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read scope", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read scope", util.FormatErrorMessage(err))
 		return
 	}
 
@@ -245,7 +245,7 @@ func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 	_, err := r.cidaasClient.Scope.Upsert(*scopePayload)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update scope", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update scope", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -259,7 +259,7 @@ func (r *ScopeResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	}
 	err := r.cidaasClient.Scope.Delete(state.ScopeKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete scope", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete scope", util.FormatErrorMessage(err))
 		return
 	}
 }

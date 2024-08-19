@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -21,7 +20,7 @@ type RoleResponse struct {
 }
 
 type Role struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type RoleService interface {
@@ -30,47 +29,52 @@ type RoleService interface {
 	DeleteRole(role string) error
 }
 
-func NewRole(httpClient util.HTTPClientInterface) RoleService {
-	return &Role{HTTPClient: httpClient}
+func NewRole(clientConfig ClientConfig) RoleService {
+	return &Role{clientConfig}
 }
 
-func (c *Role) UpsertRole(role RoleModel) (*RoleResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "roles-srv/role"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(role)
-	if err != nil {
+func (r *Role) UpsertRole(role RoleModel) (*RoleResponse, error) {
+	var response RoleResponse
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "roles-srv/role")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(role)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response RoleResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode response body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Role) GetRole(role string) (*RoleResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?role=%s", c.HTTPClient.GetHost(), "roles-srv/role", role))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+func (r *Role) GetRole(role string) (*RoleResponse, error) {
+	var response RoleResponse
+	url := fmt.Sprintf("%s/%s?role=%s", r.BaseURL, "roles-srv/role", role)
+
+	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(role)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response RoleResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode response body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *Role) DeleteRole(role string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?role=%s", c.HTTPClient.GetHost(), "roles-srv/role", role))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+func (r *Role) DeleteRole(role string) error {
+	url := fmt.Sprintf("%s/%s?role=%s", r.BaseURL, "roles-srv/role", role)
+
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

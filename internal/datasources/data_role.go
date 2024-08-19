@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -68,7 +69,7 @@ func (d *RoleDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	response, err := d.cidaasClient.Role.GetRole(data.Role.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read role", util.FormatErrorMessage(err))
 		return
 	}
 	data.ID = types.StringValue(response.Data.Role)

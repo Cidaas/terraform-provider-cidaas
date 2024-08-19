@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -70,7 +69,7 @@ type WebhookResponse struct {
 var _ WebhookService = &Webhook{}
 
 type Webhook struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type WebhookService interface {
 	Upsert(wb WebhookModel) (*WebhookResponse, error)
@@ -78,47 +77,50 @@ type WebhookService interface {
 	Delete(id string) error
 }
 
-func NewWebhook(httpClient util.HTTPClientInterface) WebhookService {
-	return &Webhook{HTTPClient: httpClient}
+func NewWebhook(clientConfig ClientConfig) WebhookService {
+	return &Webhook{clientConfig}
 }
 
 func (w *Webhook) Upsert(wb WebhookModel) (*WebhookResponse, error) {
-	w.HTTPClient.SetURL(fmt.Sprintf("%s/%s", w.HTTPClient.GetHost(), "webhook-srv/webhook"))
-	w.HTTPClient.SetMethod(http.MethodPost)
-	res, err := w.HTTPClient.MakeRequest(wb)
-	if err != nil {
+	var response WebhookResponse
+	url := fmt.Sprintf("%s/%s", w.BaseURL, "webhook-srv/webhook")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, w.AccessToken)
+
+	res, err := httpClient.MakeRequest(wb)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response WebhookResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (w *Webhook) Get(id string) (*WebhookResponse, error) {
-	w.HTTPClient.SetURL(fmt.Sprintf("%s/%s?id=%s", w.HTTPClient.GetHost(), "webhook-srv/webhook", id))
-	w.HTTPClient.SetMethod(http.MethodGet)
-	res, err := w.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response WebhookResponse
+	url := fmt.Sprintf("%s/%s?id=%s", w.BaseURL, "webhook-srv/webhook", id)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, w.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response WebhookResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (w *Webhook) Delete(id string) error {
-	w.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", w.HTTPClient.GetHost(), "webhook-srv/webhook", id))
-	w.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := w.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", w.BaseURL, "webhook-srv/webhook", id)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, w.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

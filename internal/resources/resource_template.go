@@ -221,7 +221,7 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	template := prepareTemplateModel(plan)
 	res, err := r.cidaasClient.Template.Upsert(*template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create template", fmt.Sprintf("Error: %+v", err.Error()))
+		resp.Diagnostics.AddError("failed to create template", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
@@ -255,7 +255,7 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	res, err := r.cidaasClient.Template.Get(template, state.IsSystemTemplate.ValueBool())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read template", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read template", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -286,7 +286,7 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 	template.ID = state.ID.ValueString()
 	res, err := r.cidaasClient.Template.Upsert(*template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update template", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update template", util.FormatErrorMessage(err))
 		return
 	}
 	plan.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
@@ -310,7 +310,7 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	} else {
 		err := r.cidaasClient.Template.Delete(state.TemplateKey.ValueString(), state.TemplateType.ValueString())
 		if err != nil {
-			resp.Diagnostics.AddError("failed to delete template", fmt.Sprintf("Error: %s", err.Error()))
+			resp.Diagnostics.AddError("failed to delete template", util.FormatErrorMessage(err))
 		}
 	}
 }

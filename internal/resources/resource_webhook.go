@@ -244,7 +244,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 	res, err := r.cidaasClient.Webhook.Upsert(*wbModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create group type", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create webhook", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
@@ -258,7 +258,7 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.Webhook.Get(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read webhook", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read webhook", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -330,7 +330,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	_, err := r.cidaasClient.Webhook.Upsert(*wbModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update webhook", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update webhook", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -344,7 +344,7 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 	err := r.cidaasClient.Webhook.Delete(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete webhook", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete webhook", util.FormatErrorMessage(err))
 		return
 	}
 }

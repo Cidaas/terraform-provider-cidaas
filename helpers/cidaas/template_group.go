@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -52,7 +51,7 @@ type IVRSenderConfig struct {
 var _ TemplateGroupService = &TemplateGroup{}
 
 type TemplateGroup struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type TemplateGroupService interface {
@@ -62,69 +61,73 @@ type TemplateGroupService interface {
 	Delete(groupID string) error
 }
 
-func NewTemplateGroup(httpClient util.HTTPClientInterface) TemplateGroupService {
-	return &TemplateGroup{HTTPClient: httpClient}
+func NewTemplateGroup(clientConfig ClientConfig) TemplateGroupService {
+	return &TemplateGroup{clientConfig}
 }
 
 func (t *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
-	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups"))
-	t.HTTPClient.SetMethod(http.MethodPost)
-	res, err := t.HTTPClient.MakeRequest(tg)
-	if err != nil {
+	var response TemplateGroupResponse
+	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/groups")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(tg)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response TemplateGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (t *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
-	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", tg.GroupID))
-	t.HTTPClient.SetMethod(http.MethodPut)
-	res, err := t.HTTPClient.MakeRequest(tg)
-	if err != nil {
+	var response TemplateGroupResponse
+	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", tg.GroupID)
+	httpClient := util.NewHTTPClient(url, http.MethodPut, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(tg)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response TemplateGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (t *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
-	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", groupID))
-	t.HTTPClient.SetMethod(http.MethodGet)
-	res, err := t.HTTPClient.MakeRequest(nil)
+	var response TemplateGroupResponse
+	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", groupID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
 	if res.StatusCode == http.StatusNoContent {
 		resp := &TemplateGroupResponse{
 			Status: http.StatusNoContent,
 		}
 		return resp, fmt.Errorf("template group not found by the provider group_id  %s", groupID)
 	}
-	if err != nil {
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response TemplateGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (t *TemplateGroup) Delete(groupID string) error {
-	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/groups", groupID))
-	t.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := t.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", groupID)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

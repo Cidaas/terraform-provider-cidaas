@@ -455,42 +455,33 @@ For more samples on common_configs, please refer to the examples folder.
 <a id="nestedatt--ad_providers"></a>
 ### Nested Schema for `ad_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--allow_guest_login_groups"></a>
 ### Nested Schema for `allow_guest_login_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--allowed_groups"></a>
 ### Nested Schema for `allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
@@ -553,46 +544,37 @@ Optional:
 <a id="nestedatt--common_configs--ad_providers"></a>
 ### Nested Schema for `common_configs.ad_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--allowed_groups"></a>
 ### Nested Schema for `common_configs.allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--common_configs--custom_providers"></a>
 ### Nested Schema for `common_configs.custom_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--mfa"></a>
@@ -608,23 +590,15 @@ Optional:
 <a id="nestedatt--common_configs--operations_allowed_groups"></a>
 ### Nested Schema for `common_configs.operations_allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--common_configs--saml_providers"></a>
 ### Nested Schema for `common_configs.saml_providers`
-
-Required:
-
-- `provider_name` (String)
-- `type` (String)
 
 Optional:
 
@@ -632,12 +606,14 @@ Optional:
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--social_providers"></a>
 ### Nested Schema for `common_configs.social_providers`
 
-Required:
+Optional:
 
 - `provider_name` (String)
 - `social_id` (String)
@@ -647,17 +623,14 @@ Required:
 <a id="nestedatt--custom_providers"></a>
 ### Nested Schema for `custom_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--group_selection"></a>
@@ -703,23 +676,15 @@ Optional:
 <a id="nestedatt--operations_allowed_groups"></a>
 ### Nested Schema for `operations_allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--saml_providers"></a>
 ### Nested Schema for `saml_providers`
-
-Required:
-
-- `provider_name` (String)
-- `type` (String)
 
 Optional:
 
@@ -727,12 +692,14 @@ Optional:
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--social_providers"></a>
 ### Nested Schema for `social_providers`
 
-Required:
+Optional:
 
 - `provider_name` (String)
 - `social_id` (String)

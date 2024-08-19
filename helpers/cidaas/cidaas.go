@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,7 +10,6 @@ import (
 )
 
 type Client struct {
-	Config         ClientConfig
 	Role           RoleService
 	CustomProvider CustomProvideService
 	Scope          ScopeService
@@ -30,6 +28,7 @@ type ClientConfig struct {
 	ClientID     string
 	ClientSecret string
 	BaseURL      string
+	AccessToken  string
 }
 
 type TokenResponse struct {
@@ -37,6 +36,8 @@ type TokenResponse struct {
 }
 
 func NewClient(config ClientConfig) (*Client, error) {
+	re := regexp.MustCompile(`/*$`)
+	config.BaseURL = re.ReplaceAllString(config.BaseURL, "")
 	tokenURL, err := url.JoinPath(config.BaseURL, "token-srv/token")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token url %s", err.Error())
@@ -48,31 +49,28 @@ func NewClient(config ClientConfig) (*Client, error) {
 		"grant_type":    "client_credentials",
 	}
 	res, err := httpClient.MakeRequest(payload)
-	if err != nil {
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, fmt.Errorf("failed to generate access token %s", err.Error())
 	}
 	defer res.Body.Close()
 	var response TokenResponse
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("failed to decode token response %s", err.Error())
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, fmt.Errorf("failed to generate access token %s", err.Error())
 	}
-	re := regexp.MustCompile(`/*$`)
-	host := re.ReplaceAllString(config.BaseURL, "")
-	ht := util.HTTPClient{Token: response.AccessToken, Host: host}
+	config.AccessToken = response.AccessToken
 	client := &Client{
-		Config:         config,
-		Role:           NewRole(&ht),
-		CustomProvider: NewCustomProvider(&ht),
-		Scope:          NewScope(&ht),
-		ScopeGroup:     NewScopeGroup(&ht),
-		GroupType:      NewGroupType(&ht),
-		UserGroup:      NewUserGroup(&ht),
-		HostedPage:     NewHostedPage(&ht),
-		Webhook:        NewWebhook(&ht),
-		App:            NewApp(&ht),
-		RegField:       NewRegField(&ht),
-		TemplateGroup:  NewTemplateGroup(&ht),
-		Template:       NewTemplate(&ht),
+		Role:           NewRole(config),
+		CustomProvider: NewCustomProvider(config),
+		Scope:          NewScope(config),
+		ScopeGroup:     NewScopeGroup(config),
+		GroupType:      NewGroupType(config),
+		UserGroup:      NewUserGroup(config),
+		HostedPage:     NewHostedPage(config),
+		Webhook:        NewWebhook(config),
+		App:            NewApp(config),
+		RegField:       NewRegField(config),
+		TemplateGroup:  NewTemplateGroup(config),
+		Template:       NewTemplate(config),
 	}
 	return client, nil
 }

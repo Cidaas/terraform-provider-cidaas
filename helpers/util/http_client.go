@@ -25,10 +25,15 @@ type HTTPClientInterface interface {
 	GetHost() string
 }
 
-func NewHTTPClient(url string, method string) *HTTPClient {
+func NewHTTPClient(url, method string, token ...string) *HTTPClient {
+	var tokenValue string
+	if len(token) > 0 {
+		tokenValue = token[0]
+	}
 	return &HTTPClient{
 		URL:        url,
 		HTTPMethod: method,
+		Token:      tokenValue,
 	}
 }
 
