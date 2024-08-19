@@ -1,7 +1,7 @@
 ![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
 ## About Cidaas:
-[cidaas](https://www.cidaas.com)
+[Cidaas](https://www.cidaas.com)
  is a fast and secure Cloud Identity & Access Management solution that standardises what’s important and simplifies what’s complex.
 
 ## Feature set includes:
