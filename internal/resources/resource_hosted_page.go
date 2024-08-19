@@ -198,7 +198,7 @@ func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	res, err := r.cidaasClient.HostedPage.Upsert(*hpPayload)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create hosted page", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create hosted page", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
@@ -215,7 +215,7 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 	res, err := r.cidaasClient.HostedPage.Get(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read hosted page", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read hosted page", util.FormatErrorMessage(err))
 		return
 	}
 
@@ -273,7 +273,7 @@ func (r *HostedPageResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	_, err := r.cidaasClient.HostedPage.Upsert(*hpPayload)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update hosted page", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update hosted page", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -287,7 +287,7 @@ func (r *HostedPageResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 	err := r.cidaasClient.HostedPage.Delete(state.ID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete hosted page", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete hosted page", util.FormatErrorMessage(err))
 		return
 	}
 }

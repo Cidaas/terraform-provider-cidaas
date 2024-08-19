@@ -281,12 +281,12 @@ func (r *TemplateGroupResource) Create(ctx context.Context, req resource.CreateR
 	}
 	res, err := r.cidaasClient.TemplateGroup.Create(*tgModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create template group", fmt.Sprintf("Error: %+v", err.Error()))
+		resp.Diagnostics.AddError("failed to create template group", util.FormatErrorMessage(err))
 		return
 	}
 	res, err = r.cidaasClient.TemplateGroup.Get(res.Data.GroupID)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to get template group", fmt.Sprintf("Error: %+v", err.Error()))
+		resp.Diagnostics.AddError("failed to get template group", util.FormatErrorMessage(err))
 		return
 	}
 	updatedPlan := updateState(&plan, *res)
@@ -298,7 +298,7 @@ func (r *TemplateGroupResource) Read(ctx context.Context, req resource.ReadReque
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.TemplateGroup.Get(state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read template group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read template group", util.FormatErrorMessage(err))
 		return
 	}
 	updatedState := updateState(&state, *res)
@@ -319,7 +319,7 @@ func (r *TemplateGroupResource) Update(ctx context.Context, req resource.UpdateR
 	templateGroupModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.TemplateGroup.Update(*templateGroupModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update template group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update template group", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -333,7 +333,7 @@ func (r *TemplateGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 	err := r.cidaasClient.TemplateGroup.Delete(state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete template group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete template group", util.FormatErrorMessage(err))
 		return
 	}
 }

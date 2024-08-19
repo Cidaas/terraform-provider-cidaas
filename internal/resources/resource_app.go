@@ -51,7 +51,7 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 	res, err := r.cidaasClient.App.Create(*appModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create app", fmt.Sprintf("Error: %+v", err.Error()))
+		resp.Diagnostics.AddError("failed to create app", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(updateStateModel(res, &plan, &config, CREATE)...)
@@ -67,7 +67,7 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 	res, err := r.cidaasClient.App.Get(state.ClientID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read app", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read app", util.FormatErrorMessage(err))
 		return
 	}
 	operation := IMPORT
@@ -95,7 +95,7 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	appModel.ID = state.ID.ValueString()
 	res, err := r.cidaasClient.App.Update(*appModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update app", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update app", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(updateStateModel(res, &plan, &config, UPDATE)...)
@@ -110,7 +110,7 @@ func (r *AppResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	}
 	err := r.cidaasClient.App.Delete(state.ClientID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete app", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete app", util.FormatErrorMessage(err))
 		return
 	}
 }

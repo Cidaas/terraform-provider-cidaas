@@ -135,7 +135,7 @@ func (r *GroupTypeResource) Create(ctx context.Context, req resource.CreateReque
 	}
 	res, err := r.cidaasClient.GroupType.Create(groupType)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create group type", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create group type", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
@@ -149,7 +149,7 @@ func (r *GroupTypeResource) Read(ctx context.Context, req resource.ReadRequest, 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.GroupType.Get(state.GroupType.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read group type", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read group type", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -182,7 +182,7 @@ func (r *GroupTypeResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 	err := r.cidaasClient.GroupType.Update(groupType)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update group type", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update group type", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -196,7 +196,7 @@ func (r *GroupTypeResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	err := r.cidaasClient.GroupType.Delete(state.GroupType.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete scope group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete scope group", util.FormatErrorMessage(err))
 		return
 	}
 }

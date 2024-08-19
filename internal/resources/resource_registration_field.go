@@ -453,7 +453,7 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	}
 	res, err := r.cidaasClient.RegField.Upsert(*rfModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create registration field", fmt.Sprintf("Error: %+v", err.Error()))
+		resp.Diagnostics.AddError("failed to create registration field", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = types.StringValue(res.Data.ID)
@@ -469,7 +469,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.RegField.Get(state.FieldKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read role", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read role", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -605,7 +605,7 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	fieldModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.RegField.Upsert(*fieldModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update registration field", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update registration field", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -619,7 +619,7 @@ func (r *RegFieldResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 	err := r.cidaasClient.RegField.Delete(state.FieldKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to registration field", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to registration field", util.FormatErrorMessage(err))
 		return
 	}
 }

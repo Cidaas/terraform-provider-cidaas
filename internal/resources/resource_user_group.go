@@ -178,7 +178,7 @@ func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateReque
 	}
 	res, err := r.cidaasClient.UserGroup.Create(*userGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create user group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to create user group", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = types.StringValue(res.Data.ID)
@@ -195,7 +195,7 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	}
 	res, err := r.cidaasClient.UserGroup.Get(state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read user group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to read user group", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -234,7 +234,7 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 	err := r.cidaasClient.UserGroup.Update(*userGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update user group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to update user group", util.FormatErrorMessage(err))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -248,7 +248,7 @@ func (r *UserGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	subGroups, err := r.cidaasClient.UserGroup.GetSubGroups(state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to check sub user groups", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to check sub user groups", util.FormatErrorMessage(err))
 		return
 	}
 	if len(subGroups) > 0 {
@@ -257,7 +257,7 @@ func (r *UserGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	err = r.cidaasClient.UserGroup.Delete(state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete user group", fmt.Sprintf("Error: %s", err.Error()))
+		resp.Diagnostics.AddError("failed to delete user group", util.FormatErrorMessage(err))
 		return
 	}
 }
