@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -23,7 +22,7 @@ type ScopeGroupResponse struct {
 }
 
 type ScopeGroup struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type ScopeGroupService interface {
 	Upsert(sg ScopeGroupConfig) (*ScopeGroupResponse, error)
@@ -31,47 +30,50 @@ type ScopeGroupService interface {
 	Delete(scopeGroupName string) error
 }
 
-func NewScopeGroup(httpClient util.HTTPClientInterface) ScopeGroupService {
-	return &ScopeGroup{HTTPClient: httpClient}
+func NewScopeGroup(clientConfig ClientConfig) ScopeGroupService {
+	return &ScopeGroup{clientConfig}
 }
 
 func (c *ScopeGroup) Upsert(sg ScopeGroupConfig) (*ScopeGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "scopes-srv/group"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(sg)
-	if err != nil {
+	var response ScopeGroupResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/group")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(sg)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ScopeGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ScopeGroup) Get(scopeGroupName string) (*ScopeGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?group_name=%s", c.HTTPClient.GetHost(), "scopes-srv/group", scopeGroupName))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response ScopeGroupResponse
+	url := fmt.Sprintf("%s/%s?group_name=%s", c.BaseURL, "scopes-srv/group", scopeGroupName)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ScopeGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ScopeGroup) Delete(scopeGroupName string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "scopes-srv/group", scopeGroupName))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "scopes-srv/group", scopeGroupName)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

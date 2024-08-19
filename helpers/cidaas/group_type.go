@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -25,7 +24,7 @@ type GroupTypeResponse struct {
 }
 
 type GroupType struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type GroupTypeService interface {
 	Create(gt GroupTypeData) (*GroupTypeResponse, error)
@@ -34,46 +33,49 @@ type GroupTypeService interface {
 	Delete(groupType string) error
 }
 
-func NewGroupType(httpClient util.HTTPClientInterface) GroupTypeService {
-	return &GroupType{HTTPClient: httpClient}
+func NewGroupType(clientConfig ClientConfig) GroupTypeService {
+	return &GroupType{clientConfig}
 }
 
 func (c *GroupType) Create(gt GroupTypeData) (*GroupTypeResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "groups-srv/grouptypes"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(gt)
-	if err != nil {
+	var response GroupTypeResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/grouptypes")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(gt)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response GroupTypeResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *GroupType) Get(groupType string) (*GroupTypeResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s?groupType=%s", c.HTTPClient.GetHost(), "groups-srv/grouptypes", groupType))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response GroupTypeResponse
+	url := fmt.Sprintf("%s/%s?groupType=%s", c.BaseURL, "groups-srv/grouptypes", groupType)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response GroupTypeResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *GroupType) Update(gt GroupTypeData) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "groups-srv/grouptypes"))
-	c.HTTPClient.SetMethod(http.MethodPut)
-	res, err := c.HTTPClient.MakeRequest(gt)
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/grouptypes")
+	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(gt)
 	if err != nil {
 		return err
 	}
@@ -82,10 +84,11 @@ func (c *GroupType) Update(gt GroupTypeData) error {
 }
 
 func (c *GroupType) Delete(groupType string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "groups-srv/grouptypes", groupType))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/grouptypes", groupType)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

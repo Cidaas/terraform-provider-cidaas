@@ -104,5 +104,8 @@ func HandleResponseError(res *http.Response, err error) error {
 }
 
 func FormatErrorMessage(err error) string {
-	return fmt.Sprintf("Error: %s", err.Error())
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err.Error())
+	}
+	return ""
 }

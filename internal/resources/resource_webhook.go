@@ -244,7 +244,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 	res, err := r.cidaasClient.Webhook.Upsert(*wbModel)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create group type", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to create webhook", util.FormatErrorMessage(err))
 		return
 	}
 	plan.ID = util.StringValueOrNull(&res.Data.ID)

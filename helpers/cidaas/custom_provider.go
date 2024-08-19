@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -57,41 +56,42 @@ type CustomProviderConfigureResponse struct {
 }
 
 type CustomProvider struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type CustomProvideService interface {
 	CreateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error)
 	UpdateCustomProvider(cp *CustomProviderModel) error
 	GetCustomProvider(providerName string) (*CustomProviderResponse, error)
 	DeleteCustomProvider(providerName string) error
-	ConfigureCustomProvider(cp CustomProviderConfigPayload) (*CustomProviderConfigureResponse, error)
 }
 
-func NewCustomProvider(httpClient util.HTTPClientInterface) CustomProvideService {
-	return &CustomProvider{HTTPClient: httpClient}
+func NewCustomProvider(clientConfig ClientConfig) CustomProvideService {
+	return &CustomProvider{clientConfig}
 }
 
 func (c *CustomProvider) CreateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(cp)
-	if err != nil {
+	var response CustomProviderResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(cp)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response CustomProviderResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom"))
-	c.HTTPClient.SetMethod(http.MethodPut)
-	res, err := c.HTTPClient.MakeRequest(cp)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
+	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(cp)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
@@ -99,44 +99,30 @@ func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) error {
 }
 
 func (c *CustomProvider) GetCustomProvider(providerName string) (*CustomProviderResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom", providerName))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response CustomProviderResponse
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "providers-srv/custom", providerName)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response CustomProviderResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *CustomProvider) DeleteCustomProvider(providerName string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "providers-srv/custom", strings.ToLower(providerName)))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
-		return nil
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "providers-srv/custom", strings.ToLower(providerName))
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return err
 	}
 	defer res.Body.Close()
 	return nil
-}
-
-func (c *CustomProvider) ConfigureCustomProvider(cp CustomProviderConfigPayload) (*CustomProviderConfigureResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "apps-srv/loginproviders/update", cp.DisplayName))
-	c.HTTPClient.SetMethod(http.MethodPut)
-	res, err := c.HTTPClient.MakeRequest(cp)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	var response CustomProviderConfigureResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
-	}
-	return &response, nil
 }

@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -74,7 +73,7 @@ type Consent struct {
 var _ RegFieldService = &RegField{}
 
 type RegField struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type RegFieldService interface {
@@ -83,47 +82,50 @@ type RegFieldService interface {
 	Delete(fieldKey string) error
 }
 
-func NewRegField(httpClient util.HTTPClientInterface) RegFieldService {
-	return &RegField{HTTPClient: httpClient}
+func NewRegField(clientConfig ClientConfig) RegFieldService {
+	return &RegField{clientConfig}
 }
 
 func (r *RegField) Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error) {
-	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s", r.HTTPClient.GetHost(), "fieldsetup-srv/fields"))
-	r.HTTPClient.SetMethod(http.MethodPost)
-	res, err := r.HTTPClient.MakeRequest(rfc)
-	if err != nil {
+	var response RegistrationFieldResponse
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "fieldsetup-srv/fields")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(rfc)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response RegistrationFieldResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (r *RegField) Get(fieldKey string) (*RegistrationFieldResponse, error) {
-	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", r.HTTPClient.GetHost(), "fieldsetup-srv/fields", fieldKey))
-	r.HTTPClient.SetMethod(http.MethodGet)
-	res, err := r.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response RegistrationFieldResponse
+	url := fmt.Sprintf("%s/%s/%s", r.BaseURL, "fieldsetup-srv/fields", fieldKey)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response RegistrationFieldResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (r *RegField) Delete(fieldKey string) error {
-	r.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", r.HTTPClient.GetHost(), "fieldsetup-srv/fields", fieldKey))
-	r.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := r.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", r.BaseURL, "fieldsetup-srv/fields", fieldKey)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

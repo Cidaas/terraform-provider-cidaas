@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -226,7 +225,7 @@ type IProviderMetadData struct {
 var _ AppService = &App{}
 
 type App struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type AppService interface {
 	Create(app AppModel) (AppResponse, error)
@@ -235,64 +234,67 @@ type AppService interface {
 	Delete(clientID string) error
 }
 
-func NewApp(httpClient util.HTTPClientInterface) AppService {
-	return &App{HTTPClient: httpClient}
+func NewApp(clientConfig ClientConfig) AppService {
+	return &App{clientConfig}
 }
 
 func (a *App) Create(app AppModel) (AppResponse, error) {
-	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients"))
-	a.HTTPClient.SetMethod(http.MethodPost)
-	res, err := a.HTTPClient.MakeRequest(app)
 	var response AppResponse
+	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, a.AccessToken)
 
-	if err != nil {
+	res, err := httpClient.MakeRequest(app)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return response, err
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return response, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return response, err
 	}
 	return response, nil
 }
 
 func (a *App) Get(clientID string) (*AppResponse, error) {
-	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients", clientID))
-	a.HTTPClient.SetMethod(http.MethodGet)
-	res, err := a.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response AppResponse
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, a.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response AppResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (a *App) Update(app AppModel) (AppResponse, error) {
-	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients"))
-	a.HTTPClient.SetMethod(http.MethodPut)
-	res, err := a.HTTPClient.MakeRequest(app)
 	var response AppResponse
-	if err != nil {
+	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
+	httpClient := util.NewHTTPClient(url, http.MethodPut, a.AccessToken)
+
+	res, err := httpClient.MakeRequest(app)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return response, err
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return response, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return response, err
 	}
 	return response, nil
 }
 
 func (a *App) Delete(clientID string) error {
-	a.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", a.HTTPClient.GetHost(), "apps-srv/clients", clientID))
-	a.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := a.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, a.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

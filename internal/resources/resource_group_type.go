@@ -196,7 +196,7 @@ func (r *GroupTypeResource) Delete(ctx context.Context, req resource.DeleteReque
 	}
 	err := r.cidaasClient.GroupType.Delete(state.GroupType.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to delete scope group", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to delete group type", util.FormatErrorMessage(err))
 		return
 	}
 }

@@ -40,7 +40,7 @@ type SubGroupResponse struct {
 }
 
 type UserGroup struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type UserGroupService interface {
 	Create(ug UserGroupData) (*UserGroupResponse, error)
@@ -50,47 +50,50 @@ type UserGroupService interface {
 	GetSubGroups(parentID string) ([]UserGroupData, error)
 }
 
-func NewUserGroup(httpClient util.HTTPClientInterface) UserGroupService {
-	return &UserGroup{HTTPClient: httpClient}
+func NewUserGroup(clientConfig ClientConfig) UserGroupService {
+	return &UserGroup{clientConfig}
 }
 
 func (c *UserGroup) Create(ug UserGroupData) (*UserGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "groups-srv/usergroups"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(ug)
-	if err != nil {
+	var response UserGroupResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/usergroups")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(ug)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response UserGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *UserGroup) Get(groupID string) (*UserGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "groups-srv/usergroups", groupID))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response UserGroupResponse
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/usergroups", groupID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response UserGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *UserGroup) Update(ug UserGroupData) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "groups-srv/usergroups"))
-	c.HTTPClient.SetMethod(http.MethodPut)
-	res, err := c.HTTPClient.MakeRequest(ug)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/usergroups")
+	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(ug)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
@@ -98,10 +101,11 @@ func (c *UserGroup) Update(ug UserGroupData) error {
 }
 
 func (c *UserGroup) Delete(groupID string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "groups-srv/usergroups", groupID))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/usergroups", groupID)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
@@ -109,10 +113,12 @@ func (c *UserGroup) Delete(groupID string) error {
 }
 
 func (c *UserGroup) GetSubGroups(parentID string) ([]UserGroupData, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "groups-srv/graph/usergroups"))
-	c.HTTPClient.SetMethod(http.MethodPost)
+	var response SubGroupResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/graph/usergroups")
 	payload := map[string]string{"parentId": parentID}
-	res, err := c.HTTPClient.MakeRequest(payload)
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(payload)
 	if res.StatusCode == http.StatusNoContent {
 		return []UserGroupData{}, nil
 	}
@@ -120,7 +126,6 @@ func (c *UserGroup) GetSubGroups(parentID string) ([]UserGroupData, error) {
 		return nil, fmt.Errorf("failed to fetch sub groups: %w", err)
 	}
 	defer res.Body.Close()
-	var response SubGroupResponse
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode subgroup response: %w", err)
 	}

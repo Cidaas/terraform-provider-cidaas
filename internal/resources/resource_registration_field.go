@@ -469,7 +469,7 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	res, err := r.cidaasClient.RegField.Get(state.FieldKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read role", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to read registration field", util.FormatErrorMessage(err))
 		return
 	}
 	state.ID = util.StringValueOrNull(&res.Data.ID)
@@ -619,7 +619,7 @@ func (r *RegFieldResource) Delete(ctx context.Context, req resource.DeleteReques
 	}
 	err := r.cidaasClient.RegField.Delete(state.FieldKey.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to registration field", util.FormatErrorMessage(err))
+		resp.Diagnostics.AddError("failed to delete registration field", util.FormatErrorMessage(err))
 		return
 	}
 }

@@ -61,7 +61,7 @@ type VerificationType struct {
 var _ TemplateService = &Template{}
 
 type Template struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type TemplateService interface {
@@ -71,18 +71,18 @@ type TemplateService interface {
 	GetMasterList(groupID string) (*MasterListResponse, error)
 }
 
-func NewTemplate(httpClient util.HTTPClientInterface) TemplateService {
-	return &Template{HTTPClient: httpClient}
+func NewTemplate(clientConfig ClientConfig) TemplateService {
+	return &Template{clientConfig}
 }
 
 func (t *Template) Upsert(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
-	url := fmt.Sprintf("%s/%s", t.HTTPClient.GetHost(), "templates-srv/template")
+	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/template")
 	if !isSystemTemplate {
 		url += "/custom"
 	}
-	t.HTTPClient.SetURL(url)
-	t.HTTPClient.SetMethod(http.MethodPost)
-	res, err := t.HTTPClient.MakeRequest(template)
+	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(template)
 	if err != nil {
 		return nil, err
 	}
@@ -104,16 +104,16 @@ func (t *Template) Upsert(template TemplateModel, isSystemTemplate bool) (respon
 }
 
 func (t *Template) Get(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
-	url := fmt.Sprintf("%s/%s", t.HTTPClient.GetHost(), "templates-srv/template")
+	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/template")
 	if isSystemTemplate {
 		url += "/find"
 	} else {
 		url += "/custom/find"
 	}
-	t.HTTPClient.SetURL(url)
-	t.HTTPClient.SetMethod(http.MethodPost)
-	res, err := t.HTTPClient.MakeRequest(template)
-	if err != nil {
+	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(template)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
@@ -137,10 +137,11 @@ func (t *Template) Get(template TemplateModel, isSystemTemplate bool) (response 
 }
 
 func (t *Template) Delete(templateKey string, templateType string) error {
-	t.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/template/custom", strings.ToUpper(templateKey), strings.ToUpper(templateType)))
-	t.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := t.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s/%s", t.BaseURL, "templates-srv/template/custom", strings.ToUpper(templateKey), strings.ToUpper(templateType))
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
@@ -148,18 +149,18 @@ func (t *Template) Delete(templateKey string, templateType string) error {
 }
 
 func (t *Template) GetMasterList(groupID string) (*MasterListResponse, error) {
-	url := fmt.Sprintf("%s/%s/%s", t.HTTPClient.GetHost(), "templates-srv/master/settings", groupID)
-	t.HTTPClient.SetURL(url)
-	t.HTTPClient.SetMethod(http.MethodGet)
-	res, err := t.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response MasterListResponse
+	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/master/settings", groupID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response MasterListResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }

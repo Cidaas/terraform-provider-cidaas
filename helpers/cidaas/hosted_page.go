@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -31,7 +30,7 @@ type HostedPageResponse struct {
 }
 
 type HostedPage struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type HostedPageService interface {
 	Upsert(hp HostedPageModel) (*HostedPageResponse, error)
@@ -39,47 +38,50 @@ type HostedPageService interface {
 	Delete(hpGroupName string) error
 }
 
-func NewHostedPage(httpClient util.HTTPClientInterface) HostedPageService {
-	return &HostedPage{HTTPClient: httpClient}
+func NewHostedPage(clientConfig ClientConfig) HostedPageService {
+	return &HostedPage{clientConfig}
 }
 
 func (hp *HostedPage) Upsert(hpm HostedPageModel) (*HostedPageResponse, error) {
-	hp.HTTPClient.SetURL(fmt.Sprintf("%s/%s", hp.HTTPClient.GetHost(), "hostedpages-srv/hpgroup"))
-	hp.HTTPClient.SetMethod(http.MethodPost)
-	res, err := hp.HTTPClient.MakeRequest(hpm)
-	if err != nil {
+	var response HostedPageResponse
+	url := fmt.Sprintf("%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, hp.AccessToken)
+
+	res, err := httpClient.MakeRequest(hpm)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response HostedPageResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (hp *HostedPage) Get(hpGroupName string) (*HostedPageResponse, error) {
-	hp.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", hp.HTTPClient.GetHost(), "hostedpages-srv/hpgroup", hpGroupName))
-	hp.HTTPClient.SetMethod(http.MethodGet)
-	res, err := hp.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response HostedPageResponse
+	url := fmt.Sprintf("%s/%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, hp.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response HostedPageResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (hp *HostedPage) Delete(hpGroupName string) error {
-	hp.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", hp.HTTPClient.GetHost(), "hostedpages-srv/hpgroup", hpGroupName))
-	hp.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := hp.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, hp.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
