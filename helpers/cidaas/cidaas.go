@@ -74,6 +74,9 @@ func NewClient(config ClientConfig) (*Client, error) {
 		RegField:       NewRegField(config),
 		TemplateGroup:  NewTemplateGroup(config),
 		Template:       NewTemplate(config),
+		SocialProvider: NewSocialProvider(config),
+		PasswordPolicy: NewPasswordPolicy(config),
+		ConsentGroup:   NewConsentGroup(config),
 	}
 	return client, nil
 }
