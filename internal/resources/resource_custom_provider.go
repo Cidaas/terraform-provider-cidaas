@@ -363,7 +363,6 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 			"profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale", "updated_at", "email", "email_verified",
 			"phone_number", "mobile_number", "address", "sub",
 		}
-
 		if strings.HasPrefix(key, "customFields.") {
 			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&val)
 			hasCustomfield = true
