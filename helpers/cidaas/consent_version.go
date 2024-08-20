@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -54,7 +53,7 @@ type ConsentLocale struct {
 }
 
 type ConsentVersion struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 
 type ConsentVersionService interface {
@@ -64,76 +63,79 @@ type ConsentVersionService interface {
 	GetLocal(consentVersionID string, locale string) (*ConsentLocalResponse, error)
 }
 
-func NewConsentVersion(httpClient util.HTTPClientInterface) ConsentVersionService {
-	return &ConsentVersion{HTTPClient: httpClient}
+func NewConsentVersion(clientConfig ClientConfig) ConsentVersionService {
+	return &ConsentVersion{clientConfig}
 }
 
 func (c *ConsentVersion) Upsert(consentVersionConfig ConsentVersionModel) (*ConsentVersionResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/consent/versions"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(consentVersionConfig)
-	if err != nil {
+	var response ConsentVersionResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/versions")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(consentVersionConfig)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentVersionResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ConsentVersion) Get(consentID string) (*ConsentVersionReadResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/consent/versions/list", consentID))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response ConsentVersionReadResponse
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/consent/versions/list", consentID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentVersionReadResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w, %s", err, consentID)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ConsentVersion) UpsertLocal(consentLocal ConsentLocalModel) (*ConsentLocalResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/consent/locale"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(consentLocal)
-	if err != nil {
+	var response ConsentLocalResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/locale")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(consentLocal)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentLocalResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ConsentVersion) GetLocal(consentVersionID string, locale string) (*ConsentLocalResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s?locale=%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/consent/locale", consentVersionID, locale))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
+	var response ConsentLocalResponse
+	url := fmt.Sprintf("%s/%s/%s?locale=%s", c.BaseURL, "consent-management-srv/v2/consent/locale", consentVersionID, locale)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
 	if res.StatusCode == http.StatusNoContent {
 		return &ConsentLocalResponse{
 			Success: false,
 			Status:  http.StatusNoContent,
 		}, nil
 	}
-	if err != nil {
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentLocalResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w, %s", err, consentVersionID)
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
