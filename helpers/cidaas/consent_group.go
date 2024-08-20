@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -23,7 +22,7 @@ type ConsentGroupResponse struct {
 }
 
 type ConsentGroup struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type ConsentGroupService interface {
 	Upsert(cg ConsentGroupConfig) (*ConsentGroupResponse, error)
@@ -31,47 +30,50 @@ type ConsentGroupService interface {
 	Delete(consentGroupID string) error
 }
 
-func NewConsentGroup(httpClient util.HTTPClientInterface) ConsentGroupService {
-	return &ConsentGroup{HTTPClient: httpClient}
+func NewConsentGroup(clientConfig ClientConfig) ConsentGroupService {
+	return &ConsentGroup{clientConfig}
 }
 
 func (c *ConsentGroup) Upsert(cg ConsentGroupConfig) (*ConsentGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/groups"))
-	c.HTTPClient.SetMethod(http.MethodPost)
-	res, err := c.HTTPClient.MakeRequest(cg)
-	if err != nil {
+	var response ConsentGroupResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/groups")
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(cg)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ConsentGroup) Get(consentGroupID string) (*ConsentGroupResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/groups", consentGroupID))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	var response ConsentGroupResponse
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/groups", consentGroupID)
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response ConsentGroupResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w, %s", err, consentGroupID)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
 func (c *ConsentGroup) Delete(consentGroupID string) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s/%s", c.HTTPClient.GetHost(), "consent-management-srv/v2/groups", consentGroupID))
-	c.HTTPClient.SetMethod(http.MethodDelete)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/groups", consentGroupID)
+	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()

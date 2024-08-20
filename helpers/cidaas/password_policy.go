@@ -1,7 +1,6 @@
 package cidaas
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -26,38 +25,40 @@ type PasswordPolicyResponse struct {
 }
 
 type PasswordPolicy struct {
-	HTTPClient util.HTTPClientInterface
+	ClientConfig
 }
 type PasswordPolicyService interface {
 	Get() (*PasswordPolicyResponse, error)
 	Update(cp PasswordPolicyModel) error
 }
 
-func NewPasswordPolicy(httpClient util.HTTPClientInterface) PasswordPolicyService {
-	return &PasswordPolicy{HTTPClient: httpClient}
+func NewPasswordPolicy(clientConfig ClientConfig) PasswordPolicyService {
+	return &PasswordPolicy{clientConfig}
 }
 
-func (c *PasswordPolicy) Get() (*PasswordPolicyResponse, error) {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "password-policy-srv/policy"))
-	c.HTTPClient.SetMethod(http.MethodGet)
-	res, err := c.HTTPClient.MakeRequest(nil)
-	if err != nil {
+func (p *PasswordPolicy) Get() (*PasswordPolicyResponse, error) {
+	var response PasswordPolicyResponse
+	url := fmt.Sprintf("%s/%s", p.BaseURL, "password-policy-srv/policy")
+	httpClient := util.NewHTTPClient(url, http.MethodGet, p.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	var response PasswordPolicyResponse
-	err = json.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal json body, %w", err)
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *PasswordPolicy) Update(payload PasswordPolicyModel) error {
-	c.HTTPClient.SetURL(fmt.Sprintf("%s/%s", c.HTTPClient.GetHost(), "password-policy-srv/policy"))
-	c.HTTPClient.SetMethod(http.MethodPut)
-	res, err := c.HTTPClient.MakeRequest(payload)
-	if err != nil {
+func (p *PasswordPolicy) Update(payload PasswordPolicyModel) error {
+	url := fmt.Sprintf("%s/%s", p.BaseURL, "password-policy-srv/policy")
+	httpClient := util.NewHTTPClient(url, http.MethodPut, p.AccessToken)
+
+	res, err := httpClient.MakeRequest(payload)
+	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
 	defer res.Body.Close()
