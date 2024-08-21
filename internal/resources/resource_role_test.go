@@ -113,7 +113,7 @@ func TestAccRoleResource_updateRoleFails(t *testing.T) {
 			},
 			{
 				Config:      testAccRoleResourceConfig(updatedRole, name, description),
-				ExpectError: regexp.MustCompile("Attribute 'role' can't be modified"),
+				ExpectError: regexp.MustCompile("Attribute 'role' can't be modified"), // TODO: full string comparison
 			},
 		},
 	})
@@ -176,7 +176,7 @@ func TestAccRoleResource_createMissingFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      missingRoleConfig,
-				ExpectError: regexp.MustCompile(`The argument "role" is required, but no definition was found.`),
+				ExpectError: regexp.MustCompile(`The argument "role" is required, but no definition was found.`), // TODO: full string comparison
 			},
 		},
 	})
