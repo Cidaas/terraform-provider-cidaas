@@ -2,17 +2,19 @@ package resources_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceGroupType = "cidaas_group_type.test"
+const resourceGroupType = "cidaas_group_type.example"
 
-// basic create, read and update test
+// create, read and update test
 func TestAccGroupTypeResource_Basic(t *testing.T) {
 	groupType := acctest.RandString(10)
 	roleMode := "any_roles"
@@ -22,7 +24,7 @@ func TestAccGroupTypeResource_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupTypeResourceDestroyed,
+		CheckDestroy:             testCheckGroupTypeDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccGroupTypeResourceConfig(groupType, roleMode, description),
@@ -33,6 +35,14 @@ func TestAccGroupTypeResource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceGroupType, "id"),
 					resource.TestCheckResourceAttrSet(resourceGroupType, "created_at"),
 				),
+			},
+			{
+				ResourceName:      resourceGroupType,
+				ImportStateId:     groupType,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// remove ImportStateVerifyIgnore to enhance the result
+				ImportStateVerifyIgnore: []string{"updated_at", "created_at"},
 			},
 			{
 				Config: testAccGroupTypeResourceConfig(groupType, roleMode, updatedDescription),
@@ -50,7 +60,7 @@ func testAccGroupTypeResourceConfig(groupType, roleMode, description string) str
 	provider "cidaas" {
 		base_url = "https://kube-nightlybuild-dev.cidaas.de"
 	}
-	resource "cidaas_group_type" "test" {
+	resource "cidaas_group_type" "example" {
 		group_type  = "%s"
 		role_mode   = "%s"
 		description = "%s"
@@ -58,8 +68,24 @@ func testAccGroupTypeResourceConfig(groupType, roleMode, description string) str
 	`, groupType, roleMode, description)
 }
 
-func testAccCheckGroupTypeResourceDestroyed(s *terraform.State) error {
-	// Implement check to ensure the resource is destroyed
+func testCheckGroupTypeDestroyed(s *terraform.State) error {
+	rs, ok := s.RootModule().Resources[resourceGroupType]
+	if !ok {
+		return fmt.Errorf("resource %s not fround", resourceGroupType)
+	}
+
+	groupType := cidaas.GroupType{
+		ClientConfig: cidaas.ClientConfig{
+			BaseURL:     os.Getenv("BASE_URL"),
+			AccessToken: acctest.TEST_TOKEN,
+		},
+	}
+	res, _ := groupType.Get(rs.Primary.Attributes["group_type"])
+
+	if res != nil {
+		// when resource exits in remote
+		return fmt.Errorf("resource %s stil exists", res.Data.GroupType)
+	}
 	return nil
 }
 
@@ -81,34 +107,7 @@ func TestAccGroupTypeResource_InvalidRoleMode(t *testing.T) {
 	})
 }
 
-// import test
-// the group type tried to import here is an existing role in cidaas. if deleted the test will throw error
-func TestAccGroupTypeResource_import(t *testing.T) {
-	groupType := acctest.RandString(10)
-	roleMode := "any_roles"
-	description := "Test Group Type Description"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		// CheckDestroy:             testAccCheckGroupTypeResourceDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccGroupTypeResourceConfig(groupType, roleMode, description),
-			},
-			{
-				ResourceName:      resourceGroupType,
-				ImportStateId:     groupType,
-				ImportState:       true,
-				ImportStateVerify: true,
-				// remove ImportStateVerifyIgnore to enhance the result
-				ImportStateVerifyIgnore: []string{"updated_at", "created_at"},
-			},
-		},
-	})
-}
-
-// update failure test for group_type
+// group_type can't be modified
 func TestAccGroupTypeResource_UpdateFails(t *testing.T) {
 	groupType := acctest.RandString(10)
 	updatedGroupType := acctest.RandString(10)
@@ -133,31 +132,7 @@ func TestAccGroupTypeResource_UpdateFails(t *testing.T) {
 	})
 }
 
-// valid empty allowed_roles test
-func TestAccGroupTypeResource_EmptyAllowedRoles(t *testing.T) {
-	groupType := acctest.RandString(10)
-	roleMode := "any_roles"
-	description := "Test Group Type Description"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckGroupTypeResourceDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccGroupTypeResourceConfig(groupType, roleMode, description),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceGroupType, "group_type", groupType),
-					resource.TestCheckResourceAttr(resourceGroupType, "role_mode", roleMode),
-					resource.TestCheckResourceAttr(resourceGroupType, "description", description),
-					resource.TestCheckResourceAttr(resourceGroupType, "allowed_roles.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-// invalid empty allowed roles when role_mode is allowed_roles
+// allowed_roles must have value when role_mode is allowed_roles or roles_required
 func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 	groupType := acctest.RandString(10)
 	roleMode := "allowed_roles"
@@ -172,7 +147,7 @@ func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 				provider "cidaas" {
 					base_url = "https://kube-nightlybuild-dev.cidaas.de"
 				}
-				resource "cidaas_group_type" "test" {
+				resource "cidaas_group_type" "example" {
 					group_type  = "%s"
 					role_mode   = "%s"
 					description = "%s"

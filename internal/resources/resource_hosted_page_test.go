@@ -1,16 +1,20 @@
 package resources_test
 
 import (
+	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceHostedPage = "cidaas_hosted_page.test"
+const resourceHostedPage = "cidaas_hosted_page.example"
 
+// create, read and update test
 func TestAccHostedPageResource_Basic(t *testing.T) {
 	hostedPageID := "register_success"
 	hostedPageURL := "https://cidaad.de/register_success"
@@ -38,8 +42,8 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testCheckHostedPageDestroyed,
 		Steps: []resource.TestStep{
-			// Create and Read testing
 			{
 				Config: testAccHostedPageResourceConfig(
 					hostedPageGroupName,
@@ -47,6 +51,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 					hostedPages,
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckHostedPageExists(resourceHostedPage),
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_page_group_name", hostedPageGroupName),
 					resource.TestCheckResourceAttr(resourceHostedPage, "default_locale", defaultLocale),
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.hosted_page_id", hostedPageID),
@@ -55,7 +60,6 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", hostedPageContent),
 				),
 			},
-			// ImportState testing
 			{
 				ResourceName:            resourceHostedPage,
 				ImportState:             true,
@@ -70,7 +74,6 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", hostedPageContent),
 				),
 			},
-			// Update
 			{
 				Config: testAccHostedPageResourceConfig(
 					hostedPageGroupName,
@@ -88,28 +91,52 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 
 func testAccHostedPageResourceConfig(hostedPageGroupName, defaultLocale string, hostedPages []map[string]string) string {
 	return `
-	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
-	}
-	resource "cidaas_hosted_page" "test" {
-		hosted_page_group_name = "` + hostedPageGroupName + `"
-		default_locale = "` + defaultLocale + `"
-
-		hosted_pages =[
-			{
-			hosted_page_id = "` + hostedPages[0]["hosted_page_id"] + `"
-			locale = "` + hostedPages[0]["locale"] + `"
-			url = "` + hostedPages[0]["url"] + `"
-			content = "` + hostedPages[0]["content"] + `"
+		provider "cidaas" {
+			base_url = "https://kube-nightlybuild-dev.cidaas.de"
 		}
-	]
-}
-`
+		resource "cidaas_hosted_page" "example" {
+			hosted_page_group_name = "` + hostedPageGroupName + `"
+			default_locale = "` + defaultLocale + `"
+
+			hosted_pages =[
+				{
+				hosted_page_id = "` + hostedPages[0]["hosted_page_id"] + `"
+				locale = "` + hostedPages[0]["locale"] + `"
+				url = "` + hostedPages[0]["url"] + `"
+				content = "` + hostedPages[0]["content"] + `"
+				}
+			]
+		}
+	`
 }
 
-func testAccCheckHostedPageResourceDestroy(s *terraform.State) error {
-	// Implement your destroy check logic here, usually checking that the resource
-	// does not exist in the real system.
+func testCheckHostedPageExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if _, ok := s.RootModule().Resources[resourceName]; !ok {
+			return fmt.Errorf("Not found: %s, found resource %s", resourceName, s.RootModule().Resources)
+		}
+		return nil
+	}
+}
+
+func testCheckHostedPageDestroyed(s *terraform.State) error {
+	rs, ok := s.RootModule().Resources[resourceHostedPage]
+	if !ok {
+		return fmt.Errorf("resource %s not fround", resourceHostedPage)
+	}
+
+	hp := cidaas.HostedPage{
+		ClientConfig: cidaas.ClientConfig{
+			BaseURL:     os.Getenv("BASE_URL"),
+			AccessToken: acctest.TEST_TOKEN,
+		},
+	}
+	res, _ := hp.Get(rs.Primary.Attributes["hosted_page_group_name"])
+
+	if res != nil {
+		// when resource exits in remote
+		return fmt.Errorf("resource %s stil exists", res.Data)
+	}
 	return nil
 }
 
@@ -143,7 +170,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 		provider "cidaas" {
 			base_url = "https://kube-nightlybuild-dev.cidaas.de"
 		}
-		resource "cidaas_hosted_page" "test" {
+		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
 			default_locale = "en-US"
 			hosted_pages =[{
@@ -156,7 +183,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 		provider "cidaas" {
 			base_url = "https://kube-nightlybuild-dev.cidaas.de"
 		}
-		resource "cidaas_hosted_page" "test" {
+		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
 			default_locale = "en-US"
 		}
@@ -165,7 +192,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 		provider "cidaas" {
 			base_url = "https://kube-nightlybuild-dev.cidaas.de"
 		}
-		resource "cidaas_hosted_page" "test" {
+		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
 			default_locale = "en-US"
 			hosted_pages =[]
@@ -176,7 +203,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 	// 	provider "cidaas" {
 	// 		base_url = "https://kube-nightlybuild-dev.cidaas.de"
 	// 	}
-	// 	resource "cidaas_hosted_page" "test" {
+	// 	resource "cidaas_hosted_page" "example" {
 	// 		hosted_page_group_name = ""
 	// 		default_locale = "en-US"
 	// 		hosted_pages =[{}]
@@ -197,6 +224,131 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 			{
 				Config:      config3,
 				ExpectError: regexp.MustCompile(`Attribute hosted_pages list must contain at least 1 elements, got: 0`),
+			},
+		},
+	})
+}
+
+// Immutable attribute hosted_page_group_name validation
+func TestAccHostedPageResource_UniqueIdentifier(t *testing.T) {
+	hostedPageID := "register_success"
+	hostedPageURL := "https://cidaad.de/register_success"
+	hostedPageGroupName := "Unique Hosted Page Group"
+	updatedHostedPageGroupName := "Updated Hosted Page Group"
+	defaultLocale := "en-US"
+	hostedPageContent := "<html>Success</html>"
+	hostedPages := []map[string]string{
+		{
+			"hosted_page_id": hostedPageID,
+			"locale":         defaultLocale,
+			"url":            hostedPageURL,
+			"content":        hostedPageContent,
+		},
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccHostedPageResourceConfig(
+					hostedPageGroupName,
+					defaultLocale,
+					hostedPages,
+				),
+			},
+			{
+				Config: testAccHostedPageResourceConfig(
+					updatedHostedPageGroupName,
+					defaultLocale,
+					hostedPages,
+				),
+				ExpectError: regexp.MustCompile("Attribute 'hosted_page_group_name' can't be modified"),
+			},
+		},
+	})
+}
+
+// Invalid hosted_page_id
+func TestAccHostedPageResource_InvalidHostedPageID(t *testing.T) {
+	hostedPageID := "invalid"
+	hostedPageURL := "https://cidaad.de/register_success"
+	hostedPageGroupName := "Unique Hosted Page Group"
+	defaultLocale := "en-US"
+	hostedPageContent := "<html>Success</html>"
+	hostedPages := []map[string]string{
+		{
+			"hosted_page_id": hostedPageID,
+			"locale":         defaultLocale,
+			"url":            hostedPageURL,
+			"content":        hostedPageContent,
+		},
+	}
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: testAccHostedPageResourceConfig(
+					hostedPageGroupName,
+					defaultLocale,
+					hostedPages,
+				),
+				ExpectError: regexp.MustCompile("hosted_page_id value must be one of"), // TODO: full string comparison
+			},
+		},
+	})
+}
+
+// validate multiple hosted pages
+func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
+	hostedPageID1 := "register_success"
+	hostedPageURL1 := "https://cidaad.de/register_success"
+	hostedPageID2 := "login_success"
+	hostedPageURL2 := "https://cidaad.de/login_success"
+	hostedPageGroupName := "Test Hosted Page Group"
+	content1 := "<html>Register Success</html>"
+	content2 := "<html>Login Success</html>"
+	defaultLocale := "en-US"
+
+	config := `
+	provider "cidaas" {
+		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+	}
+	resource "cidaas_hosted_page" "example" {
+		hosted_page_group_name = "` + hostedPageGroupName + `"
+		default_locale = "` + defaultLocale + `"
+
+		hosted_pages =[
+			{
+				hosted_page_id = "` + hostedPageID1 + `"
+				locale = "` + defaultLocale + `"
+				url = "` + hostedPageURL1 + `"
+				content = "` + content1 + `"
+		 },
+		 {
+				hosted_page_id = "` + hostedPageID2 + `"
+				locale = "en-IN"
+				url = "` + hostedPageURL2 + `"
+				content = "` + content2 + `"
+		 }
+		]
+	}
+	`
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.hosted_page_id", hostedPageID1),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.url", hostedPageURL1),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", content1),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.hosted_page_id", hostedPageID2),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.url", hostedPageURL2),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.content", content2),
+				),
 			},
 		},
 	})
