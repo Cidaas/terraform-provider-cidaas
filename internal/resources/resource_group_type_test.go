@@ -12,13 +12,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceGroupType = "cidaas_group_type.example"
+const (
+	resourceGroupType    = "cidaas_group_type.example"
+	groupTypedescription = "Test Group Type Description"
+)
+
+var groupType = acctest.RandString(10)
 
 // create, read and update test
 func TestAccGroupTypeResource_Basic(t *testing.T) {
-	groupType := acctest.RandString(10)
 	roleMode := "any_roles"
-	description := "Test Group Type Description"
 	updatedDescription := "Updated Group Type Description"
 
 	resource.Test(t, resource.TestCase{
@@ -27,11 +30,11 @@ func TestAccGroupTypeResource_Basic(t *testing.T) {
 		CheckDestroy:             testCheckGroupTypeDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGroupTypeResourceConfig(groupType, roleMode, description),
+				Config: testAccGroupTypeResourceConfig(groupType, roleMode, groupTypedescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceGroupType, "group_type", groupType),
 					resource.TestCheckResourceAttr(resourceGroupType, "role_mode", roleMode),
-					resource.TestCheckResourceAttr(resourceGroupType, "description", description),
+					resource.TestCheckResourceAttr(resourceGroupType, "description", groupTypedescription),
 					resource.TestCheckResourceAttrSet(resourceGroupType, "id"),
 					resource.TestCheckResourceAttrSet(resourceGroupType, "created_at"),
 				),
@@ -77,7 +80,7 @@ func testCheckGroupTypeDestroyed(s *terraform.State) error {
 	groupType := cidaas.GroupType{
 		ClientConfig: cidaas.ClientConfig{
 			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TEST_TOKEN,
+			AccessToken: acctest.TestToken,
 		},
 	}
 	res, _ := groupType.Get(rs.Primary.Attributes["group_type"])
@@ -91,16 +94,14 @@ func testCheckGroupTypeDestroyed(s *terraform.State) error {
 
 // validation test for role_mode
 func TestAccGroupTypeResource_InvalidRoleMode(t *testing.T) {
-	groupType := acctest.RandString(10)
 	invalidRoleMode := "invalid_role_mode"
-	description := "Test Group Type Description"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccGroupTypeResourceConfig(groupType, invalidRoleMode, description),
+				Config:      testAccGroupTypeResourceConfig(groupType, invalidRoleMode, groupTypedescription),
 				ExpectError: regexp.MustCompile(`Attribute role_mode value must be one of:`), // TODO: full string comparison
 			},
 		},
@@ -109,23 +110,21 @@ func TestAccGroupTypeResource_InvalidRoleMode(t *testing.T) {
 
 // group_type can't be modified
 func TestAccGroupTypeResource_UpdateFails(t *testing.T) {
-	groupType := acctest.RandString(10)
 	updatedGroupType := acctest.RandString(10)
 	roleMode := "any_roles"
-	description := "Test Group Type Description"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccGroupTypeResourceConfig(groupType, roleMode, description),
+				Config: testAccGroupTypeResourceConfig(groupType, roleMode, groupTypedescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceGroupType, "group_type", groupType),
 				),
 			},
 			{
-				Config:      testAccGroupTypeResourceConfig(updatedGroupType, roleMode, description),
+				Config:      testAccGroupTypeResourceConfig(updatedGroupType, roleMode, groupTypedescription),
 				ExpectError: regexp.MustCompile("Attribute 'group_type' can't be modified"), // TODO: full string comparison
 			},
 		},
@@ -134,9 +133,7 @@ func TestAccGroupTypeResource_UpdateFails(t *testing.T) {
 
 // allowed_roles must have value when role_mode is allowed_roles or roles_required
 func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
-	groupType := acctest.RandString(10)
 	roleMode := "allowed_roles"
-	description := "Test Group Type Description"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -153,7 +150,7 @@ func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 					description = "%s"
 					allowed_roles = []
 				}
-				`, groupType, roleMode, description),
+				`, groupType, roleMode, groupTypedescription),
 				ExpectError: regexp.MustCompile("The attribute allowed_roles cannot be empty when role_mode is set to"), // TODO: full string comparison
 			},
 		},

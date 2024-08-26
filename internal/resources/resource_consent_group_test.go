@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceConsentGroup = "cidaas_consent_group.example"
+const (
+	resourceConsentGroup = "cidaas_consent_group.example"
+	description          = "Test consent Description"
+)
+
+var groupName = acctest.RandString(10)
 
 // create, read and update test
 func TestAccConsentGroupResource_Basic(t *testing.T) {
-	groupName := acctest.RandString(10)
-	description := "Test consent Description"
 	updatedDescription := "Updated consent Description"
 
 	resource.Test(t, resource.TestCase{
@@ -75,7 +78,7 @@ func testCheckConsentGroupDestroyed(s *terraform.State) error {
 	consentGroup := cidaas.ConsentGroup{
 		ClientConfig: cidaas.ClientConfig{
 			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TEST_TOKEN,
+			AccessToken: acctest.TestToken,
 		},
 	}
 	res, _ := consentGroup.Get(rs.Primary.ID)
@@ -88,9 +91,7 @@ func testCheckConsentGroupDestroyed(s *terraform.State) error {
 
 // failed validation on updating immutable proprty group_name
 func TestAccConsentGroupResource_GoupNameUpdateFail(t *testing.T) {
-	groupName := acctest.RandString(10)
 	updateGroupName := acctest.RandString(10)
-	description := "Test consent Description"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -112,15 +113,14 @@ func TestAccConsentGroupResource_GoupNameUpdateFail(t *testing.T) {
 
 // Empty group_name validation test
 func TestAccConsentGroupResource_EmptyGroupName(t *testing.T) {
-	groupName := ""
-	description := "Test consent Description"
+	emptyGroupName := ""
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccConsentGroupResourceConfig(groupName, description),
+				Config:      testAccConsentGroupResourceConfig(emptyGroupName, description),
 				ExpectError: regexp.MustCompile(`Attribute group_name string length must be at least 1, got: 0`),
 			},
 		},

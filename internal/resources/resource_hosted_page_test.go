@@ -12,17 +12,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceHostedPage = "cidaas_hosted_page.example"
+const (
+	resourceHostedPage = "cidaas_hosted_page.example"
+	hostedPageURL      = "https://cidaad.de/register_success"
+	hostedPageID       = "register_success"
+	hostedPageContent  = "<html>Register Success</html>"
+	defaultLocale      = "en-US"
+)
 
-// create, read and update test
-func TestAccHostedPageResource_Basic(t *testing.T) {
-	hostedPageID := "register_success"
-	hostedPageURL := "https://cidaad.de/register_success"
-	updatedHostedPageURL := "https://cidaad.de/updated_register_success"
-	hostedPageContent := "<html>Success</html>"
-	hostedPageGroupName := "Test Hosted Page Group"
-	defaultLocale := "en-US"
-	hostedPages := []map[string]string{
+var (
+	hostedPageGroupName = acctest.RandString(10)
+	hostedPages         = []map[string]string{
 		{
 			"hosted_page_id": hostedPageID,
 			"locale":         defaultLocale,
@@ -30,6 +30,11 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 			"content":        hostedPageContent,
 		},
 	}
+)
+
+// create, read and update test
+func TestAccHostedPageResource_Basic(t *testing.T) {
+	updatedHostedPageURL := "https://cidaad.de/updated_register_success"
 	updatedHostedPages := []map[string]string{
 		{
 			"hosted_page_id": hostedPageID,
@@ -128,7 +133,7 @@ func testCheckHostedPageDestroyed(s *terraform.State) error {
 	hp := cidaas.HostedPage{
 		ClientConfig: cidaas.ClientConfig{
 			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TEST_TOKEN,
+			AccessToken: acctest.TestToken,
 		},
 	}
 	res, _ := hp.Get(rs.Primary.Attributes["hosted_page_group_name"])
@@ -142,16 +147,7 @@ func testCheckHostedPageDestroyed(s *terraform.State) error {
 
 // invalid locale
 func TestAccHostedPageResource_InvalidLocale(t *testing.T) {
-	hostedPageGroupName := "Test Hosted Page Group"
 	invalidLocale := "invalid-locale"
-	hostedPages := []map[string]string{
-		{
-			"hosted_page_id": "register_success",
-			"locale":         "en-US",
-			"url":            "https://cidaad.de/register_success",
-			"content":        "<html>Success</html>",
-		},
-	}
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -231,20 +227,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 
 // Immutable attribute hosted_page_group_name validation
 func TestAccHostedPageResource_UniqueIdentifier(t *testing.T) {
-	hostedPageID := "register_success"
-	hostedPageURL := "https://cidaad.de/register_success"
-	hostedPageGroupName := "Unique Hosted Page Group"
 	updatedHostedPageGroupName := "Updated Hosted Page Group"
-	defaultLocale := "en-US"
-	hostedPageContent := "<html>Success</html>"
-	hostedPages := []map[string]string{
-		{
-			"hosted_page_id": hostedPageID,
-			"locale":         defaultLocale,
-			"url":            hostedPageURL,
-			"content":        hostedPageContent,
-		},
-	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -271,14 +254,10 @@ func TestAccHostedPageResource_UniqueIdentifier(t *testing.T) {
 
 // Invalid hosted_page_id
 func TestAccHostedPageResource_InvalidHostedPageID(t *testing.T) {
-	hostedPageID := "invalid"
-	hostedPageURL := "https://cidaad.de/register_success"
-	hostedPageGroupName := "Unique Hosted Page Group"
-	defaultLocale := "en-US"
-	hostedPageContent := "<html>Success</html>"
+	InvalidHostedPageID := "invalid"
 	hostedPages := []map[string]string{
 		{
-			"hosted_page_id": hostedPageID,
+			"hosted_page_id": InvalidHostedPageID,
 			"locale":         defaultLocale,
 			"url":            hostedPageURL,
 			"content":        hostedPageContent,
@@ -302,14 +281,9 @@ func TestAccHostedPageResource_InvalidHostedPageID(t *testing.T) {
 
 // validate multiple hosted pages
 func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
-	hostedPageID1 := "register_success"
-	hostedPageURL1 := "https://cidaad.de/register_success"
 	hostedPageID2 := "login_success"
 	hostedPageURL2 := "https://cidaad.de/login_success"
-	hostedPageGroupName := "Test Hosted Page Group"
-	content1 := "<html>Register Success</html>"
-	content2 := "<html>Login Success</html>"
-	defaultLocale := "en-US"
+	hostedPageContent2 := "<html>Login Success</html>"
 
 	config := `
 	provider "cidaas" {
@@ -321,16 +295,16 @@ func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
 
 		hosted_pages =[
 			{
-				hosted_page_id = "` + hostedPageID1 + `"
+				hosted_page_id = "` + hostedPageID + `"
 				locale = "` + defaultLocale + `"
-				url = "` + hostedPageURL1 + `"
-				content = "` + content1 + `"
+				url = "` + hostedPageURL + `"
+				content = "` + hostedPageContent + `"
 		 },
 		 {
 				hosted_page_id = "` + hostedPageID2 + `"
 				locale = "en-IN"
 				url = "` + hostedPageURL2 + `"
-				content = "` + content2 + `"
+				content = "` + hostedPageContent2 + `"
 		 }
 		]
 	}
@@ -342,12 +316,12 @@ func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.hosted_page_id", hostedPageID1),
-					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.url", hostedPageURL1),
-					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", content1),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.hosted_page_id", hostedPageID),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.url", hostedPageURL),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.0.content", hostedPageContent),
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.hosted_page_id", hostedPageID2),
 					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.url", hostedPageURL2),
-					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.content", content2),
+					resource.TestCheckResourceAttr(resourceHostedPage, "hosted_pages.1.content", hostedPageContent2),
 				),
 			},
 		},

@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceScopeGroup = "cidaas_scope_group.example"
+const (
+	resourceScopeGroup    = "cidaas_scope_group.example"
+	scopeGroupdescription = "Test Scope Group Description"
+)
+
+var scopeGroupName = acctest.RandString(10)
 
 // create, read and update test
 func TestAccScopeGroupResource_Basic(t *testing.T) {
-	groupName := acctest.RandString(10)
-	description := "Test Scope Group Description"
 	updatedDescription := "Updated Scope Group Description"
 
 	resource.Test(t, resource.TestCase{
@@ -26,10 +29,10 @@ func TestAccScopeGroupResource_Basic(t *testing.T) {
 		CheckDestroy:             testCheckScopeGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScopeGroupResourceConfig(groupName, description),
+				Config: testAccScopeGroupResourceConfig(scopeGroupName, scopeGroupdescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceScopeGroup, "group_name", groupName),
-					resource.TestCheckResourceAttr(resourceScopeGroup, "description", description),
+					resource.TestCheckResourceAttr(resourceScopeGroup, "group_name", scopeGroupName),
+					resource.TestCheckResourceAttr(resourceScopeGroup, "description", scopeGroupdescription),
 					resource.TestCheckResourceAttrSet(resourceScopeGroup, "id"),
 					resource.TestCheckResourceAttrSet(resourceScopeGroup, "created_at"),
 					resource.TestCheckResourceAttrSet(resourceScopeGroup, "updated_at"),
@@ -37,14 +40,14 @@ func TestAccScopeGroupResource_Basic(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceScopeGroup,
-				ImportStateId:     groupName,
+				ImportStateId:     scopeGroupName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				// TODO: remove ImportStateVerifyIgnore
 				ImportStateVerifyIgnore: []string{"updated_at", "created_at"},
 			},
 			{
-				Config: testAccScopeGroupResourceConfig(groupName, updatedDescription),
+				Config: testAccScopeGroupResourceConfig(scopeGroupName, updatedDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceScopeGroup, "description", updatedDescription),
 					resource.TestCheckResourceAttrSet(resourceScopeGroup, "updated_at"),
@@ -75,7 +78,7 @@ func testCheckScopeGroupDestroyed(s *terraform.State) error {
 	scopeGroup := cidaas.ScopeGroup{
 		ClientConfig: cidaas.ClientConfig{
 			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TEST_TOKEN,
+			AccessToken: acctest.TestToken,
 		},
 	}
 	res, _ := scopeGroup.Get(rs.Primary.Attributes["group_name"])
@@ -88,22 +91,20 @@ func testCheckScopeGroupDestroyed(s *terraform.State) error {
 
 // failed validation on updating immutable proprty group_name
 func TestAccScopeGroupResource_GoupNameUpdateFail(t *testing.T) {
-	groupName := acctest.RandString(10)
 	updateGroupName := acctest.RandString(10)
-	description := "Test Scope Group Description"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScopeGroupResourceConfig(groupName, description),
+				Config: testAccScopeGroupResourceConfig(scopeGroupName, scopeGroupdescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceScopeGroup, "group_name", groupName),
+					resource.TestCheckResourceAttr(resourceScopeGroup, "group_name", scopeGroupName),
 				),
 			},
 			{
-				Config:      testAccScopeGroupResourceConfig(updateGroupName, description),
+				Config:      testAccScopeGroupResourceConfig(updateGroupName, scopeGroupdescription),
 				ExpectError: regexp.MustCompile("Attribute 'group_name' can't be modified"), // TODO: full string comparison
 			},
 		},
@@ -112,15 +113,14 @@ func TestAccScopeGroupResource_GoupNameUpdateFail(t *testing.T) {
 
 // Empty group_name validation test
 func TestAccScopeGroupResource_EmptyGroupName(t *testing.T) {
-	groupName := ""
-	description := "Test Scope Group Description"
+	emptyScopeGroupName := ""
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccScopeGroupResourceConfig(groupName, description),
+				Config:      testAccScopeGroupResourceConfig(emptyScopeGroupName, scopeGroupdescription),
 				ExpectError: regexp.MustCompile(`Attribute group_name string length must be at least 1, got: 0`),
 			},
 		},

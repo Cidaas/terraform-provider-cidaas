@@ -16,8 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
-const resourceConsent = "cidaas_consent.example"
-const refResourceConsentGroup = "cidaas_consent_group.example"
+const (
+	resourceConsent         = "cidaas_consent.example"
+	refResourceConsentGroup = "cidaas_consent_group.example"
+)
 
 // create, read and update test
 func TestAccConsentResource_Basic(t *testing.T) {
@@ -102,7 +104,7 @@ func testCheckConsentDestroyed(s *terraform.State) error {
 	consent := cidaas.ConsentClient{
 		ClientConfig: cidaas.ClientConfig{
 			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TEST_TOKEN,
+			AccessToken: acctest.TestToken,
 		},
 	}
 	res, _ := consent.GetConsentInstances(rs.Primary.ID)
