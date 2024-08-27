@@ -86,7 +86,7 @@ func testCheckGroupTypeDestroyed(s *terraform.State) error {
 	res, _ := groupType.Get(rs.Primary.Attributes["group_type"])
 
 	if res != nil {
-		// when resource exits in remote
+		// when resource exists in remote
 		return fmt.Errorf("resource %s stil exists", res.Data.GroupType)
 	}
 	return nil

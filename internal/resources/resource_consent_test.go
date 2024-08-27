@@ -109,7 +109,7 @@ func testCheckConsentDestroyed(s *terraform.State) error {
 	}
 	res, _ := consent.GetConsentInstances(rs.Primary.ID)
 	if res != nil && res.Status != http.StatusNoContent && len(res.Data) > 0 {
-		// when resource exits in remote
+		// when resource exists in remote
 		return fmt.Errorf("resource stil exists %+v", res)
 	}
 	return nil

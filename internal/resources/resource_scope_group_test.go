@@ -83,7 +83,7 @@ func testCheckScopeGroupDestroyed(s *terraform.State) error {
 	}
 	res, _ := scopeGroup.Get(rs.Primary.Attributes["group_name"])
 	if res.Data.ID != "" {
-		// when resource exits in remote
+		// when resource exists in remote
 		return fmt.Errorf("resource stil exists %+v", res)
 	}
 	return nil

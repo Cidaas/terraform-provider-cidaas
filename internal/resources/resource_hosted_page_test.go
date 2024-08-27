@@ -139,7 +139,7 @@ func testCheckHostedPageDestroyed(s *terraform.State) error {
 	res, _ := hp.Get(rs.Primary.Attributes["hosted_page_group_name"])
 
 	if res != nil {
-		// when resource exits in remote
+		// when resource exists in remote
 		return fmt.Errorf("resource %s stil exists", res.Data)
 	}
 	return nil

@@ -83,7 +83,7 @@ func testCheckConsentGroupDestroyed(s *terraform.State) error {
 	}
 	res, _ := consentGroup.Get(rs.Primary.ID)
 	if res != nil {
-		// when resource exits in remote
+		// when resource exists in remote
 		return fmt.Errorf("resource stil exists %+v", res)
 	}
 	return nil
