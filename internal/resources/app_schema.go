@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
@@ -281,6 +282,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 					setplanmodifier.UseStateForUnknown(),
 				},
 			},
+			// cidaas faulty api, so marked this attribute as computed
 			"mobile_settings": schema.SingleNestedAttribute{
 				Optional: true,
 				Computed: true,
@@ -298,9 +300,22 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						Optional: true,
 					},
 				},
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
+				Default: objectdefault.StaticValue(
+					types.ObjectValueMust(
+						map[string]attr.Type{
+							"team_id":      types.StringType,
+							"bundle_id":    types.StringType,
+							"package_name": types.StringType,
+							"key_hash":     types.StringType,
+						},
+						map[string]attr.Value{
+							"team_id":      types.StringNull(),
+							"bundle_id":    types.StringNull(),
+							"package_name": types.StringNull(),
+							"key_hash":     types.StringNull(),
+						},
+					),
+				),
 			},
 			"default_max_age": schema.Int64Attribute{
 				Optional:            true,
@@ -653,6 +668,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"group_selection": schema.SingleNestedAttribute{
 				Optional: true,
+				// cidaas faulty api, so marked this attribute as computed
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"always_show_group_selection": schema.BoolAttribute{
@@ -667,9 +683,20 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						Optional:    true,
 					},
 				},
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
+				Default: objectdefault.StaticValue(
+					types.ObjectValueMust(
+						map[string]attr.Type{
+							"always_show_group_selection": types.BoolType,
+							"selectable_groups":           types.SetType{ElemType: types.StringType},
+							"selectable_group_types":      types.SetType{ElemType: types.StringType},
+						},
+						map[string]attr.Value{
+							"always_show_group_selection": types.BoolNull(),
+							"selectable_groups":           types.SetNull(types.StringType),
+							"selectable_group_types":      types.SetNull(types.StringType),
+						},
+					),
+				),
 			},
 			"group_types": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -894,6 +921,7 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				ElementType: types.StringType,
 				Optional:    true,
 			},
+			// cidaas faulty api, so marked this attribute as computed
 			"login_spi": schema.SingleNestedAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -906,9 +934,18 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 						Optional: true,
 					},
 				},
-				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.UseStateForUnknown(),
-				},
+				Default: objectdefault.StaticValue(
+					types.ObjectValueMust(
+						map[string]attr.Type{
+							"oauth_client_id": types.StringType,
+							"spi_url":         types.StringType,
+						},
+						map[string]attr.Value{
+							"oauth_client_id": types.StringNull(),
+							"spi_url":         types.StringNull(),
+						},
+					),
+				),
 			},
 			"background_uri": schema.StringAttribute{
 				Optional:            true,
