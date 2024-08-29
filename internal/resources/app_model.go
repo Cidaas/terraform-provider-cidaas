@@ -1079,7 +1079,8 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 		}
 	}
 
-	if res.Data.LoginSpi != nil {
+	if res.Data.LoginSpi != nil && (((operation == CREATE || operation == UPDATE) && !config.LoginSpi.IsNull()) ||
+		operation == IMPORT || operation == READ) {
 		oauthClientID := util.StringValueOrNull(&res.Data.LoginSpi.OauthClientID)
 		spiURL := util.StringValueOrNull(&res.Data.LoginSpi.SpiURL)
 		if !state.LoginSpi.IsNull() && !state.LoginSpi.IsUnknown() && state.loginSpi != nil {
@@ -1107,8 +1108,9 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 		state.LoginSpi = loginSpi
 	}
 
-	if res.Data.GroupSelection != nil {
-
+	if res.Data.GroupSelection != nil &&
+		(((operation == CREATE || operation == UPDATE) && !config.GroupSelection.IsNull()) ||
+			operation == IMPORT || operation == READ) {
 		alwaysShowGroupSelection := util.BoolValueOrNull(res.Data.GroupSelection.AlwaysShowGroupSelection)
 		selectableGroups := util.SetValueOrNull(res.Data.GroupSelection.SelectableGroups)
 		selectableGroupTypes := util.SetValueOrNull(res.Data.GroupSelection.SelectableGroupTypes)
@@ -1175,7 +1177,8 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 		state.Mfa = mfa
 	}
 
-	if res.Data.MobileSettings != nil {
+	if res.Data.MobileSettings != nil && (((operation == CREATE || operation == UPDATE) && !config.MobileSettings.IsNull()) ||
+		operation == IMPORT || operation == READ) {
 		teamID := util.StringValueOrNull(&res.Data.MobileSettings.TeamID)
 		bundleID := util.StringValueOrNull(&res.Data.MobileSettings.BundleID)
 		packageName := util.StringValueOrNull(&res.Data.MobileSettings.PackageName)

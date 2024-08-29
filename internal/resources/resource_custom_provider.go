@@ -357,9 +357,11 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	hasCustomfield := false
 	for key, value := range res.Data.UserinfoFields {
 		val := value
-		supportedUserInfoFields := []string{"name", "family_name", "given_name", "middle_name", "nickname", "preferred_username",
+		supportedUserInfoFields := []string{
+			"name", "family_name", "given_name", "middle_name", "nickname", "preferred_username",
 			"profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale", "updated_at", "email", "email_verified",
-			"phone_number", "mobile_number", "address", "sub"}
+			"phone_number", "mobile_number", "address", "sub",
+		}
 
 		if strings.HasPrefix(key, "customFields.") {
 			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&val)

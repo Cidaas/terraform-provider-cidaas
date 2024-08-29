@@ -166,6 +166,7 @@ Optional:
 - `picture` (String)
 - `preferred_username` (String)
 - `profile` (String)
+- `sub` (String)
 - `updated_at` (String)
 - `website` (String)
 - `zoneinfo` (String)
