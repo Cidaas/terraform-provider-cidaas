@@ -402,7 +402,6 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		RequestObjectEncryptionEnc:       plan.RequestObjectEncryptionEnc.ValueString(),
 		Description:                      plan.Description.ValueString(),
 		ConsentPageGroup:                 plan.ConsentPageGroup.ValueString(),
-		PasswordPolicyRef:                plan.PasswordPolicyRef.ValueString(),
 		BlockingMechanismRef:             plan.BlockingMechanismRef.ValueString(),
 		Sub:                              plan.Sub.ValueString(),
 		Role:                             plan.Role.ValueString(),
@@ -411,6 +410,12 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		BackgroundURI:                    plan.BackgroundURI.ValueString(),
 		VideoURL:                         plan.VideoURL.ValueString(),
 		BotCaptchaRef:                    plan.BotCaptchaRef.ValueString(),
+	}
+
+	if plan.PasswordPolicyRef.IsNull() {
+		app.PasswordPolicyRef = ""
+	} else {
+		app.PasswordPolicyRef = plan.PasswordPolicyRef.ValueString()
 	}
 
 	var diags diag.Diagnostics

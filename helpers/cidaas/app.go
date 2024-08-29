@@ -125,7 +125,7 @@ type AppModel struct {
 	DefaultScopes                    []string              `json:"default_scopes,omitempty"`
 	PendingScopes                    []string              `json:"pending_scopes,omitempty"`
 	ConsentPageGroup                 string                `json:"consent_page_group,omitempty"`
-	PasswordPolicyRef                string                `json:"password_policy_ref,omitempty"`
+	PasswordPolicyRef                string                `json:"password_policy_ref"` // omitempty removed as we need to pass "" when configured "" or null
 	BlockingMechanismRef             string                `json:"blocking_mechanism_ref,omitempty"`
 	Sub                              string                `json:"sub,omitempty"`
 	Role                             string                `json:"role,omitempty"`
