@@ -24,7 +24,7 @@ var (
 )
 
 // create, read and update test
-func TestAccUserGroupResource_Basic(t *testing.T) {
+func TestUserGroup_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -150,7 +150,7 @@ func testCheckUserGroupDestroyed(s *terraform.State) error {
 }
 
 // missing required fields group_type, group_name and group_id
-func TestAccWebhookResource_MissingRequired(t *testing.T) {
+func TestUserGroup_MissingRequired(t *testing.T) {
 	requiredParams := []string{"group_type", "group_name", "group_id"}
 	for _, v := range requiredParams {
 		resource.Test(t, resource.TestCase{
@@ -172,7 +172,7 @@ func TestAccWebhookResource_MissingRequired(t *testing.T) {
 }
 
 // check if group_type, group_name and group_id are empty string
-func TestAccWebhookResource_CheckEmptyString(t *testing.T) {
+func TestUserGroup_CheckEmptyString(t *testing.T) {
 	requiredParams := []string{"group_type", "group_name", "group_id"}
 	for _, v := range requiredParams {
 		resource.Test(t, resource.TestCase{
