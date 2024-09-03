@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.0.5
+#### Bug Fix
+
+- password_policy_ref empty string or null values can be passed as "" when configured.
+- Addressed the issue where computed attributes group_selection, login_spi & mobile_settings are not known after terraform apply, a default value {} is assigned to them.
+
 ### 3.0.4
 #### Bug Fix
 
