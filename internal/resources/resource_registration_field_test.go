@@ -18,7 +18,6 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		// CheckDestroy:             checkRegFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testRegFieldConfig("CHECKBOX", "sample_checkbox_field", true, false),
@@ -47,7 +46,6 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		// CheckDestroy:             checkRegFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testRegFieldConfig("TEXT", "sample_group", true, true),
@@ -172,22 +170,69 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 	`, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
 }
 
-// func checkRegFieldDestroyed(s *terraform.State) error {
-// 	rs, ok := s.RootModule().Resources[resourceRegField]
-// 	if !ok {
-// 		return fmt.Errorf("resource %s not fround", resourceRegField)
-// 	}
-
-// 	sp := cidaas.SocialProvider{
-// 		ClientConfig: cidaas.ClientConfig{
-// 			BaseURL:     os.Getenv("BASE_URL"),
-// 			AccessToken: acctest.TestToken,
-// 		},
-// 	}
-// 	res, _ := sp.Get(rs.Primary.Attributes["provider_name"], rs.Primary.Attributes["id"])
-// 	if res != nil {
-// 		// when resource exists in remote
-// 		return fmt.Errorf("resource stil exists %+v", res)
-// 	}
-// 	return nil
-// }
+func TestRegistrationField_SelectBasic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				provider "cidaas" {
+					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+				}
+				resource "cidaas_registration_field" "example" {
+					data_type                                      = "RADIO"
+					field_key                                      = "sample_select_field"
+					field_type                                     = "CUSTOM"
+					internal                                       = false
+					required                                       = true
+					read_only                                      = false
+					is_group                                       = false
+					unique                                         = false
+					overwrite_with_null_value_from_social_provider = false
+					is_searchable                                  = true
+					enabled                                        = true
+					claimable                                      = true
+					order                                          = 1
+					parent_group_id                                = "DEFAULT"
+					scopes                                         = ["profile"]
+					local_texts = [
+						{
+							locale       = "en-US"
+							name         = "Sample Field"
+							required_msg = "The field is required"
+							attributes = [
+								{
+									key   = "test_key"
+									value = "test_value"
+								}
+							]
+						},
+						{
+							locale       = "de-DE"
+							name         = "Beispielfeld"
+							required_msg = "Dieses Feld ist erforderlich"
+							attributes = [
+								{
+									key   = "test_key"
+									value = "test_value"
+								}
+							]
+						}
+					]
+				}
+			`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_select_field"),
+					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceRegField,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "sample_select_field",
+			},
+		},
+	})
+}

@@ -177,3 +177,79 @@ func TestTemplate_MissingRequired(t *testing.T) {
 		})
 	}
 }
+
+// System Template basic create update and delete, system template can not be imported
+func TestTemplate_SystemTemplateBasic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             checkTemplateDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+				provider "cidaas" {
+					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+				}
+				resource "cidaas_template" "example" {
+					locale             = "en-us"
+					template_key       = "VERIFY_USER"
+					template_type      = "SMS"
+					content            = "Hi {{name}}, here is the {{code}} to verify the user"
+					is_system_template = true
+					group_id           = "sample_group"
+					processing_type    = "GENERAL"
+					verification_type  = "SMS"
+					usage_type         = "VERIFICATION_CONFIGURATION"
+				}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
+					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
+				),
+			},
+			{
+				Config: `
+				provider "cidaas" {
+					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+				}
+				resource "cidaas_template" "example" {
+					locale             = "en-us"
+					template_key       = "VERIFY_USER"
+					template_type      = "SMS"
+					content            = "Hi {{name}}, here is the {{code}} to verify the user updated"
+					is_system_template = true
+					group_id           = "sample_group"
+					processing_type    = "GENERAL"
+					verification_type  = "SMS"
+					usage_type         = "VERIFICATION_CONFIGURATION"
+				}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
+				),
+			},
+			// templated reverted back to the old state
+			{
+				Config: `
+				provider "cidaas" {
+					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+				}
+				resource "cidaas_template" "example" {
+					locale             = "en-us"
+					template_key       = "VERIFY_USER"
+					template_type      = "SMS"
+					content            = "Hi {{name}}, here is the {{code}} to verify the user"
+					is_system_template = true
+					group_id           = "sample_group"
+					processing_type    = "GENERAL"
+					verification_type  = "SMS"
+					usage_type         = "VERIFICATION_CONFIGURATION"
+				}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
+				),
+			},
+		},
+	})
+}

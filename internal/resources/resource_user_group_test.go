@@ -18,9 +18,10 @@ const (
 )
 
 var (
-	userGroupType = acctest.RandString(10)
-	groupID       = acctest.RandString(10)
-	userGroupName = acctest.RandString(10)
+	userGroupType        = acctest.RandString(10)
+	groupID              = acctest.RandString(10)
+	userGroupName        = acctest.RandString(10)
+	userGroupDescription = "sample user groups description"
 )
 
 // create, read and update test
@@ -31,13 +32,13 @@ func TestUserGroup_Basic(t *testing.T) {
 		CheckDestroy:             testCheckUserGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccUserGroupResourceConfig(userGroupType, groupID),
+				Config: testAccUserGroupResourceConfig(userGroupType, groupID, userGroupDescription),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPair(resourceUserGroup, "group_type", resourceGroupType, "group_type"),
 					resource.TestCheckResourceAttr(resourceUserGroup, "group_id", groupID),
 					resource.TestCheckResourceAttr(resourceUserGroup, "group_name", userGroupName),
 					resource.TestCheckResourceAttr(resourceUserGroup, "logo_url", "https://cidaas.de/logo"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "description", "sample user groups description"),
+					resource.TestCheckResourceAttr(resourceUserGroup, "description", userGroupDescription),
 					resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.first_name", "cidaas"),
 					resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.family_name", "widas"),
 					// default value check
@@ -59,32 +60,17 @@ func TestUserGroup_Basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"created_at", "updated_at"},
 			},
 			{
-				Config:      testAccUserGroupResourceConfig(userGroupType, acctest.RandString(10)),
-				ExpectError: regexp.MustCompile("Attribute 'group_id' can't be modified"),
+				Config: testAccUserGroupResourceConfig(userGroupType, groupID, "updated user group description"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceUserGroup, "group_type", userGroupType),
+					resource.TestCheckResourceAttr(resourceUserGroup, "description", "updated user group description"),
+				),
 			},
-			// update works, but with update the order of deletion of both the resources changes group_type first and user groups next
-			// and we get conflict. so have these lines commented.
-			// TODO: check if the order of destruction can be controlled
-			// {
-			// 	Config: updatedUserGroupConfig(newRandomStr),
-			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "group_type", userGroupType),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "group_name", newRandomStr),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "logo_url", "https://cidaas.de/v2/logo"),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "description", "updated sample user groups description"),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.first_name", "rob"),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.family_name", "pike"),
-			// 		// default value check
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "make_first_user_admin", strconv.FormatBool(false)),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "member_profile_visibility", "public"),
-			// 		resource.TestCheckResourceAttr(resourceUserGroup, "none_member_profile_visibility", "none"),
-			// 	),
-			// },
 		},
 	})
 }
 
-func testAccUserGroupResourceConfig(groupType, groupID string) string {
+func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription string) string {
 	return `
 		provider "cidaas" {
 			base_url = "https://kube-nightlybuild-dev.cidaas.de"
@@ -99,7 +85,7 @@ func testAccUserGroupResourceConfig(groupType, groupID string) string {
 			group_id                       = "` + groupID + `"
 			group_name                     = "` + userGroupName + `"
 			logo_url                       = "https://cidaas.de/logo"
-			description                    = "sample user groups description"
+			description                    = "` + userGroupDescription + `"
 			custom_fields = {
 				first_name  = "cidaas"
 				family_name = "widas"
@@ -195,4 +181,25 @@ func TestUserGroup_CheckEmptyString(t *testing.T) {
 			},
 		})
 	}
+}
+
+// group_id can not be modified
+func TestUserGroup_GroupIDIsImmutable(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccUserGroupResourceConfig(userGroupType, groupID, userGroupDescription),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceUserGroup, "group_id", groupID),
+					resource.TestCheckResourceAttrSet(resourceUserGroup, "id"),
+				),
+			},
+			{
+				Config:      testAccUserGroupResourceConfig(userGroupType, acctest.RandString(10), ""),
+				ExpectError: regexp.MustCompile("Attribute 'group_id' can't be modified"),
+			},
+		},
+	})
 }
