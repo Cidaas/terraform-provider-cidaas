@@ -1,11 +1,15 @@
 package acctest
 
 import (
+	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	provider "github.com/Cidaas/terraform-provider-cidaas/internal"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -18,6 +22,8 @@ import (
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"cidaas": providerserver.NewProtocol6WithError(provider.Cidaas("test")()),
 }
+
+var TestToken string
 
 func TestAccPreCheck(t *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
@@ -32,6 +38,24 @@ func TestAccPreCheck(t *testing.T) {
 	if os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET") == "" {
 		t.Fatal("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET must be set for acceptance tests")
 	}
+
+	tokenURL := fmt.Sprintf("%s/%s", os.Getenv("BASE_URL"), "token-srv/token")
+	httpClient := util.NewHTTPClient(tokenURL, http.MethodPost)
+	payload := map[string]string{
+		"client_id":     os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID"),
+		"client_secret": os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET"),
+		"grant_type":    "client_credentials",
+	}
+	res, err := httpClient.MakeRequest(payload)
+	if err = util.HandleResponseError(res, err); err != nil {
+		t.Fatalf("failed to generate access token %s", err.Error())
+	}
+	defer res.Body.Close()
+	var response cidaas.TokenResponse
+	if err = util.ProcessResponse(res, &response); err != nil {
+		t.Fatalf("failed to generate access token %s", err.Error())
+	}
+	TestToken = response.AccessToken
 }
 
 // RandString generates a random string with the given length.

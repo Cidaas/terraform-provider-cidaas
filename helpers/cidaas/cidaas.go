@@ -12,8 +12,10 @@ import (
 type Client struct {
 	Role           RoleService
 	CustomProvider CustomProvideService
+	SocialProvider SocialProviderService
 	Scope          ScopeService
 	ScopeGroup     ScopeGroupService
+	ConsentGroup   ConsentGroupService
 	GroupType      GroupTypeService
 	UserGroup      UserGroupService
 	HostedPage     HostedPageService
@@ -22,6 +24,9 @@ type Client struct {
 	RegField       RegFieldService
 	TemplateGroup  TemplateGroupService
 	Template       TemplateService
+	PasswordPolicy PasswordPolicyService
+	Consent        ConsentService
+	ConsentVersion ConsentVersionService
 }
 
 type ClientConfig struct {
@@ -71,6 +76,11 @@ func NewClient(config ClientConfig) (*Client, error) {
 		RegField:       NewRegField(config),
 		TemplateGroup:  NewTemplateGroup(config),
 		Template:       NewTemplate(config),
+		SocialProvider: NewSocialProvider(config),
+		PasswordPolicy: NewPasswordPolicy(config),
+		ConsentGroup:   NewConsentGroup(config),
+		Consent:        NewConsent(config),
+		ConsentVersion: NewConsentVersion(config),
 	}
 	return client, nil
 }

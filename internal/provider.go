@@ -58,8 +58,10 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 	return []func() resource.Resource{
 		cidaasResource.NewRoleResource,
 		cidaasResource.NewCustomProvider,
+		cidaasResource.NewSocialProvider,
 		cidaasResource.NewScopeResource,
 		cidaasResource.NewScopeGroupResource,
+		cidaasResource.NewConsentGroupResource,
 		cidaasResource.NewGroupTypeResource,
 		cidaasResource.NewUserGroupResource,
 		cidaasResource.NewHostedPageResource,
@@ -68,6 +70,9 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 		cidaasResource.NewRegFieldResource,
 		cidaasResource.NewTemplateGroupResource,
 		cidaasResource.NewTemplateResource,
+		cidaasResource.NewPasswordPolicy,
+		cidaasResource.NewConsentResource,
+		cidaasResource.NewConsentVersionResource,
 	}
 }
 

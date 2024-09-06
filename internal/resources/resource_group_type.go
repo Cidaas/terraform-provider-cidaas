@@ -80,6 +80,7 @@ func (r *GroupTypeResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 					stringvalidator.OneOf([]string{"any_roles", "no_roles", "roles_required", "allowed_roles"}...),
 				},
 			},
+			// TODO: description is a required parameter in admin ui
 			"description": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The `description` attribute provides details about the group type, explaining its purpose.",

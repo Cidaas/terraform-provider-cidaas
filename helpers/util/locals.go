@@ -159,3 +159,15 @@ func GetLanguageForLocale(locale string) string {
 	}
 	return "en"
 }
+
+var AllowedClaims = []string{
+	"name", "given_name", "family_name", "nickname", "preferred_username", "profile",
+	"picture", "website", "email", "email_verified", "gender", "middle_name", "birthdate", "zoneinfo", "locale",
+	"phone_number", "phone_number_verified", "formatted", "street_address", "locality", "region", "postal_code", "country",
+}
+
+var AllowedProviders = []string{
+	"google", "facebook", "linkedin", "amazon", "foursquare", "github",
+	"instagram", "yammer", "wordpress", "microsoft", "yahoo", "officeenterprise", "salesforce", "paypal_sandbox", "paypal",
+	"apple", "twitter", "netid", "netid_qa",
+}

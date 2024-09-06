@@ -13,7 +13,7 @@ acceptance_test:
   before_script:
     - echo "machine gitlab.widas.de login $GITLAB_LOGIN password $GITLAB_TOKEN" > ~/.netrc
   script:
-    - export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID=$CI_ID TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET=$CI_SECRET
+    - export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID=$CI_ID TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET=$CI_SECRET BASE_URL=$BASE_URL
     - make test-ci
   coverage: '/total:\s+\(statements\)\s+(\d+(?:\.\d+)?%)/'
   artifacts:
