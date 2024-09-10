@@ -23,6 +23,12 @@ type GroupTypeResponse struct {
 	Data    GroupTypeData `json:"data,omitempty"`
 }
 
+type AllGroupTypeResponse struct {
+	Success bool            `json:"success,omitempty"`
+	Status  int             `json:"status,omitempty"`
+	Data    []GroupTypeData `json:"data,omitempty"`
+}
+
 type GroupType struct {
 	ClientConfig
 }
@@ -31,6 +37,7 @@ type GroupTypeService interface {
 	Get(groupType string) (*GroupTypeResponse, error)
 	Update(gt GroupTypeData) error
 	Delete(groupType string) error
+	GetAll() ([]GroupTypeData, error)
 }
 
 func NewGroupType(clientConfig ClientConfig) GroupTypeService {
@@ -93,4 +100,21 @@ func (c *GroupType) Delete(groupType string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (c *GroupType) GetAll() ([]GroupTypeData, error) {
+	var response AllGroupTypeResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/graph/grouptypes")
+
+	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	res, err := httpClient.MakeRequest(struct{}{})
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }

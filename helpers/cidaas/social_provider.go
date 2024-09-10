@@ -48,6 +48,12 @@ type SocialProviderResponse struct {
 	Data    SocialProviderModel
 }
 
+type AllSocialProviderResponse struct {
+	Success bool `json:"success,omitempty"`
+	Status  int  `json:"status,omitempty"`
+	Data    []SocialProviderModel
+}
+
 type SocialProvider struct {
 	ClientConfig
 }
@@ -56,6 +62,7 @@ type SocialProviderService interface {
 	Upsert(cp *SocialProviderModel) (*SocialProviderResponse, error)
 	Get(providerName, providerID string) (*SocialProviderResponse, error)
 	Delete(providerName, providerID string) error
+	GetAll() ([]SocialProviderModel, error)
 }
 
 func NewSocialProvider(clientConfig ClientConfig) SocialProviderService {
@@ -106,4 +113,21 @@ func (s *SocialProvider) Delete(providerName, providerID string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (s *SocialProvider) GetAll() ([]SocialProviderModel, error) {
+	var response AllSocialProviderResponse
+	url := fmt.Sprintf("%s/%s", s.BaseURL, "providers-srv/providers/enabled/list")
+	httpClient := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }

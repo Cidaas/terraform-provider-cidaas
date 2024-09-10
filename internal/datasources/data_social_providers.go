@@ -1,0 +1,148 @@
+package datasources
+
+import (
+	"context"
+
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+type SocialProviderDataSource struct {
+	BaseDataSource
+}
+
+type SocialProviderFilterModel struct {
+	BaseModel
+	SocialProvider []SocialProvider `tfsdk:"social_provider"`
+}
+
+type SocialProvider struct {
+	ID                    types.String `tfsdk:"id"`
+	Name                  types.String `tfsdk:"name"`
+	ProviderName          types.String `tfsdk:"provider_name"`
+	Enabled               types.Bool   `tfsdk:"enabled"`
+	ClientID              types.String `tfsdk:"client_id"`
+	ClientSecret          types.String `tfsdk:"client_secret"`
+	EnabledForAdminPortal types.Bool   `tfsdk:"enabled_for_admin_portal"`
+	Scopes                types.Set    `tfsdk:"scopes"`
+}
+
+var socialProviderFilter = FilterConfig{
+	"name":                     {TypeFunc: FilterTypeString},
+	"provider_name":            {TypeFunc: FilterTypeString},
+	"enabled":                  {TypeFunc: FilterTypeString},
+	"enabled_for_admin_portal": {TypeFunc: FilterTypeString},
+}
+
+var socialProviderSchema = map[string]schema.Attribute{
+	"id": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The unique identifier of the social provider",
+	},
+	"name": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The name of the social provider configuration.",
+	},
+	"provider_name": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The name of the social provider e.g; `google`, `facebook`, `linkedin` etc.",
+	},
+	"enabled": schema.BoolAttribute{
+		Computed:            true,
+		MarkdownDescription: "A flag to identify if a provider is enabled.",
+	},
+	"client_id": schema.StringAttribute{
+		Computed:            true,
+		MarkdownDescription: "The client ID of the social provider.",
+	},
+	"client_secret": schema.StringAttribute{
+		Computed:            true,
+		Sensitive:           true,
+		MarkdownDescription: "The client secret of the social provider.",
+	},
+	"scopes": schema.SetAttribute{
+		ElementType:         types.StringType,
+		Computed:            true,
+		MarkdownDescription: "A list of scopes of the social provider.",
+	},
+	"enabled_for_admin_portal": schema.BoolAttribute{
+		Computed:            true,
+		MarkdownDescription: "A flag to identify if a social provider is enabled for the admin portal.",
+	},
+}
+
+var socialProviderDataSourceSchema = schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Description: "The data source's unique ID.",
+			Computed:    true,
+		},
+	},
+	Blocks: map[string]schema.Block{
+		"filter": socialProviderFilter.Schema(),
+		"social_provider": schema.ListNestedBlock{
+			Description: "The returned list of social providers.",
+			NestedObject: schema.NestedBlockObject{
+				Attributes: socialProviderSchema,
+			},
+		},
+	},
+}
+
+func NewSocialProvider() datasource.DataSource {
+	return &SocialProviderDataSource{
+		BaseDataSource: NewBaseDataSource(
+			BaseDataSourceConfig{
+				Name:   "cidaas_social_provider",
+				Schema: &socialProviderDataSourceSchema,
+			},
+		),
+	}
+}
+
+func (d *SocialProviderDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
+	var data SocialProviderFilterModel
+
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	data.ID = types.StringValue(uuid.New().String())
+	result, diag := socialProviderFilter.GetAndFilter(d.Client, data.Filters, listSocialProviders)
+	if diag != nil {
+		resp.Diagnostics.Append(diag)
+		return
+	}
+
+	data.SocialProvider = parseModel(AnySliceToTyped[cidaas.SocialProviderModel](result), parseSocialProvider)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func listSocialProviders(client *cidaas.Client) ([]any, error) {
+	sps, err := client.SocialProvider.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return TypedSliceToAny(sps), nil
+}
+
+func parseSocialProvider(sp cidaas.SocialProviderModel) (r SocialProvider) {
+	r.ID = types.StringValue(sp.ID)
+	r.ClientID = types.StringValue(sp.ClientID)
+	r.ClientSecret = types.StringValue(sp.ClientSecret)
+	r.Name = types.StringValue(sp.Name)
+	r.ProviderName = types.StringValue(sp.ProviderName)
+	r.Enabled = types.BoolValue(sp.Enabled)
+	r.EnabledForAdminPortal = types.BoolValue(sp.EnabledForAdminPortal)
+	r.Scopes = util.SetValueOrNull(sp.Scopes)
+	return r
+}

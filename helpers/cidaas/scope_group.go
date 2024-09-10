@@ -22,6 +22,12 @@ type ScopeGroupResponse struct {
 	Data    ScopeGroupConfig `json:"data,omitempty"`
 }
 
+type AllScopeGroupResp struct {
+	Success bool               `json:"success,omitempty"`
+	Status  int                `json:"status,omitempty"`
+	Data    []ScopeGroupConfig `json:"data,omitempty"`
+}
+
 type ScopeGroup struct {
 	ClientConfig
 }
@@ -29,6 +35,7 @@ type ScopeGroupService interface {
 	Upsert(sg ScopeGroupConfig) (*ScopeGroupResponse, error)
 	Get(scopeGroupName string) (*ScopeGroupResponse, error)
 	Delete(scopeGroupName string) error
+	GetAll() ([]ScopeGroupConfig, error)
 }
 
 func NewScopeGroup(clientConfig ClientConfig) ScopeGroupService {
@@ -79,4 +86,21 @@ func (c *ScopeGroup) Delete(scopeGroupName string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (c *ScopeGroup) GetAll() ([]ScopeGroupConfig, error) {
+	var response AllScopeGroupResp
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/group/list")
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }
