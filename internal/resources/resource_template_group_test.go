@@ -27,7 +27,7 @@ func TestTemplateGroup_Basic(t *testing.T) {
 			{
 				Config: `
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "https://automation-test.dev.cidaas.eu"
 					}
 					resource "cidaas_template_group" "example" {
 						group_id                       = "` + templateGroupID + `"
@@ -57,7 +57,7 @@ func TestTemplateGroup_Basic(t *testing.T) {
 			{
 				Config: `
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "https://automation-test.dev.cidaas.eu"
 					}
 					resource "cidaas_template_group" "example" {
 						group_id	= "` + templateGroupID + `"
@@ -109,7 +109,7 @@ func TestTemplateGroup_GourpIDLenghCheck(t *testing.T) {
 			{
 				Config: `
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "https://automation-test.dev.cidaas.eu"
 					}
 					resource "cidaas_template_group" "example" {
 						group_id  = "` + acctest.RandString(16) + `"

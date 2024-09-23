@@ -103,7 +103,7 @@ func testAccScopeResourceConfig(
 
 	return `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_scope" "example" {
 			security_level = "` + securityLevel + `"
@@ -187,7 +187,7 @@ func TestAccScopeResource_MissingRequired(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_scope" "example" {
 				}
@@ -207,7 +207,7 @@ func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"
@@ -240,7 +240,7 @@ func TestAccScopeResource_TitleRequired(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"
@@ -270,7 +270,7 @@ func TestAccScopeResource_InvalidLocale(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"

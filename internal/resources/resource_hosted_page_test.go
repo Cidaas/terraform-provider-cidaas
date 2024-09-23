@@ -97,7 +97,7 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 func testAccHostedPageResourceConfig(hostedPageGroupName, defaultLocale string, hostedPages []map[string]string) string {
 	return `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = "` + hostedPageGroupName + `"
@@ -164,7 +164,7 @@ func TestAccHostedPageResource_InvalidLocale(t *testing.T) {
 func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 	config1 := `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
@@ -177,7 +177,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 		`
 	config2 := `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
@@ -186,7 +186,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 		`
 	config3 := `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
@@ -197,7 +197,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 	// validation where hosted_page_id and url is required
 	// config4 := `
 	// 	provider "cidaas" {
-	// 		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+	// 		base_url = "https://automation-test.dev.cidaas.eu"
 	// 	}
 	// 	resource "cidaas_hosted_page" "example" {
 	// 		hosted_page_group_name = ""
@@ -287,7 +287,7 @@ func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
 
 	config := `
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_hosted_page" "example" {
 		hosted_page_group_name = "` + hostedPageGroupName + `"

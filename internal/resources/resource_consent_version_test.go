@@ -51,7 +51,7 @@ func TestConsentVersion_Basic(t *testing.T) {
 func testConsentVersionConfig(content string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_consent_group" "sample" {
 			group_name  = "sample_consent_group"

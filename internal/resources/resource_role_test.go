@@ -164,7 +164,7 @@ func TestAccRoleResource_readAfterUpdate(t *testing.T) {
 func TestAccRoleResource_createMissingFields(t *testing.T) {
 	missingRoleConfig := `
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_role" "example" {
 		name = "Test Name"
@@ -185,7 +185,7 @@ func TestAccRoleResource_createMissingFields(t *testing.T) {
 func testAccRoleResourceConfig(role, name, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_role" "example" {
 		role = "%s"

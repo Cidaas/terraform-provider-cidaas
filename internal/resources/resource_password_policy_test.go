@@ -37,7 +37,7 @@ func TestAccPwdPolicyResource_Basic(t *testing.T) {
 func testAccPwdPolicyResourceConfig(minimumLength, maximumLength, reuseLimit int64) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_password_policy" "example" {
 		minimum_length       = %d
@@ -97,7 +97,7 @@ func TestAccPwdPolicyResource_MissingRequired(t *testing.T) {
 				{
 					Config: `
 						provider "cidaas" {
-							base_url = "https://kube-nightlybuild-dev.cidaas.de"
+							base_url = "https://automation-test.dev.cidaas.eu"
 						}
 						resource "cidaas_password_policy" "example" {}
 					`,

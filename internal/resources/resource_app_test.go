@@ -39,7 +39,7 @@ func TestApp_Basic(t *testing.T) {
 func testAppConfig(companyWebsite string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		# The config below has the list of common config and main config
 resource "cidaas_app" "example" {
@@ -229,7 +229,7 @@ func TestApp_CommonConfig(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_app" "example" {
 					client_type         = "SINGLE_PAGE"

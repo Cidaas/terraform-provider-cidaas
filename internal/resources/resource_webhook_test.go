@@ -82,7 +82,7 @@ func testAccWebhookResourceConfig(
 
 	return `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_webhook" "example" {
 			auth_type = "` + authType + `"
@@ -181,7 +181,7 @@ func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_webhook" "example" {
 					auth_type = "APIKEY"
@@ -231,7 +231,7 @@ func TestAccWebhookResource_SwitchAuthType(t *testing.T) {
 func webhookResouceFullConfig(authType string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_webhook" "example" {
 			auth_type = "%s"

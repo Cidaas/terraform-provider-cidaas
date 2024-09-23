@@ -16,7 +16,6 @@ import (
 const (
 	resourceCustomProvider = "cidaas_custom_provider.example"
 	oauth2StandardType     = "OAUTH2"
-	providerName           = "terraform_sample"
 	displayName            = "Sample Terraform"
 	authorizationEndpoint  = "https://cidaas.de/authz-srv/authz"
 	tokenEndpoint          = "https://cidaas.de/token-srv/token" //nolint:gosec
@@ -26,6 +25,7 @@ const (
 )
 
 var (
+	providerName = acctest.RandString(10)
 	clientID     = acctest.RandString(10)
 	clientSecret = acctest.RandString(10)
 )
@@ -76,7 +76,7 @@ func TestAccCustomProviderResource_Basic(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_custom_provider" "example" {
 					standard_type          = "` + updatedOauth2StandardType + `"
@@ -130,7 +130,7 @@ func TestAccCustomProviderResource_Basic(t *testing.T) {
 func resourceCustomProviderConfig(standardType, providerName string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_custom_provider" "example" {
 			standard_type          = "%s"
@@ -205,7 +205,7 @@ func TestAccCustomProviderResource_MissingRequired(t *testing.T) {
 				{
 					Config: `
 						provider "cidaas" {
-							base_url = "https://kube-nightlybuild-dev.cidaas.de"
+							base_url = "https://automation-test.dev.cidaas.eu"
 						}
 						resource "cidaas_custom_provider" "example" {}
 					`,
@@ -225,7 +225,7 @@ func TestAccCustomProviderResource_UserinfoFieldsCheck(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_custom_provider" "example" {
 					standard_type          = "` + oauth2StandardType + `"

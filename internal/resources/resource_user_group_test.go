@@ -73,7 +73,7 @@ func TestUserGroup_Basic(t *testing.T) {
 func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription string) string {
 	return `
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_group_type" "example" {
 			group_type  = "` + groupType + `"
@@ -146,7 +146,7 @@ func TestUserGroup_MissingRequired(t *testing.T) {
 				{
 					Config: `
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "https://automation-test.dev.cidaas.eu"
 					}
 					resource "cidaas_user_groups" "example" {}
 				`,
@@ -168,7 +168,7 @@ func TestUserGroup_CheckEmptyString(t *testing.T) {
 				{
 					Config: `
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "https://automation-test.dev.cidaas.eu"
 					}
 					resource "cidaas_user_groups" "example" {
 						group_type  =""

@@ -75,7 +75,7 @@ func TestTemplate_Basic(t *testing.T) {
 func testTemplateConfig(locale, templateKey, templateType, content string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_template" "example" {
 			locale        = "%s"
@@ -167,7 +167,7 @@ func TestTemplate_MissingRequired(t *testing.T) {
 				{
 					Config: `
 						provider "cidaas" {
-							base_url = "https://kube-nightlybuild-dev.cidaas.de"
+							base_url = "https://automation-test.dev.cidaas.eu"
 						}
 						resource "cidaas_template" "example" {}
 					`,
@@ -188,7 +188,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"
@@ -210,7 +210,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"
@@ -232,7 +232,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"

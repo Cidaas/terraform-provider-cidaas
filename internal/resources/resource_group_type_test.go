@@ -61,7 +61,7 @@ func TestAccGroupTypeResource_Basic(t *testing.T) {
 func testAccGroupTypeResourceConfig(groupType, roleMode, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_group_type" "example" {
 		group_type  = "%s"
@@ -142,7 +142,7 @@ func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_group_type" "example" {
 					group_type  = "%s"

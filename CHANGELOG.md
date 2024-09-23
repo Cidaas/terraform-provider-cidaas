@@ -1,5 +1,22 @@
 ## Changelog
 
+### 3.1.1
+#### Enhancements
+
+- **Locale Support for Template Resource:** Added support for the **rm** & **rm-CH** language code in the template resource.
+
+### 3.1.0
+
+This release includes the below new resources
+
+- cidaas_social_provider
+- cidaas_password_policy
+- cidaas_consent_group
+- cidaas_consent
+- cidaas_consent_version
+
+Please find the readme [here](https://github.com/Cidaas/terraform-provider-cidaas/blob/v3.1.0/README.md) to explore more on the new resources.
+
 ### 3.0.5
 #### Bug Fix
 

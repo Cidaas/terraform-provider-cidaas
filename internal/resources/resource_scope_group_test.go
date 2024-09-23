@@ -60,7 +60,7 @@ func TestAccScopeGroupResource_Basic(t *testing.T) {
 func testAccScopeGroupResourceConfig(groupType, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_scope_group" "example" {
 		group_name  = "%s"
@@ -136,7 +136,7 @@ func TestAccScopeGroupResource_MissingRequired(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_scope_group" "example" {
 					description = "test description"

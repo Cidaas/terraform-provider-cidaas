@@ -82,7 +82,7 @@ func TestAccConsentResource_Basic(t *testing.T) {
 func testAccConsentResourceConfig(groupName, name string, enabled bool) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "https://automation-test.dev.cidaas.eu"
 	}
 	resource "cidaas_consent_group" "example" {
 		group_name  = "%s"
@@ -148,7 +148,7 @@ func TestAccConsentResource_EmptyGroupName(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_consent" "example" {
 					consent_group_id  = ""
@@ -170,7 +170,7 @@ func TestAccConsentResource_MissingRequired(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_consent" "example" {
 				}

@@ -149,6 +149,8 @@ var Locals = []LocaleData{
 	{LocaleString: "zh-CN", Country: "CN", DisplayCountry: "China", DisplayLanguage: "Chinese", DisplayName: "Chinese (China)", DisplayVariant: "", ISO3Country: "CHN", ISO3Language: "zho", Language: "zh", Variant: ""},
 	{LocaleString: "zh-HK", Country: "HK", DisplayCountry: "Hong Kong", DisplayLanguage: "Chinese", DisplayName: "Chinese (Hong Kong)", DisplayVariant: "", ISO3Country: "HKG", ISO3Language: "zho", Language: "zh", Variant: ""},
 	{LocaleString: "zh-TW", Country: "TW", DisplayCountry: "Taiwan", DisplayLanguage: "Chinese", DisplayName: "Chinese (Taiwan)", DisplayVariant: "", ISO3Country: "TWN", ISO3Language: "zho", Language: "zh", Variant: ""},
+	{LocaleString: "rm", Country: "", DisplayCountry: "", DisplayLanguage: "Romansh", DisplayName: "Romansh", DisplayVariant: "", ISO3Country: "", ISO3Language: "roh", Language: "rm", Variant: ""},
+	{LocaleString: "rm-CH", Country: "CH", DisplayCountry: "Switzerland", DisplayLanguage: "Romansh", DisplayName: "Romansh (Switzerland)", DisplayVariant: "", ISO3Country: "CHE", ISO3Language: "roh", Language: "rm", Variant: ""},
 }
 
 func GetLanguageForLocale(locale string) string {

@@ -43,14 +43,15 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 }
 
 func TestRegistrationField_GroupBasic(t *testing.T) {
+	fieldKey := acctest.RandString(10)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testRegFieldConfig("TEXT", "sample_group", true, true),
+				Config: testRegFieldConfig("TEXT", fieldKey, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_group"),
+					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
 			},
@@ -58,10 +59,10 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 				ResourceName:      resourceRegField,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "sample_group",
+				ImportStateId:     fieldKey,
 			},
 			{
-				Config: testRegFieldConfig("TEXT", "sample_group", false, true),
+				Config: testRegFieldConfig("TEXT", fieldKey, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
@@ -71,18 +72,19 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 }
 
 func TestRegistrationField_TextBasic(t *testing.T) {
+	fiedKey := acctest.RandString(10)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_registration_field" "example" {
 					data_type                                      = "TEXT"
-					field_key                                      = "sample_text_field"
+					field_key                                      = "%s"
 					field_type                                     = "CUSTOM"  // CUSTOM and SYSTEM, SYSTEM can not be created but modified
 					internal                                       = true      // Default: false
 					required                                       = true      // Default: false
@@ -117,9 +119,9 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 						min_length = 10
 					}
 				}							
-			`,
+			`, fiedKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_text_field"),
+					resource.TestCheckResourceAttr(resourceRegField, "field_key", fiedKey),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
 			},
@@ -127,7 +129,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 				ResourceName:      resourceRegField,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "sample_text_field",
+				ImportStateId:     fiedKey,
 			},
 		},
 	})
@@ -136,7 +138,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		resource "cidaas_registration_field" "example" {
 			data_type                                      = "%s"
@@ -178,7 +180,7 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 			{
 				Config: `
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "https://automation-test.dev.cidaas.eu"
 				}
 				resource "cidaas_registration_field" "example" {
 					data_type                                      = "RADIO"
