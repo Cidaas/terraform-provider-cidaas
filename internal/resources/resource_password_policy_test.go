@@ -37,7 +37,7 @@ func TestAccPwdPolicyResource_Basic(t *testing.T) {
 func testAccPwdPolicyResourceConfig(minimumLength, maximumLength, reuseLimit int64) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://automation-test.dev.cidaas.eu"
+		base_url = "%s"
 	}
 	resource "cidaas_password_policy" "example" {
 		minimum_length       = %d
@@ -49,7 +49,7 @@ func testAccPwdPolicyResourceConfig(minimumLength, maximumLength, reuseLimit int
 		no_of_days_to_remind = 1
 		reuse_limit          = %d
 	}
-	`, minimumLength, maximumLength, reuseLimit)
+	`, acctest.BaseURL, minimumLength, maximumLength, reuseLimit)
 }
 
 // maximum_length should be greater than minimum_length
@@ -95,12 +95,12 @@ func TestAccPwdPolicyResource_MissingRequired(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 						provider "cidaas" {
-							base_url = "https://automation-test.dev.cidaas.eu"
+							base_url = "%s"
 						}
 						resource "cidaas_password_policy" "example" {}
-					`,
+					`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required, but no definition was found.`, param)),
 				},
 			},

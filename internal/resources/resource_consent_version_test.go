@@ -51,7 +51,7 @@ func TestConsentVersion_Basic(t *testing.T) {
 func testConsentVersionConfig(content string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_consent_group" "sample" {
 			group_name  = "sample_consent_group"
@@ -79,5 +79,5 @@ func testConsentVersionConfig(content string) string {
 				}
 			]
 		}		
-	`, content)
+	`, acctest.BaseURL, content)
 }

@@ -80,7 +80,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_registration_field" "example" {
 					data_type                                      = "TEXT"
@@ -119,7 +119,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 						min_length = 10
 					}
 				}							
-			`, fiedKey),
+			`, acctest.BaseURL, fiedKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceRegField, "field_key", fiedKey),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
@@ -138,7 +138,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_registration_field" "example" {
 			data_type                                      = "%s"
@@ -169,7 +169,7 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 				}
 			]
 		}				
-	`, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
+	`, acctest.BaseURL, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
 }
 
 func TestRegistrationField_SelectBasic(t *testing.T) {
@@ -178,9 +178,9 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_registration_field" "example" {
 					data_type                                      = "RADIO"
@@ -223,7 +223,7 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 						}
 					]
 				}
-			`,
+			`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_select_field"),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),

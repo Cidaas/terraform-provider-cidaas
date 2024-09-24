@@ -60,13 +60,13 @@ func TestAccConsentGroupResource_Basic(t *testing.T) {
 func testAccConsentGroupResourceConfig(groupName, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://automation-test.dev.cidaas.eu"
+		base_url = "%s"
 	}
 	resource "cidaas_consent_group" "example" {
 		group_name  = "%s"
 		description = "%s"
 	}
-	`, groupName, description)
+	`, acctest.BaseURL, groupName, description)
 }
 
 func testCheckConsentGroupDestroyed(s *terraform.State) error {
@@ -134,14 +134,14 @@ func TestAccConsentGroupResource_MissingRequired(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_consent_group" "example" {
 					description = "test description"
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`The argument "group_name" is required, but no definition was found.`),
 			},
 		},

@@ -23,7 +23,10 @@ var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 	"cidaas": providerserver.NewProtocol6WithError(provider.Cidaas("test")()),
 }
 
-var TestToken string
+var (
+	TestToken string
+	BaseURL   string
+)
 
 func TestAccPreCheck(t *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
@@ -37,6 +40,10 @@ func TestAccPreCheck(t *testing.T) {
 
 	if os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET") == "" {
 		t.Fatal("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET must be set for acceptance tests")
+	}
+
+	if os.Getenv("BASE_URL") == "" {
+		t.Fatal("BASE_URL must be set for acceptance tests")
 	}
 
 	tokenURL := fmt.Sprintf("%s/%s", os.Getenv("BASE_URL"), "token-srv/token")
@@ -56,6 +63,7 @@ func TestAccPreCheck(t *testing.T) {
 		t.Fatalf("failed to generate access token %s", err.Error())
 	}
 	TestToken = response.AccessToken
+	BaseURL = os.Getenv("BASE_URL")
 }
 
 // RandString generates a random string with the given length.

@@ -80,21 +80,21 @@ func testAccWebhookResourceConfig(
 		eventsString = `["` + strings.Join(events, `", "`) + `"]`
 	}
 
-	return `
+	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_webhook" "example" {
-			auth_type = "` + authType + `"
-			url = "` + url + `"
-			events = ` + eventsString + `
+			auth_type = "`+authType+`"
+			url = "`+url+`"
+			events = `+eventsString+`
 			apikey_config = {
-				key = "` + apikeyConfig["key"] + `"
-				placeholder = "` + apikeyConfig["placeholder"] + `"
-				placement = "` + apikeyConfig["placement"] + `"
+				key = "`+apikeyConfig["key"]+`"
+				placeholder = "`+apikeyConfig["placeholder"]+`"
+				placement = "`+apikeyConfig["placement"]+`"
 			}
 		}
-	`
+	`, acctest.BaseURL)
 }
 
 func testCheckWebhookDestroyed(s *terraform.State) error {
@@ -179,9 +179,9 @@ func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 				ExpectError: regexp.MustCompile(`The attribute cidaas_auth_config cannot be empty when the auth_type is`), // TODO: fix why full string match not working
 			},
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_webhook" "example" {
 					auth_type = "APIKEY"
@@ -193,7 +193,7 @@ func TestAccWebhookResource_InvalidAuthType(t *testing.T) {
 						placement = "query"
 					}
 				}
-			`,
+			`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`The attribute apikey_config cannot be empty when the auth_type is APIKEY`),
 			},
 		},
@@ -231,7 +231,7 @@ func TestAccWebhookResource_SwitchAuthType(t *testing.T) {
 func webhookResouceFullConfig(authType string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_webhook" "example" {
 			auth_type = "%s"
@@ -250,5 +250,5 @@ func webhookResouceFullConfig(authType string) string {
 			cidaas_auth_config = {
 				client_id = "ce90d6ba-9a5a-49b6-9a50"
 			}
-		}`, authType)
+		}`, acctest.BaseURL, authType)
 }

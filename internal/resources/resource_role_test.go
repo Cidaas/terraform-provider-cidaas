@@ -162,14 +162,14 @@ func TestAccRoleResource_readAfterUpdate(t *testing.T) {
 }
 
 func TestAccRoleResource_createMissingFields(t *testing.T) {
-	missingRoleConfig := `
+	missingRoleConfig := fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://automation-test.dev.cidaas.eu"
+		base_url = "%s"
 	}
 	resource "cidaas_role" "example" {
 		name = "Test Name"
 		description = "Test Description"
-	}`
+	}`, acctest.BaseURL)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -185,13 +185,13 @@ func TestAccRoleResource_createMissingFields(t *testing.T) {
 func testAccRoleResourceConfig(role, name, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://automation-test.dev.cidaas.eu"
+		base_url = "%s"
 	}
 	resource "cidaas_role" "example" {
 		role = "%s"
 		name = "%s"
 		description = "%s"
-	}`, role, name, description)
+	}`, acctest.BaseURL, role, name, description)
 }
 
 func importStateIDFunc(s *terraform.State) (string, error) {

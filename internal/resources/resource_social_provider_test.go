@@ -77,7 +77,7 @@ var (
 func socialProviderConfig(name, providerName, clientID, clientSecret string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_social_provider" "example" {
 			name                     = "%s"
@@ -110,7 +110,7 @@ func socialProviderConfig(name, providerName, clientID, clientSecret string) str
 				}
 			]
 		}
-	`, name, providerName, clientID, clientSecret)
+	`, acctest.BaseURL, name, providerName, clientID, clientSecret)
 }
 
 // func checksocialProviderDestroyed(s *terraform.State) error {
@@ -158,12 +158,12 @@ func TestSocialProvider_MissingRequired(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 						provider "cidaas" {
-							base_url = "https://automation-test.dev.cidaas.eu"
+							base_url = "%s"
 						}
 						resource "cidaas_social_provider" "example" {}
-					`,
+					`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, param)),
 				},
 			},

@@ -14,20 +14,21 @@ const (
 
 // create, read and update test
 func TestApp_Basic(t *testing.T) {
+	clientName := acctest.RandString(10)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAppConfig("https://cidaas.de"),
+				Config: testAppConfig(clientName, "https://cidaas.de"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceApp, "client_name", "aiPqVcrYQQ3WzW8J"),
+					resource.TestCheckResourceAttr(resourceApp, "client_name", clientName),
 					resource.TestCheckResourceAttr(resourceApp, "company_website", "https://cidaas.de"),
 					resource.TestCheckResourceAttrSet(resourceApp, "id"),
 				),
 			},
 			{
-				Config: testAppConfig("https://cidaas.com"),
+				Config: testAppConfig(clientName, "https://cidaas.com"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceApp, "company_website", "https://cidaas.com"),
 				),
@@ -36,14 +37,14 @@ func TestApp_Basic(t *testing.T) {
 	})
 }
 
-func testAppConfig(companyWebsite string) string {
+func testAppConfig(clientName, companyWebsite string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "https://automation-test.dev.cidaas.eu"
 		}
 		# The config below has the list of common config and main config
 resource "cidaas_app" "example" {
-  client_name                     = "aiPqVcrYQQ3WzW8J" // unique
+  client_name                     = "%s" // unique
   client_display_name             = "Display Name of the app"    // unique
   content_align                   = "CENTER"                     // Default: CENTER
   post_logout_redirect_uris       = ["https://cidaas.com"]
@@ -218,22 +219,23 @@ resource "cidaas_app" "example" {
     pending_scopes = ["sample"]
   }
 }		
-	`, companyWebsite)
+	`, clientName, companyWebsite)
 }
 
 func TestApp_CommonConfig(t *testing.T) {
+	clientName := acctest.RandString(10)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_app" "example" {
 					client_type         = "SINGLE_PAGE"
-					client_name         = "aiPqVcrYQQ3WzW8J"
+					client_name         = "%s"
 					client_display_name = "The client Terraform Example App is a sample application designed to demonstrate the configuration of the terraform cidaas_app resource."
 					company_address     = "12 Wimsheim, Germany"
 					company_website     = "https://cidaas.de"
@@ -245,9 +247,9 @@ func TestApp_CommonConfig(t *testing.T) {
 					login_spi           = {}
 					common_configs = {}
 				}		
-			`,
+			`, acctest.BaseURL, clientName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceApp, "client_name", "aiPqVcrYQQ3WzW8J"),
+					resource.TestCheckResourceAttr(resourceApp, "client_name", clientName),
 					resource.TestCheckResourceAttrSet(resourceApp, "id"),
 				),
 			},

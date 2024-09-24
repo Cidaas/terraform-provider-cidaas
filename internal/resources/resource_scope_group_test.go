@@ -60,13 +60,13 @@ func TestAccScopeGroupResource_Basic(t *testing.T) {
 func testAccScopeGroupResourceConfig(groupType, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://automation-test.dev.cidaas.eu"
+		base_url = "%s"
 	}
 	resource "cidaas_scope_group" "example" {
 		group_name  = "%s"
 		description = "%s"
 	}
-	`, groupType, description)
+	`, acctest.BaseURL, groupType, description)
 }
 
 func testCheckScopeGroupDestroyed(s *terraform.State) error {
@@ -134,14 +134,14 @@ func TestAccScopeGroupResource_MissingRequired(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://automation-test.dev.cidaas.eu"
+					base_url = "%s"
 				}
 				resource "cidaas_scope_group" "example" {
 					description = "test description"
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`The argument "group_name" is required, but no definition was found.`),
 			},
 		},

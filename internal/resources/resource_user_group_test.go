@@ -71,21 +71,21 @@ func TestUserGroup_Basic(t *testing.T) {
 }
 
 func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription string) string {
-	return `
+	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		resource "cidaas_group_type" "example" {
-			group_type  = "` + groupType + `"
+			group_type  = "`+groupType+`"
 			role_mode   = "no_roles"
 			description = "group type description"
 		}
 		resource "cidaas_user_groups" "example" {
 			group_type                     = cidaas_group_type.example.group_type
-			group_id                       = "` + groupID + `"
-			group_name                     = "` + userGroupName + `"
+			group_id                       = "`+groupID+`"
+			group_name                     = "`+userGroupName+`"
 			logo_url                       = "https://cidaas.de/logo"
-			description                    = "` + userGroupDescription + `"
+			description                    = "`+userGroupDescription+`"
 			custom_fields = {
 				first_name  = "cidaas"
 				family_name = "widas"
@@ -94,7 +94,7 @@ func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription str
 			member_profile_visibility      = "full"
 			none_member_profile_visibility = "public"
 		}		
-	`
+	`, acctest.BaseURL)
 }
 
 func testCheckUserGroupDestroyed(s *terraform.State) error {
@@ -144,12 +144,12 @@ func TestUserGroup_MissingRequired(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 					provider "cidaas" {
-						base_url = "https://automation-test.dev.cidaas.eu"
+						base_url = "%s"
 					}
 					resource "cidaas_user_groups" "example" {}
-				`,
+				`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, v)),
 				},
 			},
@@ -166,16 +166,16 @@ func TestUserGroup_CheckEmptyString(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 					provider "cidaas" {
-						base_url = "https://automation-test.dev.cidaas.eu"
+						base_url = "%s"
 					}
 					resource "cidaas_user_groups" "example" {
 						group_type  =""
 						group_id    = ""
 						group_name  = ""
 					}
-				`,
+				`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`Attribute %s string length must be at least 1`, v)),
 				},
 			},
