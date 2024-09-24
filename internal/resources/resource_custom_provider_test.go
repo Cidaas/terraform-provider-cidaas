@@ -16,7 +16,6 @@ import (
 const (
 	resourceCustomProvider = "cidaas_custom_provider.example"
 	oauth2StandardType     = "OAUTH2"
-	providerName           = "terraform_sample"
 	displayName            = "Sample Terraform"
 	authorizationEndpoint  = "https://cidaas.de/authz-srv/authz"
 	tokenEndpoint          = "https://cidaas.de/token-srv/token" //nolint:gosec
@@ -26,6 +25,7 @@ const (
 )
 
 var (
+	providerName = acctest.RandString(10)
 	clientID     = acctest.RandString(10)
 	clientSecret = acctest.RandString(10)
 )
@@ -74,21 +74,21 @@ func TestAccCustomProviderResource_Basic(t *testing.T) {
 				ImportStateId:     providerName,
 			},
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_custom_provider" "example" {
-					standard_type          = "` + updatedOauth2StandardType + `"
-					authorization_endpoint = "` + updatedAuthorizationEndpoint + `"
-					token_endpoint         = "` + updatedTokenEndpoint + `"
-					provider_name          = "` + providerName + `"
-					display_name           = "` + updatedDisplayName + `"
-					logo_url               =  "` + updatedLogoURL + `"
-					userinfo_endpoint      =  "` + updatedUserinfoEndpoint + `"
-					scope_display_label    =  "` + updatedScopeDisplayLabel + `"
-					client_id              =  "` + updatedClientID + `"
-					client_secret          =  "` + updatedClientSecret + `"
+					standard_type          = "`+updatedOauth2StandardType+`"
+					authorization_endpoint = "`+updatedAuthorizationEndpoint+`"
+					token_endpoint         = "`+updatedTokenEndpoint+`"
+					provider_name          = "`+providerName+`"
+					display_name           = "`+updatedDisplayName+`"
+					logo_url               =  "`+updatedLogoURL+`"
+					userinfo_endpoint      =  "`+updatedUserinfoEndpoint+`"
+					scope_display_label    =  "`+updatedScopeDisplayLabel+`"
+					client_id              =  "`+updatedClientID+`"
+					client_secret          =  "`+updatedClientSecret+`"
 					domains                = ["cidaas.in", "cidaas.com"]
 				
 					scopes = [
@@ -97,7 +97,7 @@ func TestAccCustomProviderResource_Basic(t *testing.T) {
 						}
 					]
 				}
-			`,
+			`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceCustomProvider, "standard_type", updatedOauth2StandardType),
 					resource.TestCheckResourceAttr(resourceCustomProvider, "authorization_endpoint", updatedAuthorizationEndpoint),
@@ -130,7 +130,7 @@ func TestAccCustomProviderResource_Basic(t *testing.T) {
 func resourceCustomProviderConfig(standardType, providerName string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_custom_provider" "example" {
 			standard_type          = "%s"
@@ -153,7 +153,7 @@ func resourceCustomProviderConfig(standardType, providerName string) string {
 				}
 			]
 		}
-	`, standardType, providerName)
+	`, acctest.BaseURL, standardType, providerName)
 }
 
 func checkCustomProviderDestroyed(s *terraform.State) error {
@@ -203,12 +203,12 @@ func TestAccCustomProviderResource_MissingRequired(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 						provider "cidaas" {
-							base_url = "https://kube-nightlybuild-dev.cidaas.de"
+							base_url = "%s"
 						}
 						resource "cidaas_custom_provider" "example" {}
-					`,
+					`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, param)),
 				},
 			},
@@ -223,20 +223,20 @@ func TestAccCustomProviderResource_UserinfoFieldsCheck(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_custom_provider" "example" {
-					standard_type          = "` + oauth2StandardType + `"
-					authorization_endpoint = "` + authorizationEndpoint + `"
-					token_endpoint         = "` + tokenEndpoint + `"
-					provider_name          = "` + providerName + `"
-					display_name           = "` + displayName + `"
-					userinfo_endpoint      = "` + userinfoEndpoint + `"
-					scope_display_label    = "` + scopeDisplayLabel + `"
-					client_id              = "` + clientID + `"
-					client_secret          = "` + clientSecret + `"
+					standard_type          = "`+oauth2StandardType+`"
+					authorization_endpoint = "`+authorizationEndpoint+`"
+					token_endpoint         = "`+tokenEndpoint+`"
+					provider_name          = "`+providerName+`"
+					display_name           = "`+displayName+`"
+					userinfo_endpoint      = "`+userinfoEndpoint+`"
+					scope_display_label    = "`+scopeDisplayLabel+`"
+					client_id              = "`+clientID+`"
+					client_secret          = "`+clientSecret+`"
 					scopes = [
 						{
 							scope_name  = "email"
@@ -265,7 +265,7 @@ func TestAccCustomProviderResource_UserinfoFieldsCheck(t *testing.T) {
 							alternate_phone = "1234567890"
 						}
 					}
-				}`,
+				}`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// default value check
 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.family_name", "cp_family_name"),

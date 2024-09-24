@@ -61,14 +61,14 @@ func TestAccGroupTypeResource_Basic(t *testing.T) {
 func testAccGroupTypeResourceConfig(groupType, roleMode, description string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "%s"
 	}
 	resource "cidaas_group_type" "example" {
 		group_type  = "%s"
 		role_mode   = "%s"
 		description = "%s"
 	}
-	`, groupType, roleMode, description)
+	`, acctest.BaseURL, groupType, roleMode, description)
 }
 
 func testCheckGroupTypeDestroyed(s *terraform.State) error {
@@ -142,7 +142,7 @@ func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_group_type" "example" {
 					group_type  = "%s"
@@ -150,7 +150,7 @@ func TestAccGroupTypeResource_EmptyAllowedRolesError(t *testing.T) {
 					description = "%s"
 					allowed_roles = []
 				}
-				`, groupType, roleMode, groupTypedescription),
+				`, acctest.BaseURL, groupType, roleMode, groupTypedescription),
 				ExpectError: regexp.MustCompile("The attribute allowed_roles cannot be empty when role_mode is set to"), // TODO: full string comparison
 			},
 		},

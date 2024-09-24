@@ -75,7 +75,7 @@ func TestTemplate_Basic(t *testing.T) {
 func testTemplateConfig(locale, templateKey, templateType, content string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_template" "example" {
 			locale        = "%s"
@@ -83,7 +83,7 @@ func testTemplateConfig(locale, templateKey, templateType, content string) strin
 			template_type = "%s"
 			content       = "%s"
 		}
-		`, locale, templateKey, templateType, content)
+		`, acctest.BaseURL, locale, templateKey, templateType, content)
 }
 
 func checkTemplateDestroyed(s *terraform.State) error {
@@ -165,12 +165,12 @@ func TestTemplate_MissingRequired(t *testing.T) {
 			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
-					Config: `
+					Config: fmt.Sprintf(`
 						provider "cidaas" {
-							base_url = "https://kube-nightlybuild-dev.cidaas.de"
+							base_url = "%s"
 						}
 						resource "cidaas_template" "example" {}
-					`,
+					`, acctest.BaseURL),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`"%s" is required`, v)), // TODO: full string validation
 				},
 			},
@@ -186,9 +186,9 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 		CheckDestroy:             checkTemplateDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"
@@ -201,16 +201,16 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
 				),
 			},
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"
@@ -223,16 +223,16 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
 				),
 			},
 			// templated reverted back to the old state
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_template" "example" {
 					locale             = "en-us"
@@ -245,7 +245,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
 				),

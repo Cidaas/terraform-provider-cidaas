@@ -95,24 +95,24 @@ func TestAccHostedPageResource_Basic(t *testing.T) {
 }
 
 func testAccHostedPageResourceConfig(hostedPageGroupName, defaultLocale string, hostedPages []map[string]string) string {
-	return `
+	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_hosted_page" "example" {
-			hosted_page_group_name = "` + hostedPageGroupName + `"
-			default_locale = "` + defaultLocale + `"
+			hosted_page_group_name = "`+hostedPageGroupName+`"
+			default_locale = "`+defaultLocale+`"
 
 			hosted_pages =[
 				{
-				hosted_page_id = "` + hostedPages[0]["hosted_page_id"] + `"
-				locale = "` + hostedPages[0]["locale"] + `"
-				url = "` + hostedPages[0]["url"] + `"
-				content = "` + hostedPages[0]["content"] + `"
+				hosted_page_id = "`+hostedPages[0]["hosted_page_id"]+`"
+				locale = "`+hostedPages[0]["locale"]+`"
+				url = "`+hostedPages[0]["url"]+`"
+				content = "`+hostedPages[0]["content"]+`"
 				}
 			]
 		}
-	`
+	`, acctest.BaseURL)
 }
 
 func testCheckHostedPageExists(resourceName string) resource.TestCheckFunc {
@@ -162,9 +162,9 @@ func TestAccHostedPageResource_InvalidLocale(t *testing.T) {
 
 // missing required fields validation
 func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
-	config1 := `
+	config1 := fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
@@ -174,30 +174,30 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 				url = ""
 			}]
 		}
-		`
-	config2 := `
+		`, acctest.BaseURL)
+	config2 := fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
 			default_locale = "en-US"
 		}
-		`
-	config3 := `
+		`, acctest.BaseURL)
+	config3 := fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_hosted_page" "example" {
 			hosted_page_group_name = ""
 			default_locale = "en-US"
 			hosted_pages =[]
 		}
-		`
+		`, acctest.BaseURL)
 	// validation where hosted_page_id and url is required
 	// config4 := `
 	// 	provider "cidaas" {
-	// 		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+	// 		base_url = "https://automation-test.dev.cidaas.eu"
 	// 	}
 	// 	resource "cidaas_hosted_page" "example" {
 	// 		hosted_page_group_name = ""
@@ -285,30 +285,30 @@ func TestAccHostedPageResource_MultipleHostedPages(t *testing.T) {
 	hostedPageURL2 := "https://cidaad.de/login_success"
 	hostedPageContent2 := "<html>Login Success</html>"
 
-	config := `
+	config := fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "%s"
 	}
 	resource "cidaas_hosted_page" "example" {
-		hosted_page_group_name = "` + hostedPageGroupName + `"
-		default_locale = "` + defaultLocale + `"
+		hosted_page_group_name = "`+hostedPageGroupName+`"
+		default_locale = "`+defaultLocale+`"
 
 		hosted_pages =[
 			{
-				hosted_page_id = "` + hostedPageID + `"
-				locale = "` + defaultLocale + `"
-				url = "` + hostedPageURL + `"
-				content = "` + hostedPageContent + `"
+				hosted_page_id = "`+hostedPageID+`"
+				locale = "`+defaultLocale+`"
+				url = "`+hostedPageURL+`"
+				content = "`+hostedPageContent+`"
 		 },
 		 {
-				hosted_page_id = "` + hostedPageID2 + `"
+				hosted_page_id = "`+hostedPageID2+`"
 				locale = "en-IN"
-				url = "` + hostedPageURL2 + `"
-				content = "` + hostedPageContent2 + `"
+				url = "`+hostedPageURL2+`"
+				content = "`+hostedPageContent2+`"
 		 }
 		]
 	}
-	`
+	`, acctest.BaseURL)
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },

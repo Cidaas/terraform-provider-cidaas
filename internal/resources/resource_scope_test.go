@@ -101,24 +101,24 @@ func testAccScopeResourceConfig(
 		groupNameString = `["` + strings.Join(groupName, `", "`) + `"]`
 	}
 
-	return `
+	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://kube-nightlybuild-dev.cidaas.de"
+			base_url = "%s"
 		}
 		resource "cidaas_scope" "example" {
-			security_level = "` + securityLevel + `"
-			scope_key = "` + scopeKey + `"
-			required_user_consent = "` + strconv.FormatBool(requiredUserConsent) + `"
-			group_name = ` + groupNameString + `
+			security_level = "`+securityLevel+`"
+			scope_key = "`+scopeKey+`"
+			required_user_consent = "`+strconv.FormatBool(requiredUserConsent)+`"
+			group_name = `+groupNameString+`
 			localized_descriptions =[
 				{
-					title = "` + localizedDescriptions[0]["title"] + `"
-					locale = "` + localizedDescriptions[0]["locale"] + `"
-					description = "` + localizedDescriptions[0]["description"] + `"
+					title = "`+localizedDescriptions[0]["title"]+`"
+					locale = "`+localizedDescriptions[0]["locale"]+`"
+					description = "`+localizedDescriptions[0]["description"]+`"
 				}
 			]
 		}
-	`
+	`, acctest.BaseURL)
 }
 
 func testCheckScopeDestroyed(s *terraform.State) error {
@@ -185,13 +185,13 @@ func TestAccScopeResource_MissingRequired(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_scope" "example" {
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`The argument "scope_key" is required, but no definition was found.`),
 			},
 		},
@@ -205,23 +205,23 @@ func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"
-					scope_key = "` + scopeKey + `"
+					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
 					localized_descriptions =[
 						{
-							title = "` + title + `"
-							locale = "` + locale + `"
-							description = "` + scopeDescription + `"
+							title = "`+title+`"
+							locale = "`+locale+`"
+							description = "`+scopeDescription+`"
 						}
 					]
 				}
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceScope, "required_user_consent"),
 					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(false)),
@@ -238,22 +238,22 @@ func TestAccScopeResource_TitleRequired(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"
-					scope_key = "` + scopeKey + `"
+					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
 					localized_descriptions =[
 						{
-							locale = "` + locale + `"
-							description = "` + scopeDescription + `"
+							locale = "`+locale+`"
+							description = "`+scopeDescription+`"
 						}
 					]
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`attribute "title" is required`),
 			},
 		},
@@ -268,23 +268,23 @@ func TestAccScopeResource_InvalidLocale(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_scope" "example" {
 					security_level = "PUBLIC"
-					scope_key = "` + scopeKey + `"
+					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
 					localized_descriptions =[
 						{
-							title = "` + title + `"
-							locale = "` + invalidLocale + `"
-							description = "` + scopeDescription + `"
+							title = "`+title+`"
+							locale = "`+invalidLocale+`"
+							description = "`+scopeDescription+`"
 						}
 					]
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`locale value must be one of`), // TODO:full error string comparison
 			},
 		},

@@ -25,14 +25,14 @@ func TestTemplateGroup_Basic(t *testing.T) {
 		CheckDestroy:             CheckTemplateGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "%s"
 					}
 					resource "cidaas_template_group" "example" {
-						group_id                       = "` + templateGroupID + `"
+						group_id                       = "`+templateGroupID+`"
 					}		
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplateGroup, "group_id", templateGroupID),
 
@@ -55,12 +55,12 @@ func TestTemplateGroup_Basic(t *testing.T) {
 			// if you update only from_email in cidaas_template_group then the test fails
 			// TODO: fix refresh plan not empty issye terraform apply(update)
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "%s"
 					}
 					resource "cidaas_template_group" "example" {
-						group_id	= "` + templateGroupID + `"
+						group_id	= "`+templateGroupID+`"
 						email_sender_config = {
 							from_email = "noreply@cidaas.eu"
 							from_name  = "Kube-dev"
@@ -70,7 +70,7 @@ func TestTemplateGroup_Basic(t *testing.T) {
 							]
 						}
 					}		
-				`,
+				`, acctest.BaseURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplateGroup, "email_sender_config.from_email", "noreply@cidaas.eu"),
 				),
@@ -107,14 +107,14 @@ func TestTemplateGroup_GourpIDLenghCheck(t *testing.T) {
 		CheckDestroy:             CheckTemplateGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 					provider "cidaas" {
-						base_url = "https://kube-nightlybuild-dev.cidaas.de"
+						base_url = "%s"
 					}
 					resource "cidaas_template_group" "example" {
-						group_id  = "` + acctest.RandString(16) + `"
+						group_id  = "`+acctest.RandString(16)+`"
 					}		
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile("group_id string length must be at most 15"),
 			},
 		},

@@ -82,7 +82,7 @@ func TestAccConsentResource_Basic(t *testing.T) {
 func testAccConsentResourceConfig(groupName, name string, enabled bool) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
-		base_url = "https://kube-nightlybuild-dev.cidaas.de"
+		base_url = "%s"
 	}
 	resource "cidaas_consent_group" "example" {
 		group_name  = "%s"
@@ -92,7 +92,7 @@ func testAccConsentResourceConfig(groupName, name string, enabled bool) string {
 		name = "%s"
 		enabled = "%v"
 	}
-	`, groupName, name, enabled)
+	`, acctest.BaseURL, groupName, name, enabled)
 }
 
 func testCheckConsentDestroyed(s *terraform.State) error {
@@ -146,15 +146,15 @@ func TestAccConsentResource_EmptyGroupName(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_consent" "example" {
 					consent_group_id  = ""
 					name = ""
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`Attribute consent_group_id string length must be at least 1, got: 0`),
 			},
 		},
@@ -168,13 +168,13 @@ func TestAccConsentResource_MissingRequired(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: `
+				Config: fmt.Sprintf(`
 				provider "cidaas" {
-					base_url = "https://kube-nightlybuild-dev.cidaas.de"
+					base_url = "%s"
 				}
 				resource "cidaas_consent" "example" {
 				}
-				`,
+				`, acctest.BaseURL),
 				ExpectError: regexp.MustCompile(`The argument "name" is required, but no definition was found.`),
 			},
 		},
