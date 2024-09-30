@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/google/uuid"
@@ -32,7 +33,7 @@ func NewConsent() datasource.DataSource {
 	return &ConsentDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_consent",
+				Name:   CONSENT_DATASOURCE,
 				Schema: &consentSchema,
 			},
 		),
@@ -40,6 +41,8 @@ func NewConsent() datasource.DataSource {
 }
 
 var consentSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of consents available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", CONSENT_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",

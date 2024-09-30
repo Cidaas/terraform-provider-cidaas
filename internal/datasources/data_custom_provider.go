@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -36,7 +37,7 @@ func NewCustomProvider() datasource.DataSource {
 	return &CustomProviderDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_custom_provider",
+				Name:   CUSTOM_PROVIDER_DATASOURCE,
 				Schema: &customProviderSchema,
 			},
 		),
@@ -44,6 +45,8 @@ func NewCustomProvider() datasource.DataSource {
 }
 
 var customProviderSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of custom providers available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", CUSTOM_PROVIDER_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",

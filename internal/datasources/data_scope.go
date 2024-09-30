@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -92,6 +93,8 @@ var scopeSchema = map[string]schema.Attribute{
 }
 
 var scopesDataSourceSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of scopes available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", SCOPE_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",
@@ -113,7 +116,7 @@ func NewScope() datasource.DataSource {
 	return &ScopesDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_scope",
+				Name:   SCOPE_DATASOURCE,
 				Schema: &scopesDataSourceSchema,
 			},
 		),

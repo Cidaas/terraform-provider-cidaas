@@ -1,0 +1,21 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+
+## Example Usage
+
+{{ tffile "examples/datasources/cidaas_group_type.tf" }}
+
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Filterable Fields
+
+* `group_type`
+* `role_mode`
+* `allowed_roles`

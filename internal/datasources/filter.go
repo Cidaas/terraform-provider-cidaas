@@ -64,7 +64,7 @@ func (f FilterConfig) Schema() schema.SetNestedBlock {
 				},
 				"match_by": schema.StringAttribute{
 					Optional:    true,
-					Description: "The type of comparison to use for this filter.",
+					Description: "The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`",
 					Validators: []validator.String{
 						stringvalidator.OneOfCaseInsensitive(
 							"exact", "substring", "regex",

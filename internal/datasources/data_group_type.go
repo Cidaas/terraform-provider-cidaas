@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -35,6 +36,8 @@ var groupTypeFilter = FilterConfig{
 }
 
 var groupTypeSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of group types available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", GROUP_TYPE_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",
@@ -78,7 +81,7 @@ func NewGroupType() datasource.DataSource {
 	return &GroupTypeDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_group_type",
+				Name:   GROUP_TYPE_DATASOURCE,
 				Schema: &groupTypeSchema,
 			},
 		),

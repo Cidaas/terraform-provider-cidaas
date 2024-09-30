@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -112,6 +113,9 @@ var systemTemplateSchema = map[string]schema.Attribute{
 }
 
 var systemTemplateDataSourceSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of system templates optionsa that can be"+
+		"\nconfigured to create a system template in your Cidaas instance. "+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", SYSTEM_TEMPLATE_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",
@@ -133,7 +137,7 @@ func NewSystemTemplateOption() datasource.DataSource {
 	return &SystemTemplateOptionsDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_system_template_option",
+				Name:   SYSTEM_TEMPLATE_DATASOURCE,
 				Schema: &systemTemplateDataSourceSchema,
 			},
 		),

@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/google/uuid"
@@ -35,7 +36,7 @@ func NewRole() datasource.DataSource {
 	return &RoleDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_role",
+				Name:   ROLE_DATASOURCE,
 				Schema: &roleDataSourceSchema,
 			},
 		),
@@ -43,6 +44,8 @@ func NewRole() datasource.DataSource {
 }
 
 var roleDataSourceSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of roles available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", ROLE_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",

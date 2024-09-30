@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -76,6 +77,8 @@ var socialProviderSchema = map[string]schema.Attribute{
 }
 
 var socialProviderDataSourceSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of social providers available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", SOCIAL_PROVIDER_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",
@@ -97,7 +100,7 @@ func NewSocialProvider() datasource.DataSource {
 	return &SocialProviderDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_social_provider",
+				Name:   SOCIAL_PROVIDER_DATASOURCE,
 				Schema: &socialProviderDataSourceSchema,
 			},
 		),

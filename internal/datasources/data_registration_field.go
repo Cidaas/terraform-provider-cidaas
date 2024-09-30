@@ -2,6 +2,7 @@ package datasources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/google/uuid"
@@ -93,6 +94,8 @@ var fieldSchema = map[string]schema.Attribute{
 }
 
 var fieldDataSourceSchema = schema.Schema{
+	MarkdownDescription: fmt.Sprintf("The data source `%s` returns a list of registration fields available in your Cidaas instance."+
+		"\nYou can apply filters using the `filter` block in your Terraform configuration.", REG_FIELD_DATASOURCE),
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			Description: "The data source's unique ID.",
@@ -114,7 +117,7 @@ func NewRegistrationField() datasource.DataSource {
 	return &RegistrationFieldsDataSource{
 		BaseDataSource: NewBaseDataSource(
 			BaseDataSourceConfig{
-				Name:   "cidaas_registration_field",
+				Name:   REG_FIELD_DATASOURCE,
 				Schema: &fieldDataSourceSchema,
 			},
 		),
