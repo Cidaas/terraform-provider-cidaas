@@ -3,6 +3,7 @@ package resources_test
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
@@ -13,43 +14,53 @@ const resourcePwdPolicy = "cidaas_password_policy.example"
 
 // create, read and update test
 func TestAccPwdPolicyResource_Basic(t *testing.T) {
+	policyName := acctest.RandString(10)
+	maxLength := 20
+	minLength := 8
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccPwdPolicyResourceConfig(8, 200, 1),
-				ExpectError: regexp.MustCompile(`Creating this resource using`),
+				Config: testAccPwdPolicyResourceConfig(policyName, int64(minLength), int64(maxLength)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "policy_name", policyName),
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "maximum_length", strconv.Itoa(maxLength)),
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "minimum_length", strconv.Itoa(minLength)),
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "lower_and_uppercase", strconv.FormatBool(true)),
+				),
 			},
 			{
-				ResourceName:       resourcePwdPolicy,
-				ImportState:        true,
-				ImportStateVerify:  false, // made false as it compares existing state id and imported id. we don't have existing as create is not supported
-				ImportStateId:      "cidaas",
-				ImportStatePersist: true,
+				ResourceName:      resourcePwdPolicy,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// ImportStateId:     "id",
 			},
-			// update is skipped as password policy resource cannot be deleted in cidaas
-			// update might result in unintended changes or incorrect values being applied.
+			{
+				Config: testAccPwdPolicyResourceConfig(policyName, int64(10), int64(25)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "maximum_length", strconv.Itoa(25)),
+					resource.TestCheckResourceAttr(resourcePwdPolicy, "minimum_length", strconv.Itoa(10)),
+				),
+			},
 		},
 	})
 }
 
-func testAccPwdPolicyResourceConfig(minimumLength, maximumLength, reuseLimit int64) string {
+func testAccPwdPolicyResourceConfig(policyName string, minimumLength, maximumLength int64) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
 		base_url = "%s"
 	}
 	resource "cidaas_password_policy" "example" {
+		policy_name 				 = "%s"
 		minimum_length       = %d
 		maximum_length       = %d
 		lower_and_uppercase  = true
 		no_of_digits         = 1
-		expiration_in_days   = 30
 		no_of_special_chars  = 1
-		no_of_days_to_remind = 1
-		reuse_limit          = %d
 	}
-	`, acctest.BaseURL, minimumLength, maximumLength, reuseLimit)
+	`, acctest.BaseURL, policyName, minimumLength, maximumLength)
 }
 
 // maximum_length should be greater than minimum_length
@@ -60,7 +71,7 @@ func TestAccPwdPolicyResource_MaxMinLengthValidation(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// minimumLength 20 & maximumLength 10
-				Config: testAccPwdPolicyResourceConfig(20, 10, 1),
+				Config: testAccPwdPolicyResourceConfig(acctest.RandString(10), 20, 10),
 				// TODO: add no_of_special_chars + no_of_digits + lower_and_uppercase in validation
 				ExpectError: regexp.MustCompile(`Attribute maximum_length value must be at least sum of minimum_length`),
 			},
@@ -68,26 +79,11 @@ func TestAccPwdPolicyResource_MaxMinLengthValidation(t *testing.T) {
 	})
 }
 
-// invalid reuse limit
-func TestAccPwdPolicyResource_InvalidReuseLimit(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				// invalid limit cannot be greater than 5
-				Config:      testAccPwdPolicyResourceConfig(10, 20, 10),
-				ExpectError: regexp.MustCompile(`reuse_limit value must be at most 5`), // improve error and extra oarams to sum
-			},
-		},
-	})
-}
-
-// missing required parameter
+// // missing required parameter
 func TestAccPwdPolicyResource_MissingRequired(t *testing.T) {
 	requiredParams := []string{
-		"minimum_length", "lower_and_uppercase", "no_of_digits", "expiration_in_days",
-		"no_of_special_chars", "no_of_days_to_remind", "reuse_limit", "maximum_length",
+		"minimum_length", "lower_and_uppercase", "no_of_digits",
+		"no_of_special_chars", "maximum_length",
 	}
 	for _, param := range requiredParams {
 		resource.Test(t, resource.TestCase{
