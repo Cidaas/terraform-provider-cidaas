@@ -7,6 +7,11 @@ stages:
   - test
   - release
 
+get_prereqiusites:
+  stage: prepare
+  only:
+    - never
+
 acceptance_test:
   image: golang:1.21.0
   stage: test

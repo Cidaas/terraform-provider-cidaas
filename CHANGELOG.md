@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.2
+#### Enhancements
+
+- **Multiple Password Policy Support:** Password Policy resource changed to support multiple policies
+
 ### 3.1.1
 #### Enhancements
 

@@ -1340,24 +1340,22 @@ terraform import cidaas_hosted_page.resource_name hosted_page_id
 # cidaas_password_policy (Resource)
 
 The Password Policy resource in the provider allows you to manage the password policy within the Cidaas.
-Note that resource creation is not allowed, only updates are permitted after the resource has been imported.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:password_policy_read
 - cidaas:password_policy_write
+- cidaas:password_policy_delete
 
 ## Example Usage
 
 ```terraform
 resource "cidaas_password_policy" "sample" {
-  minimum_length       = 8
-  lower_and_uppercase  = true
-  no_of_digits         = 1
-  expiration_in_days   = 30
-  no_of_special_chars  = 1
-  no_of_days_to_remind = 1
-  reuse_limit          = 1
-  maximum_length       = 20
+  policy_name         = "sample_terraform_policy"
+  minimum_length      = 8
+  maximum_length      = 20
+  lower_and_uppercase = true
+  no_of_digits        = 1
+  no_of_special_chars = 1
 }
 ```
 
@@ -1366,29 +1364,23 @@ resource "cidaas_password_policy" "sample" {
 
 ### Required
 
-- `expiration_in_days` (Number) The number of days after which the password expires.
 - `lower_and_uppercase` (Boolean) Specifies whether the password must contain both lowercase and uppercase letters.
-- `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be greater than `minimum_length`
-- `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to the sum of `no_of_special_chars`, `no_of_digits`, and `lowercase/uppercase` characters.
-- `no_of_days_to_remind` (Number) The number of days before the password expiration to remind the user to change their password.
+- `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)`
+- `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.
 - `no_of_digits` (Number) The required number of digits in the password.
 - `no_of_special_chars` (Number) The required number of special characters in the password.
-- `reuse_limit` (Number) The number of previous passwords that cannot be reused. This number cannot exceed 5.
+- `policy_name` (String) The name of the password policy.
 
 ### Read-Only
 
-- `id` (String) Unique identifier of the password policy. This will be set to the same value as the import identifier.
-While the cidaas API does not require an identifier to import password policy, Terraform's import command does. Therefore, you can provide any arbitrary string as the identifier.
+- `id` (String) Unique identifier of the password policy.
 
 ## Import
 
 Import is supported using the following syntax:
 
 ```shell
-# The cidaas API does not require an identifier to import password policy but Terraform's import command does.
-# Therefore, you can provide any arbitrary string as the identifier. It will be set to the `id` attribute in the schema.
-
-terraform import cidaas_password_policy.resource_name cidaas
+terraform import cidaas_password_policy.resource_name id
 ```
 
 # cidaas_registration_field (Resource)
