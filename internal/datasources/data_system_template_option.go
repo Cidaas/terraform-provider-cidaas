@@ -326,7 +326,7 @@ type TemaplateTagHandler struct {
 	TagsListPayload TagsListPayload
 }
 
-func (th *TemaplateTagHandler) getTemplateTags(text string) TemplateTags {
+func (th *TemaplateTagHandler) getTemplateTags(text string) TemplateTags { //nolint:gocognit
 	var tags TemplateTags
 
 	switch text {
