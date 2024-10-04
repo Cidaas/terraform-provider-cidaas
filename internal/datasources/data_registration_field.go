@@ -31,7 +31,7 @@ type RegistrationField struct {
 	IsGroup       types.Bool   `tfsdk:"is_group"`
 	ParentGroupID types.String `tfsdk:"parent_group_id"`
 	FieldType     types.String `tfsdk:"field_type"`
-	Order         types.Int32  `tfsdk:"order"`
+	Order         types.Int64  `tfsdk:"order"`
 }
 
 var registrationFieldsFilter = FilterConfig{
@@ -165,5 +165,6 @@ func parseRegistrationField(rf cidaas.RegistrationFieldConfig) (result Registrat
 	result.ReadOnly = types.BoolValue(rf.ReadOnly)
 	result.Internal = types.BoolValue(rf.Internal)
 	result.ParentGroupID = types.StringValue(rf.ParentGroupID)
+	result.Order = types.Int64Value(rf.Order)
 	return result
 }

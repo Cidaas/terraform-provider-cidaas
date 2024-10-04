@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccRoleDataSource_Basic(t *testing.T) {
+func TestAccScopeGroupDataSource_Basic(t *testing.T) {
 	t.Parallel()
-	resourceName := "data.cidaas_role.sample"
+	resourceName := "data.cidaas_scope_group.sample"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -22,12 +22,12 @@ func TestAccRoleDataSource_Basic(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				data "cidaas_role" "sample" {
-				}
+				data "cidaas_scope_group" "sample" {}
 				`, os.Getenv("BASE_URL")),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "role.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "role.0.role"),
+					resource.TestCheckResourceAttrSet(resourceName, "scope_group.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "scope_group.0.id"),
+					resource.TestCheckResourceAttrSet(resourceName, "scope_group.0.group_name"),
 				),
 			},
 		},

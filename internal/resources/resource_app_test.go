@@ -2,6 +2,7 @@ package resources_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
@@ -40,7 +41,7 @@ func TestApp_Basic(t *testing.T) {
 func testAppConfig(clientName, companyWebsite string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
-			base_url = "https://automation-test.dev.cidaas.eu"
+			base_url = "%s"
 		}
 		# The config below has the list of common config and main config
 resource "cidaas_app" "example" {
@@ -219,7 +220,7 @@ resource "cidaas_app" "example" {
     pending_scopes = ["sample"]
   }
 }		
-	`, clientName, companyWebsite)
+	`, os.Getenv("BASE_URL"), clientName, companyWebsite)
 }
 
 func TestApp_CommonConfig(t *testing.T) {
