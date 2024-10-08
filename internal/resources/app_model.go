@@ -98,6 +98,9 @@ type AppConfig struct {
 	IsRegisterSuccessPageEnabled     types.Bool `tfsdk:"is_register_success_page_enabled"`
 	IsGroupLoginSelectionEnabled     types.Bool `tfsdk:"is_group_login_selection_enabled"`
 	AllowGuestLogin                  types.Bool `tfsdk:"allow_guest_login"`
+	RequireAuthTime                  types.Bool `tfsdk:"require_auth_time"`
+	EnableLoginSpi                   types.Bool `tfsdk:"enable_login_spi"`
+	BackchannelLogoutSessionRequired types.Bool `tfsdk:"backchannel_logout_session_required"`
 
 	DefaultMaxAge                 types.Int64 `tfsdk:"default_max_age"`
 	TokenLifetimeInSeconds        types.Int64 `tfsdk:"token_lifetime_in_seconds"`
@@ -150,15 +153,21 @@ type AppConfig struct {
 	operationsAllowedGroups []*AllowedGroups
 	allowGuestLoginGroups   []*AllowedGroups
 
-	LoginSpi       types.Object `tfsdk:"login_spi"`
-	GroupSelection types.Object `tfsdk:"group_selection"`
-	Mfa            types.Object `tfsdk:"mfa"`
-	MobileSettings types.Object `tfsdk:"mobile_settings"`
+	LoginSpi                   types.Object `tfsdk:"login_spi"`
+	GroupSelection             types.Object `tfsdk:"group_selection"`
+	Mfa                        types.Object `tfsdk:"mfa"`
+	MobileSettings             types.Object `tfsdk:"mobile_settings"`
+	SuggestVerificationMethods types.Object `tfsdk:"suggest_verification_methods"`
+	GroupRoleRestriction       types.Object `tfsdk:"group_role_restriction"`
+	BasicSettings              types.Object `tfsdk:"basic_settings"`
 
-	loginSpi       *LoginSPI
-	groupSelection *GroupSelection
-	mfa            *MfaOption
-	mobileSettings *AppMobileSettings
+	loginSpi                   *LoginSPI
+	groupSelection             *GroupSelection
+	mfa                        *MfaOption
+	mobileSettings             *AppMobileSettings
+	suggestVerificationMethods *SuggestVerificationMethods
+	groupRoleRestriction       *GroupRoleRestriction
+	basicSettings              *BasicSettings
 
 	CommonConfigs types.Object `tfsdk:"common_configs"`
 
@@ -207,6 +216,35 @@ type ProviderMetadData struct {
 	Type              types.String `tfsdk:"type"`
 	IsProviderVisible types.Bool   `tfsdk:"is_provider_visible"`
 	Domains           types.Set    `tfsdk:"domains"`
+}
+type SuggestVerificationMethods struct {
+	MandatoryConfig    types.Object `tfsdk:"mandatory_config"`
+	OptionalConfig     types.Object `tfsdk:"optional_config"`
+	SkipDurationInDays types.Int32  `tfsdk:"skip_duration_in_days"`
+}
+
+type MandatoryConfig struct {
+	Methods   types.Set    `tfsdk:"methods"`
+	SkipUntil types.String `tfsdk:"skip_until"`
+	Range     types.String `tfsdk:"range"`
+}
+
+type OptionalConfig struct {
+	Methods types.Set `tfsdk:"methods"`
+}
+
+type GroupRoleRestriction struct {
+	MatchCondition types.String `tfsdk:"match_condition"`
+	Filters        types.List   `tfsdk:"filters"`
+}
+type GroupRoleFilters struct {
+	GroupID    types.String `tfsdk:"group_id"`
+	RoleFilter types.Object `tfsdk:"role_filter"`
+}
+
+type RoleFilter struct {
+	MatchCondition types.String `tfsdk:"match_condition"`
+	Roles          types.Set    `tfsdk:"roles"`
 }
 
 type CommonConfigs struct {
@@ -266,6 +304,19 @@ type CommonConfigs struct {
 	Mfa                           types.Object `tfsdk:"mfa"`
 }
 
+type BasicSettings struct {
+	ClientID          types.String `tfsdk:"client_id"`
+	RedirectURIs      types.Set    `tfsdk:"redirect_uris"`
+	AllowedLogoutUrls types.Set    `tfsdk:"allowed_logout_urls"`
+	AllowedScopes     types.Set    `tfsdk:"allowed_scopes"`
+	ClientSecrets     types.List   `tfsdk:"client_secrets"`
+}
+
+type ClientSecret struct {
+	ClientSecret          types.String `tfsdk:"client_secret"`
+	ClientSecretExpiresAt types.Int64  `tfsdk:"client_secret_expires_at"`
+}
+
 func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if !w.LoginSpi.IsNull() && !w.LoginSpi.IsUnknown() {
@@ -316,7 +367,18 @@ func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 		w.allowGuestLoginGroups = make([]*AllowedGroups, 0, len(w.AllowGuestLoginGroups.Elements()))
 		diags = w.AllowGuestLoginGroups.ElementsAs(ctx, &w.allowGuestLoginGroups, false)
 	}
-
+	if !w.SuggestVerificationMethods.IsNull() && !w.SuggestVerificationMethods.IsUnknown() {
+		w.suggestVerificationMethods = &SuggestVerificationMethods{}
+		diags = w.SuggestVerificationMethods.As(ctx, w.suggestVerificationMethods, basetypes.ObjectAsOptions{})
+	}
+	if !w.GroupRoleRestriction.IsNull() && !w.GroupRoleRestriction.IsUnknown() {
+		w.groupRoleRestriction = &GroupRoleRestriction{}
+		diags = w.GroupRoleRestriction.As(ctx, w.groupRoleRestriction, basetypes.ObjectAsOptions{})
+	}
+	if !w.BasicSettings.IsNull() && !w.BasicSettings.IsUnknown() {
+		w.basicSettings = &BasicSettings{}
+		diags = w.BasicSettings.As(ctx, w.basicSettings, basetypes.ObjectAsOptions{})
+	}
 	return diags
 }
 
@@ -410,6 +472,9 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		BackgroundURI:                    plan.BackgroundURI.ValueString(),
 		VideoURL:                         plan.VideoURL.ValueString(),
 		BotCaptchaRef:                    plan.BotCaptchaRef.ValueString(),
+		RequireAuthTime:                  plan.RequireAuthTime.ValueBoolPointer(),
+		EnableLoginSpi:                   plan.EnableLoginSpi.ValueBoolPointer(),
+		BackchannelLogoutSessionRequired: plan.BackchannelLogoutSessionRequired.ValueBoolPointer(),
 	}
 
 	if plan.PasswordPolicyRef.IsNull() {
@@ -717,6 +782,75 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	if len(plan.ApplicationMetaData.Elements()) > 0 {
 		diags.Append(plan.ApplicationMetaData.ElementsAs(ctx, &app.ApplicationMetaData, false)...)
 	}
+	// SuggestVerificationMethods
+	if plan.suggestVerificationMethods != nil {
+		svm := &cidaas.SuggestVerificationMethods{}
+		if !plan.suggestVerificationMethods.MandatoryConfig.IsNull() && !plan.suggestVerificationMethods.MandatoryConfig.IsUnknown() {
+			mf := &MandatoryConfig{}
+			diags = plan.suggestVerificationMethods.MandatoryConfig.As(ctx, mf, basetypes.ObjectAsOptions{})
+			diags.Append(assignSetValues(ctx, mf.Methods, &svm.MandatoryConfig.Methods)...)
+			svm.MandatoryConfig.Range = mf.Range.ValueString()
+			svm.MandatoryConfig.SkipUntil = mf.SkipUntil.ValueString()
+		}
+		if !plan.suggestVerificationMethods.OptionalConfig.IsNull() && !plan.suggestVerificationMethods.OptionalConfig.IsUnknown() {
+			of := &OptionalConfig{}
+			diags = plan.suggestVerificationMethods.OptionalConfig.As(ctx, of, basetypes.ObjectAsOptions{})
+			diags.Append(assignSetValues(ctx, of.Methods, &svm.OptionalConfig.Methods)...)
+		}
+		svm.SkipDurationInDays = plan.suggestVerificationMethods.SkipDurationInDays.ValueInt32()
+		app.SuggestVerificationMethods = svm
+	}
+	// GroupRoleRestriction
+	if plan.groupRoleRestriction != nil {
+		grr := &cidaas.GroupRoleRestriction{}
+		if !plan.groupRoleRestriction.Filters.IsNull() && !plan.groupRoleRestriction.Filters.IsUnknown() {
+			filters := make([]GroupRoleFilters, 0, len(plan.groupRoleRestriction.Filters.Elements()))
+			diags = plan.groupRoleRestriction.Filters.ElementsAs(ctx, &filters, false)
+			target := []cidaas.GroupRoleFilters{}
+			for _, f := range filters {
+				rf := &cidaas.RoleFilter{}
+				if !f.RoleFilter.IsNull() && !f.RoleFilter.IsUnknown() {
+					tfrf := &RoleFilter{}
+					diags = f.RoleFilter.As(ctx, tfrf, basetypes.ObjectAsOptions{})
+					diags.Append(assignSetValues(ctx, tfrf.Roles, &rf.Roles)...)
+					rf.MatchCondition = tfrf.MatchCondition.ValueString()
+				}
+				target = append(target, cidaas.GroupRoleFilters{
+					GroupID:    f.GroupID.ValueString(),
+					RoleFilter: *rf,
+				})
+				grr.Filters = target
+			}
+		}
+		grr.MatchCondition = plan.groupRoleRestriction.MatchCondition.ValueString()
+		app.GroupRoleRestriction = grr
+	}
+	if plan.basicSettings != nil {
+		basicSettings := &cidaas.BasicSettings{}
+		if !plan.RedirectURIS.IsNull() {
+			diags.Append(assignSetValues(ctx, plan.RedirectURIS, &basicSettings.RedirectURIs)...)
+		}
+		if !plan.AllowedLogoutUrls.IsNull() {
+			diags.Append(assignSetValues(ctx, plan.AllowedLogoutUrls, &basicSettings.AllowedLogoutUrls)...)
+		}
+		if !plan.AllowedScopes.IsNull() {
+			diags.Append(assignSetValues(ctx, plan.AllowedScopes, &basicSettings.AllowedScopes)...)
+		}
+		if !plan.basicSettings.ClientSecrets.IsNull() {
+			clientSecrets := make([]ClientSecret, 0, len(plan.basicSettings.ClientSecrets.Elements()))
+			diags = plan.basicSettings.ClientSecrets.ElementsAs(ctx, &clientSecrets, false)
+			target := []cidaas.ClientSecret{}
+
+			for _, value := range clientSecrets {
+				target = append(target, cidaas.ClientSecret{
+					ClientSecret:          value.ClientSecret.ValueString(),
+					ClientSecretExpiresAt: value.ClientSecretExpiresAt.ValueInt64(),
+				})
+			}
+			basicSettings.ClientSecrets = target
+		}
+		app.BasicSettings = basicSettings
+	}
 	return &app, diags
 }
 
@@ -804,6 +938,10 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.EnableClassicalProvider, &state.EnableClassicalProvider, "enable_classical_provider", operation, true)...)
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.EnablePasswordlessAuth, &state.EnablePasswordlessAuth, "enable_passwordless_auth", operation, true)...)
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.AlwaysAskMfa, &state.AlwaysAskMfa, "always_ask_mfa", operation, false)...)
+
+	diags.Append(BoolValueOrNullWithPlanValue(res.Data.RequireAuthTime, &state.RequireAuthTime, "require_auth_time", operation, false)...)
+	diags.Append(BoolValueOrNullWithPlanValue(res.Data.EnableLoginSpi, &state.EnableLoginSpi, "enable_login_spi", operation, false)...)
+	diags.Append(BoolValueOrNullWithPlanValue(res.Data.BackchannelLogoutSessionRequired, &state.BackchannelLogoutSessionRequired, "backchannel_logout_session_required", operation, false)...)
 
 	state.DefaultMaxAge = util.Int64ValueOrNull(res.Data.DefaultMaxAge)
 	state.TokenLifetimeInSeconds = util.Int64ValueOrNull(res.Data.TokenLifetimeInSeconds)
@@ -1212,6 +1350,155 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 			diags.AddWarning("Failed to Set mobile_settings", msg)
 		}
 		state.MobileSettings = mobileSettings
+	}
+
+	if res.Data.SuggestVerificationMethods != nil {
+		skipDurationInDays := types.Int32Value(res.Data.SuggestVerificationMethods.SkipDurationInDays)
+		skipUntil := util.StringValueOrNull(&res.Data.SuggestVerificationMethods.MandatoryConfig.SkipUntil)
+		mandatatoryRange := util.StringValueOrNull(&res.Data.SuggestVerificationMethods.MandatoryConfig.Range)
+		mandatoryMethods := util.SetValueOrNull(res.Data.SuggestVerificationMethods.MandatoryConfig.Methods)
+		optionalMethods := util.SetValueOrNull(res.Data.SuggestVerificationMethods.OptionalConfig.Methods)
+
+		mandateConfigType := map[string]attr.Type{
+			"methods":    types.SetType{ElemType: types.StringType},
+			"range":      types.StringType,
+			"skip_until": types.StringType,
+		}
+		mandatoryConfig := types.ObjectValueMust(
+			mandateConfigType,
+			map[string]attr.Value{
+				"methods":    mandatoryMethods,
+				"range":      mandatatoryRange,
+				"skip_until": skipUntil,
+			},
+		)
+
+		optionalConfigType := map[string]attr.Type{
+			"methods": types.SetType{ElemType: types.StringType},
+		}
+		optionalConfig := types.ObjectValueMust(
+			optionalConfigType,
+			map[string]attr.Value{
+				"methods": optionalMethods,
+			},
+		)
+
+		obj := types.ObjectValueMust(
+			map[string]attr.Type{
+				"mandatory_config":      types.ObjectType{AttrTypes: mandateConfigType},
+				"optional_config":       types.ObjectType{AttrTypes: optionalConfigType},
+				"skip_duration_in_days": types.Int32Type,
+			},
+			map[string]attr.Value{
+				"mandatory_config":      mandatoryConfig,
+				"optional_config":       optionalConfig,
+				"skip_duration_in_days": skipDurationInDays,
+			},
+		)
+		state.SuggestVerificationMethods = obj
+	}
+
+	if res.Data.GroupRoleRestriction != nil && (((operation == CREATE || operation == UPDATE) && !config.GroupRoleRestriction.IsNull()) ||
+		operation == IMPORT || operation == READ) {
+		roleFilterType := map[string]attr.Type{
+			"match_condition": types.StringType,
+			"roles":           types.SetType{ElemType: types.StringType},
+		}
+		filterType := map[string]attr.Type{
+			"group_id":    types.StringType,
+			"role_filter": types.ObjectType{AttrTypes: roleFilterType},
+		}
+
+		filterObjectType := types.ObjectType{
+			AttrTypes: filterType,
+		}
+		if !(operation == READ && config.GroupRoleRestriction.IsNull()) {
+			var filters basetypes.ListValue
+			var filterObjectValues []attr.Value
+
+			parentMatchCondition := util.StringValueOrNull(&res.Data.GroupRoleRestriction.MatchCondition)
+			if len(res.Data.GroupRoleRestriction.Filters) > 0 {
+				for _, grr := range res.Data.GroupRoleRestriction.Filters {
+					groupID := grr.GroupID
+					matchCondition := grr.RoleFilter.MatchCondition
+					roles := grr.RoleFilter.Roles
+					objValue := types.ObjectValueMust(
+						filterType,
+						map[string]attr.Value{
+							"group_id": util.StringValueOrNull(&groupID),
+							"role_filter": types.ObjectValueMust(
+								roleFilterType,
+								map[string]attr.Value{
+									"match_condition": util.StringValueOrNull(&matchCondition),
+									"roles":           util.SetValueOrNull(roles),
+								},
+							),
+						})
+					filterObjectValues = append(filterObjectValues, objValue)
+				}
+				filters = types.ListValueMust(filterObjectType, filterObjectValues)
+			}
+
+			obj := types.ObjectValueMust(
+				map[string]attr.Type{
+					"match_condition": types.StringType,
+					"filters":         types.ListType{ElemType: types.ObjectType{AttrTypes: filterType}},
+				},
+				map[string]attr.Value{
+					"match_condition": parentMatchCondition,
+					"filters":         filters,
+				},
+			)
+			state.GroupRoleRestriction = obj
+		}
+	}
+
+	if res.Data.BasicSettings != nil {
+		clientID := util.StringValueOrNull(&res.Data.ClientID)
+		redirectURIs := util.SetValueOrNull(res.Data.BasicSettings.RedirectURIs)
+		allowedLogoutUrls := util.SetValueOrNull(res.Data.BasicSettings.AllowedLogoutUrls)
+		allowedScopes := util.SetValueOrNull(res.Data.BasicSettings.AllowedScopes)
+
+		var clientSecrets []attr.Value
+		for _, cs := range res.Data.BasicSettings.ClientSecrets {
+			secret := cs.ClientSecret
+			csExpiresAt := cs.ClientSecretExpiresAt
+			clientSecret := types.ObjectValueMust(
+				map[string]attr.Type{
+					"client_secret":            types.StringType,
+					"client_secret_expires_at": types.Int64Type,
+				},
+				map[string]attr.Value{
+					"client_secret":            util.StringValueOrNull(&secret),
+					"client_secret_expires_at": util.Int64ValueOrNull(&csExpiresAt),
+				},
+			)
+			clientSecrets = append(clientSecrets, clientSecret)
+		}
+
+		basicSettings := types.ObjectValueMust(
+			map[string]attr.Type{
+				"client_id":           types.StringType,
+				"redirect_uris":       types.SetType{ElemType: types.StringType},
+				"allowed_logout_urls": types.SetType{ElemType: types.StringType},
+				"allowed_scopes":      types.SetType{ElemType: types.StringType},
+				"client_secrets": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+					"client_secret":            types.StringType,
+					"client_secret_expires_at": types.Int64Type,
+				}}},
+			},
+			map[string]attr.Value{
+				"client_id":           clientID,
+				"redirect_uris":       redirectURIs,
+				"allowed_logout_urls": allowedLogoutUrls,
+				"allowed_scopes":      allowedScopes,
+				"client_secrets": types.ListValueMust(types.ObjectType{AttrTypes: map[string]attr.Type{
+					"client_secret":            types.StringType,
+					"client_secret_expires_at": types.Int64Type,
+				}}, clientSecrets),
+			},
+		)
+		state.BasicSettings = basicSettings
 	}
 	return diags
 }
