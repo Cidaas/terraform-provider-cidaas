@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -969,6 +970,158 @@ func (r *AppResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				MarkdownDescription: "Flag to specify whether guest users are allowed to access functionalities of the client." +
 					" Default is set to `false`",
 				Default: booldefault.StaticBool(false),
+			},
+			"require_auth_time": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.",
+			},
+			"enable_login_spi": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If enabled, the login service verifies whether login spi responsded with success only then it issues a token.",
+			},
+			"backchannel_logout_session_required": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "If enabled, client applications or RPs must support session management through backchannel logout.",
+			},
+			"suggest_verification_methods": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Configuration for verification methods.",
+				Attributes: map[string]schema.Attribute{
+					"mandatory_config": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Configuration for mandatory verification methods.",
+						Attributes: map[string]schema.Attribute{
+							"methods": schema.SetAttribute{
+								ElementType:         types.StringType,
+								Optional:            true,
+								MarkdownDescription: "List of mandatory verification methods.",
+							},
+							"range": schema.StringAttribute{
+								Optional: true,
+								Validators: []validator.String{
+									stringvalidator.OneOf("ONEOF", "ALLOF"),
+								},
+								MarkdownDescription: "The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.",
+							},
+							"skip_until": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "The date and time until which the mandatory methods can be skipped.",
+							},
+						},
+					},
+					"optional_config": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Configuration for optional verification methods",
+						Attributes: map[string]schema.Attribute{
+							"methods": schema.SetAttribute{
+								ElementType:         types.StringType,
+								Optional:            true,
+								MarkdownDescription: "List of optional verification methods.",
+							},
+						},
+					},
+					"skip_duration_in_days": schema.Int32Attribute{
+						Optional:            true,
+						MarkdownDescription: "The number of days for which the verification methods can be skipped (default is 7 days).",
+					},
+				},
+			},
+			"group_role_restriction": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"match_condition": schema.StringAttribute{
+						Optional: true,
+						Validators: []validator.String{
+							stringvalidator.OneOf("and", "or"),
+						},
+						MarkdownDescription: "The match condition for the role restriction",
+					},
+					"filters": schema.ListNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "An array of group role filters.",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"group_id": schema.StringAttribute{
+									Optional:            true,
+									MarkdownDescription: "The unique ID of the user group.",
+								},
+								"role_filter": schema.SingleNestedAttribute{
+									Optional:            true,
+									MarkdownDescription: "A filter for roles within the group.",
+									Attributes: map[string]schema.Attribute{
+										"match_condition": schema.StringAttribute{
+											Optional: true,
+											Validators: []validator.String{
+												stringvalidator.OneOf("and", "or"),
+											},
+											MarkdownDescription: "The match condition for the roles (AND or OR).",
+										},
+										"roles": schema.SetAttribute{
+											Optional:            true,
+											MarkdownDescription: "An array of role names.",
+											ElementType:         types.StringType,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"basic_settings": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"client_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Unique client ID of the app",
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+					},
+					"redirect_uris": schema.SetAttribute{
+						Computed:            true,
+						ElementType:         types.StringType,
+						MarkdownDescription: "An array of redirect URIs for the app where the app should be redirected after successful login",
+					},
+					"allowed_logout_urls": schema.SetAttribute{
+						Computed:            true,
+						ElementType:         types.StringType,
+						MarkdownDescription: "An array of allowed logout URLs for the app where the app should be redirected after successful logout",
+					},
+					"allowed_scopes": schema.SetAttribute{
+						Computed:            true,
+						ElementType:         types.StringType,
+						MarkdownDescription: "Allowed scopes for the app",
+					},
+					"client_secrets": schema.ListNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "An array of client secret data (Max size is 2)",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"client_secret": schema.StringAttribute{
+									Optional:            true,
+									Computed:            true,
+									Sensitive:           true,
+									MarkdownDescription: "Secret key for the client ID",
+								},
+								"client_secret_expires_at": schema.Int64Attribute{
+									Optional:            true,
+									Computed:            true,
+									MarkdownDescription: "The time when the clientsecret expires",
+								},
+							},
+						},
+						Validators: []validator.List{
+							listvalidator.SizeAtMost(2),
+						},
+					},
+				},
 			},
 			"common_configs": commonConfigSchema,
 		},

@@ -156,7 +156,7 @@ If you are migrating from v2 to v3, please note the following changes in the v3 
 - app_owner
 - application_type
 
-### Change in data types of some attribute
+### Change in data types of some attributes
 
  - social_providers
  - custom_providers
@@ -470,8 +470,10 @@ For more samples on common_configs, please refer to the examples folder.
 - `always_ask_mfa` (Boolean)
 - `application_meta_data` (Map of String) A map to add metadata of a client.
 - `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
+- `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
 - `backchannel_logout_uri` (String)
 - `background_uri` (String) The URL to the background image of the client.
+- `basic_settings` (Attributes) (see [below for nested schema](#nestedatt--basic_settings))
 - `blocking_mechanism_ref` (String)
 - `bot_captcha_ref` (String)
 - `bot_provider` (String)
@@ -502,11 +504,13 @@ For more samples on common_configs, please refer to the examples folder.
 - `enable_bot_detection` (Boolean)
 - `enable_classical_provider` (Boolean)
 - `enable_deduplication` (Boolean) Enable deduplication.
+- `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
 - `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
 - `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
 - `group_ids` (Set of String)
+- `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
 - `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
 - `group_types` (Set of String)
 - `hosted_page_group` (String) Hosted page group.
@@ -548,6 +552,7 @@ For more samples on common_configs, please refer to the examples folder.
 - `request_object_encryption_enc` (String)
 - `request_object_signing_alg` (String)
 - `request_uris` (Set of String)
+- `require_auth_time` (Boolean) Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.
 - `required_fields` (Set of String) The required fields while registering to the client.
 - `response_types` (Set of String) The response types of the client. The default value is set to `['code','token', 'id_token']`
 - `role` (String)
@@ -558,6 +563,7 @@ For more samples on common_configs, please refer to the examples folder.
 - `sub` (String)
 - `subject_type` (String)
 - `suggest_mfa` (Set of String)
+- `suggest_verification_methods` (Attributes) Configuration for verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods))
 - `template_group_id` (String) The id of the template group to be configured for commenication. Default is set to the system default group.
 - `token_endpoint_auth_method` (String)
 - `token_endpoint_auth_signing_alg` (String)
@@ -579,43 +585,58 @@ For more samples on common_configs, please refer to the examples folder.
 <a id="nestedatt--ad_providers"></a>
 ### Nested Schema for `ad_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--allow_guest_login_groups"></a>
 ### Nested Schema for `allow_guest_login_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--allowed_groups"></a>
 ### Nested Schema for `allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
+
+
+<a id="nestedatt--basic_settings"></a>
+### Nested Schema for `basic_settings`
+
+Optional:
+
+- `client_secrets` (Attributes List) An array of client secret data (Max size is 2) (see [below for nested schema](#nestedatt--basic_settings--client_secrets))
+
+Read-Only:
+
+- `allowed_logout_urls` (Set of String) An array of allowed logout URLs for the app where the app should be redirected after successful logout
+- `allowed_scopes` (Set of String) Allowed scopes for the app
+- `client_id` (String) Unique client ID of the app
+- `redirect_uris` (Set of String) An array of redirect URIs for the app where the app should be redirected after successful login
+
+<a id="nestedatt--basic_settings--client_secrets"></a>
+### Nested Schema for `basic_settings.client_secrets`
+
+Optional:
+
+- `client_secret` (String, Sensitive) Secret key for the client ID
+- `client_secret_expires_at` (Number) The time when the clientsecret expires
+
 
 
 <a id="nestedatt--common_configs"></a>
@@ -677,46 +698,37 @@ Optional:
 <a id="nestedatt--common_configs--ad_providers"></a>
 ### Nested Schema for `common_configs.ad_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--allowed_groups"></a>
 ### Nested Schema for `common_configs.allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--common_configs--custom_providers"></a>
 ### Nested Schema for `common_configs.custom_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--mfa"></a>
@@ -732,23 +744,15 @@ Optional:
 <a id="nestedatt--common_configs--operations_allowed_groups"></a>
 ### Nested Schema for `common_configs.operations_allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--common_configs--saml_providers"></a>
 ### Nested Schema for `common_configs.saml_providers`
-
-Required:
-
-- `provider_name` (String)
-- `type` (String)
 
 Optional:
 
@@ -756,12 +760,14 @@ Optional:
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--common_configs--social_providers"></a>
 ### Nested Schema for `common_configs.social_providers`
 
-Required:
+Optional:
 
 - `provider_name` (String)
 - `social_id` (String)
@@ -771,17 +777,41 @@ Required:
 <a id="nestedatt--custom_providers"></a>
 ### Nested Schema for `custom_providers`
 
-Required:
-
-- `provider_name` (String)
-- `type` (String)
-
 Optional:
 
 - `display_name` (String)
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
+
+
+<a id="nestedatt--group_role_restriction"></a>
+### Nested Schema for `group_role_restriction`
+
+Optional:
+
+- `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
+- `match_condition` (String) The match condition for the role restriction
+
+<a id="nestedatt--group_role_restriction--filters"></a>
+### Nested Schema for `group_role_restriction.filters`
+
+Optional:
+
+- `group_id` (String) The unique ID of the user group.
+- `role_filter` (Attributes) A filter for roles within the group. (see [below for nested schema](#nestedatt--group_role_restriction--filters--role_filter))
+
+<a id="nestedatt--group_role_restriction--filters--role_filter"></a>
+### Nested Schema for `group_role_restriction.filters.role_filter`
+
+Optional:
+
+- `match_condition` (String) The match condition for the roles (AND or OR).
+- `roles` (Set of String) An array of role names.
+
+
 
 
 <a id="nestedatt--group_selection"></a>
@@ -827,23 +857,15 @@ Optional:
 <a id="nestedatt--operations_allowed_groups"></a>
 ### Nested Schema for `operations_allowed_groups`
 
-Required:
-
-- `group_id` (String)
-
 Optional:
 
 - `default_roles` (Set of String)
+- `group_id` (String)
 - `roles` (Set of String)
 
 
 <a id="nestedatt--saml_providers"></a>
 ### Nested Schema for `saml_providers`
-
-Required:
-
-- `provider_name` (String)
-- `type` (String)
 
 Optional:
 
@@ -851,15 +873,44 @@ Optional:
 - `domains` (Set of String)
 - `is_provider_visible` (Boolean)
 - `logo_url` (String)
+- `provider_name` (String)
+- `type` (String)
 
 
 <a id="nestedatt--social_providers"></a>
 ### Nested Schema for `social_providers`
 
-Required:
+Optional:
 
 - `provider_name` (String)
 - `social_id` (String)
+
+
+<a id="nestedatt--suggest_verification_methods"></a>
+### Nested Schema for `suggest_verification_methods`
+
+Optional:
+
+- `mandatory_config` (Attributes) Configuration for mandatory verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods--mandatory_config))
+- `optional_config` (Attributes) Configuration for optional verification methods (see [below for nested schema](#nestedatt--suggest_verification_methods--optional_config))
+- `skip_duration_in_days` (Number) The number of days for which the verification methods can be skipped (default is 7 days).
+
+<a id="nestedatt--suggest_verification_methods--mandatory_config"></a>
+### Nested Schema for `suggest_verification_methods.mandatory_config`
+
+Optional:
+
+- `methods` (Set of String) List of mandatory verification methods.
+- `range` (String) The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.
+- `skip_until` (String) The date and time until which the mandatory methods can be skipped.
+
+
+<a id="nestedatt--suggest_verification_methods--optional_config"></a>
+### Nested Schema for `suggest_verification_methods.optional_config`
+
+Optional:
+
+- `methods` (Set of String) List of optional verification methods.
 
 ## Import
 
