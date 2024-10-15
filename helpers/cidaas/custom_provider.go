@@ -55,6 +55,12 @@ type CustomProviderConfigureResponse struct {
 	} `json:"data,omitempty"`
 }
 
+type AllCustomProviderResponse struct {
+	Success bool                  `json:"success,omitempty"`
+	Status  int                   `json:"status,omitempty"`
+	Data    []CustomProviderModel `json:"data,omitempty"`
+}
+
 type CustomProvider struct {
 	ClientConfig
 }
@@ -63,6 +69,7 @@ type CustomProvideService interface {
 	UpdateCustomProvider(cp *CustomProviderModel) error
 	GetCustomProvider(providerName string) (*CustomProviderResponse, error)
 	DeleteCustomProvider(providerName string) error
+	GetAll() ([]CustomProviderModel, error)
 }
 
 func NewCustomProvider(clientConfig ClientConfig) CustomProvideService {
@@ -125,4 +132,21 @@ func (c *CustomProvider) DeleteCustomProvider(providerName string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (c *CustomProvider) GetAll() ([]CustomProviderModel, error) {
+	var response AllCustomProviderResponse
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }

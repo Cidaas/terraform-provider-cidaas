@@ -197,7 +197,7 @@ func TestAccHostedPageResource_MissingRequiredFields(t *testing.T) {
 	// validation where hosted_page_id and url is required
 	// config4 := `
 	// 	provider "cidaas" {
-	// 		base_url = "https://automation-test.dev.cidaas.eu"
+	// 		base_url = "%s"
 	// 	}
 	// 	resource "cidaas_hosted_page" "example" {
 	// 		hosted_page_group_name = ""

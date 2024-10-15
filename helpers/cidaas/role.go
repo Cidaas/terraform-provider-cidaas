@@ -19,6 +19,12 @@ type RoleResponse struct {
 	Data    RoleModel `json:"data,omitempty"`
 }
 
+type AllRoleResponse struct {
+	Success bool        `json:"success,omitempty"`
+	Status  int         `json:"status,omitempty"`
+	Data    []RoleModel `json:"data,omitempty"`
+}
+
 type Role struct {
 	ClientConfig
 }
@@ -27,6 +33,7 @@ type RoleService interface {
 	UpsertRole(role RoleModel) (*RoleResponse, error)
 	GetRole(role string) (*RoleResponse, error)
 	DeleteRole(role string) error
+	GetAll() ([]RoleModel, error)
 }
 
 func NewRole(clientConfig ClientConfig) RoleService {
@@ -79,4 +86,21 @@ func (r *Role) DeleteRole(role string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (r *Role) GetAll() ([]RoleModel, error) {
+	var response AllRoleResponse
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "groups-srv/graph/roles")
+
+	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
+	res, err := httpClient.MakeRequest(struct{}{})
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }

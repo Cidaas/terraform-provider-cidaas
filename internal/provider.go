@@ -50,7 +50,15 @@ func (p *cidaasProvider) Schema(_ context.Context, _ provider.SchemaRequest, res
 
 func (p *cidaasProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		cidaasDataSources.NewRoleDataSource,
+		cidaasDataSources.NewRole,
+		cidaasDataSources.NewGroupType,
+		cidaasDataSources.NewScope,
+		cidaasDataSources.NewScopeGroup,
+		cidaasDataSources.NewSystemTemplateOption,
+		cidaasDataSources.NewConsent,
+		cidaasDataSources.NewSocialProvider,
+		cidaasDataSources.NewCustomProvider,
+		cidaasDataSources.NewRegistrationField,
 	}
 }
 

@@ -14,6 +14,12 @@ type RegistrationFieldResponse struct {
 	Data    RegistrationFieldConfig `json:"data"`
 }
 
+type AllRegFieldResponse struct {
+	Success bool                      `json:"success"`
+	Status  int                       `json:"status"`
+	Data    []RegistrationFieldConfig `json:"data"`
+}
+
 type RegistrationFieldConfig struct {
 	Internal                                 bool             `json:"internal"`
 	ReadOnly                                 bool             `json:"readOnly"`
@@ -80,6 +86,7 @@ type RegFieldService interface {
 	Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error)
 	Get(fieldKey string) (*RegistrationFieldResponse, error)
 	Delete(fieldKey string) error
+	GetAll() ([]RegistrationFieldConfig, error)
 }
 
 func NewRegField(clientConfig ClientConfig) RegFieldService {
@@ -130,4 +137,21 @@ func (r *RegField) Delete(fieldKey string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (r *RegField) GetAll() ([]RegistrationFieldConfig, error) {
+	var response AllRegFieldResponse
+	url := fmt.Sprintf("%s/%s", r.BaseURL, "registration-setup-srv/fields/list")
+	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }

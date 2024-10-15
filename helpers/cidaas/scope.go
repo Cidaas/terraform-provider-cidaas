@@ -25,6 +25,12 @@ type ScopeLocalDescription struct {
 	Description string `json:"description,omitempty"`
 }
 
+type AllScopeResp struct {
+	Success bool         `json:"success,omitempty"`
+	Status  int          `json:"status,omitempty"`
+	Data    []ScopeModel `json:"data,omitempty"`
+}
+
 type ScopeResponse struct {
 	Success bool       `json:"success,omitempty"`
 	Status  int        `json:"status,omitempty"`
@@ -39,6 +45,7 @@ type ScopeService interface {
 	Upsert(sc ScopeModel) (*ScopeResponse, error)
 	Get(scopeKey string) (*ScopeResponse, error)
 	Delete(scopeKey string) error
+	GetAll() ([]ScopeModel, error)
 }
 
 func NewScope(clientConfig ClientConfig) ScopeService {
@@ -89,4 +96,21 @@ func (c *ScopeImpl) Delete(scopeKey string) error {
 	}
 	defer res.Body.Close()
 	return nil
+}
+
+func (c *ScopeImpl) GetAll() ([]ScopeModel, error) {
+	var response AllScopeResp
+	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/scope/list")
+
+	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	res, err := httpClient.MakeRequest(nil)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return response.Data, nil
 }
