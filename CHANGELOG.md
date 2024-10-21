@@ -1,5 +1,35 @@
 ## Changelog
 
+### 3.2.0
+#### Addition of datasources
+
+This release includes the following datasources:
+
+- cidaas_consent
+- cidaas_custom_provider
+- cidaas_group_type
+- cidaas_registration_field
+- cidaas_role
+- cidaas_scope_group
+- cidaas_scope
+- cidaas_social_provider
+- cidaas_system_template_option
+
+#### Additional attribute support in resource cidaas_app
+
+The following attributes are added to the resource `cidaas_app`:
+
+- require_auth_time
+- enable_login_spi
+- backchannel_logout_session_required
+- suggest_verification_methods
+- group_role_restriction
+- basic_settings
+
+#### Bug Fix
+
+- Fixed the issue **Consent Not Found** when the name of the consent resource is in uppercase during update & destroy
+
 ### 3.1.2
 #### Enhancements
 
