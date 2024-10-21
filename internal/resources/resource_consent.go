@@ -146,10 +146,10 @@ func (r *ConsentResource) Read(ctx context.Context, req resource.ReadRequest, re
 	isAvailable := false
 	if len(res.Data) > 0 {
 		for _, instance := range res.Data {
-			if instance.ConsentName == state.Name.ValueString() {
+			if strings.EqualFold(instance.ConsentName, state.Name.ValueString()) {
 				isAvailable = true
 				id := instance.ID
-				consentName := instance.ConsentName
+				consentName := state.Name.ValueString()
 				createdTime := instance.CreatedTime
 				updatedTime := instance.UpdatedTime
 				state.ID = util.StringValueOrNull(&id)
