@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -16,7 +15,18 @@ import (
 )
 
 type RoleResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewRoleResource() resource.Resource {
+	return &RoleResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_ROLE,
+				Schema: &roleSchema,
+			},
+		),
+	}
 }
 
 type Role struct {
@@ -26,62 +36,37 @@ type Role struct {
 	Role        types.String `tfsdk:"role"`
 }
 
-func NewRoleResource() resource.Resource {
-	return &RoleResource{}
-}
-
-func (r *RoleResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_role"
-}
-
-func (r *RoleResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *RoleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system." +
-			" This resource allows you to configure and define custom roles to suit your application's specific access control requirements." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:roles_read" +
-			"\n- cidaas:roles_write" +
-			"\n- cidaas:roles_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The ID of the role resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"role": schema.StringAttribute{
-				Required:    true,
-				Description: "The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.",
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"name": schema.StringAttribute{
-				Optional:    true,
-				Description: "The name of the role.",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The `description` attribute provides details about the role, explaining its purpose.",
+var roleSchema = schema.Schema{
+	MarkdownDescription: "The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system." +
+		" This resource allows you to configure and define custom roles to suit your application's specific access control requirements." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:roles_read" +
+		"\n- cidaas:roles_write" +
+		"\n- cidaas:roles_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "The ID of the role resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"role": schema.StringAttribute{
+			Required:    true,
+			Description: "The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.",
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"name": schema.StringAttribute{
+			Optional:    true,
+			Description: "The name of the role.",
+		},
+		"description": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "The `description` attribute provides details about the role, explaining its purpose.",
+		},
+	},
 }
 
 func (r *RoleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

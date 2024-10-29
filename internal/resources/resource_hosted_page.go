@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -31,7 +30,18 @@ var allowedHotedPageIDs = []string{
 const GroupOwner = "client"
 
 type HostedPageResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewHostedPageResource() resource.Resource {
+	return &HostedPageResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_HOSTED_PAGE,
+				Schema: &hostedPageSchema,
+			},
+		),
+	}
 }
 
 type HostedPageConfig struct {
@@ -51,10 +61,6 @@ type HostedPage struct {
 	Content      types.String `tfsdk:"content"`
 }
 
-func NewHostedPageResource() resource.Resource {
-	return &HostedPageResource{}
-}
-
 func (h *HostedPageConfig) extractHostedPages(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -65,126 +71,105 @@ func (h *HostedPageConfig) extractHostedPages(ctx context.Context) diag.Diagnost
 	return diags
 }
 
-func (r *HostedPageResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_hosted_page"
-}
-
-func (r *HostedPageResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *HostedPageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:hosted_pages_write" +
-			"\n- cidaas:hosted_pages_read" +
-			"\n- cidaas:hosted_pages_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The ID of the resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+var hostedPageSchema = schema.Schema{
+	MarkdownDescription: "The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:hosted_pages_write" +
+		"\n- cidaas:hosted_pages_read" +
+		"\n- cidaas:hosted_pages_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "The ID of the resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
-			"hosted_page_group_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
+		},
+		"hosted_page_group_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
 			},
-			"default_locale": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The default locale for hosted pages e.g. `en-US`.",
-				Default:             stringdefault.StaticString("en"),
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						func() []string {
-							validLocals := make([]string, len(util.Locals))
-							for i, locale := range util.Locals {
-								validLocals[i] = locale.LocaleString
-							}
-							return validLocals
-						}()...),
-				},
-				// if hosted_page not found by the local provided in the hosted_pages map, the api throws ambigious data error.
-				// TODO: add a custom plan modifier later to validate the same and throw plan time error
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
 			},
-			"hosted_pages": schema.ListNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "List of hosted pages with their respective attributes",
-				Validators: []validator.List{
-					listvalidator.SizeAtLeast(1),
-				},
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"hosted_page_id": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The identifier for the hosted page, e.g., `register_success`.",
-							Validators: []validator.String{
-								stringvalidator.OneOf(allowedHotedPageIDs...),
-							},
+		},
+		"default_locale": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The default locale for hosted pages e.g. `en-US`.",
+			Default:             stringdefault.StaticString("en"),
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					func() []string {
+						validLocals := make([]string, len(util.Locals))
+						for i, locale := range util.Locals {
+							validLocals[i] = locale.LocaleString
+						}
+						return validLocals
+					}()...),
+			},
+			// if hosted_page not found by the local provided in the hosted_pages map, the api throws ambigious data error.
+			// TODO: add a custom plan modifier later to validate the same and throw plan time error
+		},
+		"hosted_pages": schema.ListNestedAttribute{
+			Required:            true,
+			MarkdownDescription: "List of hosted pages with their respective attributes",
+			Validators: []validator.List{
+				listvalidator.SizeAtLeast(1),
+			},
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"hosted_page_id": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The identifier for the hosted page, e.g., `register_success`.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(allowedHotedPageIDs...),
 						},
-						"locale": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "The locale for the hosted page, e.g., `en-US`.",
-							Default:             stringdefault.StaticString("en"),
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									func() []string {
-										validLocals := make([]string, len(util.Locals))
-										for i, locale := range util.Locals {
-											validLocals[i] = locale.LocaleString
-										}
-										return validLocals
-									}()...),
-							},
+					},
+					"locale": schema.StringAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The locale for the hosted page, e.g., `en-US`.",
+						Default:             stringdefault.StaticString("en"),
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								func() []string {
+									validLocals := make([]string, len(util.Locals))
+									for i, locale := range util.Locals {
+										validLocals[i] = locale.LocaleString
+									}
+									return validLocals
+								}()...),
 						},
-						"url": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The URL for the hosted page.",
-						},
-						"content": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The conent of the hosted page.",
-						},
+					},
+					"url": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The URL for the hosted page.",
+					},
+					"content": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The conent of the hosted page.",
 					},
 				},
 			},
-			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was last updated.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+		},
+		"created_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the resource was created.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"updated_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the resource was last updated.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+	},
 }
 
 func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl

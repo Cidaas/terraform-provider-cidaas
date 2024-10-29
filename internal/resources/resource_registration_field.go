@@ -33,6 +33,21 @@ var allowedDataTypes = []string{
 	"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE",
 }
 
+type RegFieldResource struct {
+	BaseResource
+}
+
+func NewRegFieldResource() resource.Resource {
+	return &RegFieldResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_REGISTRATION_FIELD,
+				Schema: &regFieldSchema,
+			},
+		),
+	}
+}
+
 type RegFieldConfig struct {
 	ID                                  types.String `tfsdk:"id"`
 	BaseDataType                        types.String `tfsdk:"base_data_type"`
@@ -92,330 +107,301 @@ type FieldDefinition struct {
 	InitialDate     types.String `tfsdk:"initial_date"`
 }
 
-type RegFieldResource struct {
-	cidaasClient *cidaas.Client
-}
-
-func NewRegFieldResource() resource.Resource {
-	return &RegFieldResource{}
-}
-
-func (r *RegFieldResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_registration_field"
-}
-
-func (r *RegFieldResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *RegFieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system." +
-			" This resource enables you to configure and customize the fields displayed during user registration." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:field_setup_read" +
-			"\n- cidaas:field_setup_write" +
-			"\n- cidaas:field_setup_delete\n",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the resource",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			// "string", "double", "datetime", "bool", "array"
-			"base_data_type": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The base data type of the field. This is computed property.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"parent_group_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The ID of the parent registration group. Defaults to `DEFAULT` if not provided.",
-				Default:             stringdefault.StaticString("DEFAULT"),
-			},
-			"field_type": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				MarkdownDescription: "Specifies whether the field type is `SYSTEM` or `CUSTOM`. Defaults to `CUSTOM`." +
-					" This cannot be modified for an existing resource. `SYSTEM` fields cannot be created but can be modified. To modify an existing field import it first and then update.",
-				Default: stringdefault.StaticString("CUSTOM"),
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"CUSTOM", "SYSTEM"}...),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-					&fieldTypeModifier{},
-				},
-			},
-			"data_type": schema.StringAttribute{
-				Required: true,
-				MarkdownDescription: "The data type of the field. This cannot be modified for an existing resource." +
-					fmt.Sprintf(" Allowed values are %s", func() string {
-						var temp string
-						for _, v := range allowedDataTypes {
-							temp += fmt.Sprintf("`%s`,", v)
-						}
-						return temp
-					}()),
-				Validators: []validator.String{
-					stringvalidator.OneOf(allowedDataTypes...),
-					&dataTypeValidator{},
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"field_key": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The unique identifier of the registration field. This cannot be modified for an existing resource.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"required": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is required in registration. Defaults set to `false`",
-				Default:             booldefault.StaticBool(false),
-				Validators: []validator.Bool{
-					&validateIsRequiredMsgAvailable{},
-				},
-			},
-			"internal": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is internal. Defaults set to `false`",
-				Default:             booldefault.StaticBool(false),
-			},
-			"claimable": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is claimable. Defaults set to `true`",
-				Default:             booldefault.StaticBool(true),
-			},
-			"is_searchable": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is searchable. Defaults set to `true`",
-				Default:             booldefault.StaticBool(true),
-			},
-			"enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is enabled. Defaults set to `true`",
-				Default:             booldefault.StaticBool(true),
-			},
-			"unique": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is unique. Defaults set to `false`",
-				Default:             booldefault.StaticBool(false),
-			},
-			// set to true if you want the value should be reset by identity provider
-			"overwrite_with_null_value_from_social_provider": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Set to true if you want the value should be reset by identity provider. Defaults set to `false`",
-				Default:             booldefault.StaticBool(false),
-			},
-			"read_only": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Flag to mark if a field is read only. Defaults set to `false`",
-				Default:             booldefault.StaticBool(false),
-			},
-			"is_group": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				MarkdownDescription: "Setting is_group to `true` creates a registration field group. Defaults set to `false`" +
-					" The data_type attribute must be set to TEXT when is_group is true. ",
-				Default: booldefault.StaticBool(false),
-				Validators: []validator.Bool{
-					&isGroupValidator{},
-				},
-			},
-			"is_list": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-			},
-			// optional: Order of the Field in the UI
-			"order": schema.Int64Attribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The attribute order is used to set the order of the Field in the UI. Defaults set to `1`",
-				Default:             int64default.StaticInt64(1),
-				Validators: []validator.Int64{
-					int64validator.AtLeast(1),
-				},
-			},
-			"scopes": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "The scopes of the registration field.",
-			},
-			"consent_refs": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "List of consents(the ids of the consent in cidaas must be passed) in registration. The data type must be `CONSENT` in this case",
-			},
-			"local_texts": schema.ListNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "The localized detail of the registration field.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"locale": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "The locale of the field. example: de-DE.",
-							Default:             stringdefault.StaticString("en"),
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									func() []string {
-										validLocals := make([]string, len(util.Locals))
-										for i, locale := range util.Locals {
-											validLocals[i] = locale.LocaleString
-										}
-										return validLocals
-									}()...),
-							},
-						},
-						"name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.",
-						},
-						"max_length_msg": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.",
-						},
-						"min_length_msg": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.",
-						},
-						"required_msg": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.",
-						},
-						// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localized attribute values are specified here
-						"attributes": schema.ListNestedAttribute{
-							Optional:            true,
-							MarkdownDescription: "The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section.",
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"key": schema.StringAttribute{
-										Required: true,
-									},
-									"value": schema.StringAttribute{
-										Required: true,
-									},
-								},
-							},
-						},
-						"consent_label": schema.SingleNestedAttribute{
-							Optional:            true,
-							MarkdownDescription: "required when data_type is CONSENT. Example provided in the example section.",
-							Attributes: map[string]schema.Attribute{
-								"label": schema.StringAttribute{
-									Required: true,
-								},
-								"label_text": schema.StringAttribute{
-									Required: true,
-								},
-							},
-						},
-					},
-				},
-			},
-			"field_definition": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"max_length": schema.Int64Attribute{
-						Optional:            true,
-						MarkdownDescription: "The maximum length of a string type attribute.",
-						Validators: []validator.Int64{
-							&validateIsMaxMinMsgAvailable{},
-						},
-					},
-					"min_length": schema.Int64Attribute{
-						Optional:            true,
-						MarkdownDescription: "The minimum length of a string type attribute",
-						Validators: []validator.Int64{
-							&validateIsMaxMinMsgAvailable{},
-						},
-					},
-					"min_date": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
-						Validators: []validator.String{
-							&dateTypeValidator{},
-							&dateValidator{},
-						},
-					},
-					"max_date": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The maximum date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
-						Validators: []validator.String{
-							&dateTypeValidator{},
-							&dateValidator{},
-						},
-					},
-					"initial_date_view": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The view of the calender. Applicable only for DATE attributes. Allowed values: `month`, `year` and `multi-year`",
-						Validators: []validator.String{
-							&dateTypeValidator{},
-							stringvalidator.OneOf("month", "year", "multi-year"),
-						},
-					},
-					"initial_date": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The initial date. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
-						Validators: []validator.String{
-							&dateTypeValidator{},
-							&dateValidator{},
-						},
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"max_length":        types.Int64Type,
-						"min_length":        types.Int64Type,
-						"min_date":          types.StringType,
-						"max_date":          types.StringType,
-						"initial_date_view": types.StringType,
-						"initial_date":      types.StringType,
-					},
-					map[string]attr.Value{
-						"max_length":        types.Int64Null(),
-						"min_length":        types.Int64Null(),
-						"min_date":          types.StringNull(),
-						"max_date":          types.StringNull(),
-						"initial_date_view": types.StringNull(),
-						"initial_date":      types.StringNull(),
-					})),
+var regFieldSchema = schema.Schema{
+	MarkdownDescription: "The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system." +
+		" This resource enables you to configure and customize the fields displayed during user registration." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:field_setup_read" +
+		"\n- cidaas:field_setup_write" +
+		"\n- cidaas:field_setup_delete\n",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The ID of the resource",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		// "string", "double", "datetime", "bool", "array"
+		"base_data_type": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The base data type of the field. This is computed property.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"parent_group_id": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The ID of the parent registration group. Defaults to `DEFAULT` if not provided.",
+			Default:             stringdefault.StaticString("DEFAULT"),
+		},
+		"field_type": schema.StringAttribute{
+			Optional: true,
+			Computed: true,
+			MarkdownDescription: "Specifies whether the field type is `SYSTEM` or `CUSTOM`. Defaults to `CUSTOM`." +
+				" This cannot be modified for an existing resource. `SYSTEM` fields cannot be created but can be modified. To modify an existing field import it first and then update.",
+			Default: stringdefault.StaticString("CUSTOM"),
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"CUSTOM", "SYSTEM"}...),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+				&fieldTypeModifier{},
+			},
+		},
+		"data_type": schema.StringAttribute{
+			Required: true,
+			MarkdownDescription: "The data type of the field. This cannot be modified for an existing resource." +
+				fmt.Sprintf(" Allowed values are %s", func() string {
+					var temp string
+					for _, v := range allowedDataTypes {
+						temp += fmt.Sprintf("`%s`,", v)
+					}
+					return temp
+				}()),
+			Validators: []validator.String{
+				stringvalidator.OneOf(allowedDataTypes...),
+				&dataTypeValidator{},
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"field_key": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The unique identifier of the registration field. This cannot be modified for an existing resource.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"required": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is required in registration. Defaults set to `false`",
+			Default:             booldefault.StaticBool(false),
+			Validators: []validator.Bool{
+				&validateIsRequiredMsgAvailable{},
+			},
+		},
+		"internal": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is internal. Defaults set to `false`",
+			Default:             booldefault.StaticBool(false),
+		},
+		"claimable": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is claimable. Defaults set to `true`",
+			Default:             booldefault.StaticBool(true),
+		},
+		"is_searchable": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is searchable. Defaults set to `true`",
+			Default:             booldefault.StaticBool(true),
+		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is enabled. Defaults set to `true`",
+			Default:             booldefault.StaticBool(true),
+		},
+		"unique": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is unique. Defaults set to `false`",
+			Default:             booldefault.StaticBool(false),
+		},
+		// set to true if you want the value should be reset by identity provider
+		"overwrite_with_null_value_from_social_provider": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Set to true if you want the value should be reset by identity provider. Defaults set to `false`",
+			Default:             booldefault.StaticBool(false),
+		},
+		"read_only": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Flag to mark if a field is read only. Defaults set to `false`",
+			Default:             booldefault.StaticBool(false),
+		},
+		"is_group": schema.BoolAttribute{
+			Optional: true,
+			Computed: true,
+			MarkdownDescription: "Setting is_group to `true` creates a registration field group. Defaults set to `false`" +
+				" The data_type attribute must be set to TEXT when is_group is true. ",
+			Default: booldefault.StaticBool(false),
+			Validators: []validator.Bool{
+				&isGroupValidator{},
+			},
+		},
+		"is_list": schema.BoolAttribute{
+			Optional: true,
+			Computed: true,
+			Default:  booldefault.StaticBool(false),
+		},
+		// optional: Order of the Field in the UI
+		"order": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI. Defaults set to `1`",
+			Default:             int64default.StaticInt64(1),
+			Validators: []validator.Int64{
+				int64validator.AtLeast(1),
+			},
+		},
+		"scopes": schema.SetAttribute{
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "The scopes of the registration field.",
+		},
+		"consent_refs": schema.SetAttribute{
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "List of consents(the ids of the consent in cidaas must be passed) in registration. The data type must be `CONSENT` in this case",
+		},
+		"local_texts": schema.ListNestedAttribute{
+			Required:            true,
+			MarkdownDescription: "The localized detail of the registration field.",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"locale": schema.StringAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The locale of the field. example: de-DE.",
+						Default:             stringdefault.StaticString("en"),
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								func() []string {
+									validLocals := make([]string, len(util.Locals))
+									for i, locale := range util.Locals {
+										validLocals[i] = locale.LocaleString
+									}
+									return validLocals
+								}()...),
+						},
+					},
+					"name": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.",
+					},
+					"max_length_msg": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.",
+					},
+					"min_length_msg": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.",
+					},
+					"required_msg": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.",
+					},
+					// optional: in case of datatype is RADIO, SELECT, MULTISELECT, etc. the localized attribute values are specified here
+					"attributes": schema.ListNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section.",
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"key": schema.StringAttribute{
+									Required: true,
+								},
+								"value": schema.StringAttribute{
+									Required: true,
+								},
+							},
+						},
+					},
+					"consent_label": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "required when data_type is CONSENT. Example provided in the example section.",
+						Attributes: map[string]schema.Attribute{
+							"label": schema.StringAttribute{
+								Required: true,
+							},
+							"label_text": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+		"field_definition": schema.SingleNestedAttribute{
+			Optional: true,
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"max_length": schema.Int64Attribute{
+					Optional:            true,
+					MarkdownDescription: "The maximum length of a string type attribute.",
+					Validators: []validator.Int64{
+						&validateIsMaxMinMsgAvailable{},
+					},
+				},
+				"min_length": schema.Int64Attribute{
+					Optional:            true,
+					MarkdownDescription: "The minimum length of a string type attribute",
+					Validators: []validator.Int64{
+						&validateIsMaxMinMsgAvailable{},
+					},
+				},
+				"min_date": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
+					Validators: []validator.String{
+						&dateTypeValidator{},
+						&dateValidator{},
+					},
+				},
+				"max_date": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The maximum date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
+					Validators: []validator.String{
+						&dateTypeValidator{},
+						&dateValidator{},
+					},
+				},
+				"initial_date_view": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The view of the calender. Applicable only for DATE attributes. Allowed values: `month`, `year` and `multi-year`",
+					Validators: []validator.String{
+						&dateTypeValidator{},
+						stringvalidator.OneOf("month", "year", "multi-year"),
+					},
+				},
+				"initial_date": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The initial date. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.",
+					Validators: []validator.String{
+						&dateTypeValidator{},
+						&dateValidator{},
+					},
+				},
+			},
+			Default: objectdefault.StaticValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"max_length":        types.Int64Type,
+					"min_length":        types.Int64Type,
+					"min_date":          types.StringType,
+					"max_date":          types.StringType,
+					"initial_date_view": types.StringType,
+					"initial_date":      types.StringType,
+				},
+				map[string]attr.Value{
+					"max_length":        types.Int64Null(),
+					"min_length":        types.Int64Null(),
+					"min_date":          types.StringNull(),
+					"max_date":          types.StringNull(),
+					"initial_date_view": types.StringNull(),
+					"initial_date":      types.StringNull(),
+				})),
+		},
+	},
 }
 
 func (rfc *RegFieldConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics {

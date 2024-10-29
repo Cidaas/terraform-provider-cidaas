@@ -18,7 +18,18 @@ import (
 )
 
 type ConsentGroupResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewConsentGroupResource() resource.Resource {
+	return &ConsentGroupResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_CONSENT_GROUP,
+				Schema: &consentGroupSchema,
+			},
+		),
+	}
 }
 
 type ConsentGroupConfig struct {
@@ -29,72 +40,47 @@ type ConsentGroupConfig struct {
 	UpdatedAt   types.String `tfsdk:"updated_at"`
 }
 
-func NewConsentGroupResource() resource.Resource {
-	return &ConsentGroupResource{}
-}
-
-func (r *ConsentGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_consent_group"
-}
-
-func (r *ConsentGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *ConsentGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas." +
-			"\n Consent Groups are useful to organize and manage consents by grouping related consent items together." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:tenant_consent_read" +
-			"\n- cidaas:tenant_consent_write" +
-			"\n- cidaas:tenant_consent_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the consent group.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"group_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the consent group.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Description of the consent group.",
-			},
-			"created_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The timestamp when the consent group was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The timestamp when the consent group was last updated.",
+var consentGroupSchema = schema.Schema{
+	MarkdownDescription: "The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas." +
+		"\n Consent Groups are useful to organize and manage consents by grouping related consent items together." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:tenant_consent_read" +
+		"\n- cidaas:tenant_consent_write" +
+		"\n- cidaas:tenant_consent_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The unique identifier of the consent group.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"group_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The name of the consent group.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"description": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Description of the consent group.",
+		},
+		"created_at": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The timestamp when the consent group was created.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"updated_at": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The timestamp when the consent group was last updated.",
+		},
+	},
 }
 
 func (r *ConsentGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

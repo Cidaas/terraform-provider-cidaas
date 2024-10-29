@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -19,6 +18,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
+
+type TemplateGroupResource struct {
+	BaseResource
+}
+
+func NewTemplateGroupResource() resource.Resource {
+	return &TemplateGroupResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_TEMPLATE_GROUP,
+				Schema: &templateGroupSchema,
+			},
+		),
+	}
+}
 
 type TemplateGroupConfig struct {
 	ID                types.String `tfsdk:"id"`
@@ -53,200 +67,171 @@ type IVRSenderConfig struct {
 	SenderNames types.Set    `tfsdk:"sender_names"`
 }
 
-type TemplateGroupResource struct {
-	cidaasClient *cidaas.Client
-}
-
-func NewTemplateGroupResource() resource.Resource {
-	return &TemplateGroupResource{}
-}
-
-func (r *TemplateGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_template_group"
-}
-
-func (r *TemplateGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *TemplateGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The cidaas_template_group resource in the provider is used to define and manage templates groups within the Cidaas system." +
-			" Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:templates_read" +
-			"\n- cidaas:templates_write" +
-			"\n- cidaas:templates_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the resource",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"group_id": schema.StringAttribute{
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(15),
-				},
-				MarkdownDescription: "The group_id of the Template Group. The group_id is used to import an existing template group." +
-					" The maximum allowed length of a group_id is **15** characters.",
-			},
-			"email_sender_config": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The `email_sender_config` is used to configure your email sender.",
-				Attributes: map[string]schema.Attribute{
-					"id": schema.StringAttribute{
-						Computed:            true,
-						MarkdownDescription: "The `ID` of the configured email sender.",
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"from_email": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The email from address from which the emails will be sent when the specific group is configured.",
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"from_name": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The `from_name` attribute is the display name that appears in the 'From' field of the emails.",
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"reply_to": schema.StringAttribute{
-						Optional:            true,
-						Computed:            true,
-						MarkdownDescription: "The `reply_to` attribute is the email address where replies should be directed.",
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"sender_names": schema.SetAttribute{
-						ElementType:         types.StringType,
-						Optional:            true,
-						MarkdownDescription: "The `sender_names` attribute defines the names associated with email senders.",
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"id":           types.StringType,
-						"from_email":   types.StringType,
-						"from_name":    types.StringType,
-						"reply_to":     types.StringType,
-						"sender_names": types.SetType{ElemType: types.StringType},
-					},
-					map[string]attr.Value{
-						"id":           types.StringNull(),
-						"from_email":   types.StringNull(),
-						"from_name":    types.StringNull(),
-						"reply_to":     types.StringNull(),
-						"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-					})),
-			},
-			"sms_sender_config": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The configuration of the SMS sender.",
-				Attributes: map[string]schema.Attribute{
-					"id": schema.StringAttribute{
-						Computed: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"from_name": schema.StringAttribute{
-						Optional: true,
-					},
-					"sender_names": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"id":           types.StringType,
-						"from_name":    types.StringType,
-						"sender_names": types.SetType{ElemType: types.StringType},
-					},
-					map[string]attr.Value{
-						"id":           types.StringNull(),
-						"from_name":    types.StringNull(),
-						"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-					})),
-			},
-			"ivr_sender_config": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The configuration of the IVR sender.",
-				Attributes: map[string]schema.Attribute{
-					"id": schema.StringAttribute{
-						Computed: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"sender_names": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"id":           types.StringType,
-						"sender_names": types.SetType{ElemType: types.StringType},
-					},
-					map[string]attr.Value{
-						"id":           types.StringNull(),
-						"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-					})),
-			},
-			"push_sender_config": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The configuration of the PUSH notification sender.",
-				Attributes: map[string]schema.Attribute{
-					"id": schema.StringAttribute{
-						Computed: true,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-					},
-					"sender_names": schema.SetAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-				Default: objectdefault.StaticValue(types.ObjectValueMust(
-					map[string]attr.Type{
-						"id":           types.StringType,
-						"sender_names": types.SetType{ElemType: types.StringType},
-					},
-					map[string]attr.Value{
-						"id":           types.StringNull(),
-						"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-					})),
+var templateGroupSchema = schema.Schema{
+	MarkdownDescription: "The cidaas_template_group resource in the provider is used to define and manage templates groups within the Cidaas system." +
+		" Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:templates_read" +
+		"\n- cidaas:templates_write" +
+		"\n- cidaas:templates_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The ID of the resource",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"group_id": schema.StringAttribute{
+			Required: true,
+			Validators: []validator.String{
+				stringvalidator.LengthAtMost(15),
+			},
+			MarkdownDescription: "The group_id of the Template Group. The group_id is used to import an existing template group." +
+				" The maximum allowed length of a group_id is **15** characters.",
+		},
+		"email_sender_config": schema.SingleNestedAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The `email_sender_config` is used to configure your email sender.",
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed:            true,
+					MarkdownDescription: "The `ID` of the configured email sender.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"from_email": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					MarkdownDescription: "The email from address from which the emails will be sent when the specific group is configured.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"from_name": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					MarkdownDescription: "The `from_name` attribute is the display name that appears in the 'From' field of the emails.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"reply_to": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					MarkdownDescription: "The `reply_to` attribute is the email address where replies should be directed.",
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"sender_names": schema.SetAttribute{
+					ElementType:         types.StringType,
+					Optional:            true,
+					MarkdownDescription: "The `sender_names` attribute defines the names associated with email senders.",
+				},
+			},
+			Default: objectdefault.StaticValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"id":           types.StringType,
+					"from_email":   types.StringType,
+					"from_name":    types.StringType,
+					"reply_to":     types.StringType,
+					"sender_names": types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"id":           types.StringNull(),
+					"from_email":   types.StringNull(),
+					"from_name":    types.StringNull(),
+					"reply_to":     types.StringNull(),
+					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
+				})),
+		},
+		"sms_sender_config": schema.SingleNestedAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The configuration of the SMS sender.",
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"from_name": schema.StringAttribute{
+					Optional: true,
+				},
+				"sender_names": schema.SetAttribute{
+					ElementType: types.StringType,
+					Optional:    true,
+				},
+			},
+			Default: objectdefault.StaticValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"id":           types.StringType,
+					"from_name":    types.StringType,
+					"sender_names": types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"id":           types.StringNull(),
+					"from_name":    types.StringNull(),
+					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
+				})),
+		},
+		"ivr_sender_config": schema.SingleNestedAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The configuration of the IVR sender.",
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"sender_names": schema.SetAttribute{
+					ElementType: types.StringType,
+					Optional:    true,
+				},
+			},
+			Default: objectdefault.StaticValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"id":           types.StringType,
+					"sender_names": types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"id":           types.StringNull(),
+					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
+				})),
+		},
+		"push_sender_config": schema.SingleNestedAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The configuration of the PUSH notification sender.",
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+				},
+				"sender_names": schema.SetAttribute{
+					ElementType: types.StringType,
+					Optional:    true,
+				},
+			},
+			Default: objectdefault.StaticValue(types.ObjectValueMust(
+				map[string]attr.Type{
+					"id":           types.StringType,
+					"sender_names": types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"id":           types.StringNull(),
+					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
+				})),
+		},
+	},
 }
 
 func (tg *TemplateGroupConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics {

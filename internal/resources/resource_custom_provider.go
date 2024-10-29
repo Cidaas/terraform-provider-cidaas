@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
@@ -24,7 +23,18 @@ import (
 )
 
 type CustomProvider struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewCustomProvider() resource.Resource {
+	return &CustomProvider{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_CUSTOM_PROVIDER,
+				Schema: &customProviderSchema,
+			},
+		),
+	}
 }
 
 type ProviderConfig struct {
@@ -78,10 +88,6 @@ type UserInfoField struct {
 	CustomFields      types.Map    `tfsdk:"custom_fields"`
 }
 
-func NewCustomProvider() resource.Resource {
-	return &CustomProvider{}
-}
-
 func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if !pc.UserinfoFields.IsNull() {
@@ -95,192 +101,171 @@ func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 	return diags
 }
 
-func (r *CustomProvider) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_custom_provider"
-}
-
-func (r *CustomProvider) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *CustomProvider) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "This example demonstrates the configuration of a custom provider resource for interacting with Cidaas." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:providers_read" +
-			"\n- cidaas:providers_write" +
-			"\n- cidaas:providers_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The ID of the resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"provider_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The unique identifier of the custom provider. This cannot be updated for an existing state.",
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"display_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The display name of the provider.",
-			},
-			"logo_url": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The URL for the provider's logo.",
-			},
-			"standard_type": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"OPENID_CONNECT", "OAUTH2"}...),
-				},
-			},
-			"client_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The client ID of the provider.",
-			},
-			"client_secret": schema.StringAttribute{
-				Required:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The client secret of the provider.",
-			},
-			"authorization_endpoint": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The URL for authorization of the provider.",
-			},
-			"token_endpoint": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The URL to generate token with this provider.",
-			},
-			"userinfo_endpoint": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The URL to fetch user details using this provider.",
-			},
-			// In plan Set deletes an existing record and create a whole new one, so preferred list. However, to allow only unique values use set
-			"scopes": schema.ListNestedAttribute{
-				MarkdownDescription: "List of scopes of the provider with details",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"scope_name": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The name of the scope, e.g., `openid`, `profile`.",
-						},
-						"required": schema.BoolAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "Indicates if the scope is required.",
-							Default:             booldefault.StaticBool(false),
-						},
-						"recommended": schema.BoolAttribute{
-							MarkdownDescription: "Indicates if the scope is recommended.",
-							Optional:            true,
-							Computed:            true,
-							Default:             booldefault.StaticBool(false),
-						},
-					},
-				},
-				Optional: true,
-			},
-			"scope_display_label": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Display label for the scope of the provider.",
-			},
-			"userinfo_fields": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				MarkdownDescription: "Object containing various user information fields with their values." +
-					" The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization",
-				Attributes: map[string]schema.Attribute{
-					"name": schema.StringAttribute{
-						Optional: true,
-					},
-					"family_name": schema.StringAttribute{
-						Optional: true,
-					},
-					"given_name": schema.StringAttribute{
-						Optional: true,
-					},
-					"middle_name": schema.StringAttribute{
-						Optional: true,
-					},
-					"nickname": schema.StringAttribute{
-						Optional: true,
-					},
-					"preferred_username": schema.StringAttribute{
-						Optional: true,
-					},
-					"profile": schema.StringAttribute{
-						Optional: true,
-					},
-					"picture": schema.StringAttribute{
-						Optional: true,
-					},
-					"website": schema.StringAttribute{
-						Optional: true,
-					},
-					"gender": schema.StringAttribute{
-						Optional: true,
-					},
-					"birthdate": schema.StringAttribute{
-						Optional: true,
-					},
-					"zoneinfo": schema.StringAttribute{
-						Optional: true,
-					},
-					"locale": schema.StringAttribute{
-						Optional: true,
-					},
-					"updated_at": schema.StringAttribute{
-						Optional: true,
-					},
-					"email": schema.StringAttribute{
-						Optional: true,
-					},
-					"email_verified": schema.StringAttribute{
-						Optional: true,
-					},
-					"phone_number": schema.StringAttribute{
-						Optional: true,
-					},
-					"mobile_number": schema.StringAttribute{
-						Optional: true,
-					},
-					"address": schema.StringAttribute{
-						Optional: true,
-					},
-					"sub": schema.StringAttribute{
-						Optional: true,
-					},
-					"custom_fields": schema.MapAttribute{
-						ElementType: types.StringType,
-						Optional:    true,
-					},
-				},
-				Default: objectdefault.StaticValue(userInfoDefaultValue()),
-			},
-			"domains": schema.SetAttribute{
-				ElementType:         types.StringType,
-				MarkdownDescription: "The domains of the provider.",
-				Optional:            true,
+var customProviderSchema = schema.Schema{
+	MarkdownDescription: "This example demonstrates the configuration of a custom provider resource for interacting with Cidaas." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:providers_read" +
+		"\n- cidaas:providers_write" +
+		"\n- cidaas:providers_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The ID of the resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"provider_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The unique identifier of the custom provider. This cannot be updated for an existing state.",
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"display_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The display name of the provider.",
+		},
+		"logo_url": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "The URL for the provider's logo.",
+		},
+		"standard_type": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"OPENID_CONNECT", "OAUTH2"}...),
+			},
+		},
+		"client_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The client ID of the provider.",
+		},
+		"client_secret": schema.StringAttribute{
+			Required:            true,
+			Sensitive:           true,
+			MarkdownDescription: "The client secret of the provider.",
+		},
+		"authorization_endpoint": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The URL for authorization of the provider.",
+		},
+		"token_endpoint": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The URL to generate token with this provider.",
+		},
+		"userinfo_endpoint": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The URL to fetch user details using this provider.",
+		},
+		// In plan Set deletes an existing record and create a whole new one, so preferred list. However, to allow only unique values use set
+		"scopes": schema.ListNestedAttribute{
+			MarkdownDescription: "List of scopes of the provider with details",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"scope_name": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The name of the scope, e.g., `openid`, `profile`.",
+					},
+					"required": schema.BoolAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "Indicates if the scope is required.",
+						Default:             booldefault.StaticBool(false),
+					},
+					"recommended": schema.BoolAttribute{
+						MarkdownDescription: "Indicates if the scope is recommended.",
+						Optional:            true,
+						Computed:            true,
+						Default:             booldefault.StaticBool(false),
+					},
+				},
+			},
+			Optional: true,
+		},
+		"scope_display_label": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "Display label for the scope of the provider.",
+		},
+		"userinfo_fields": schema.SingleNestedAttribute{
+			Optional: true,
+			Computed: true,
+			MarkdownDescription: "Object containing various user information fields with their values." +
+				" The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization",
+			Attributes: map[string]schema.Attribute{
+				"name": schema.StringAttribute{
+					Optional: true,
+				},
+				"family_name": schema.StringAttribute{
+					Optional: true,
+				},
+				"given_name": schema.StringAttribute{
+					Optional: true,
+				},
+				"middle_name": schema.StringAttribute{
+					Optional: true,
+				},
+				"nickname": schema.StringAttribute{
+					Optional: true,
+				},
+				"preferred_username": schema.StringAttribute{
+					Optional: true,
+				},
+				"profile": schema.StringAttribute{
+					Optional: true,
+				},
+				"picture": schema.StringAttribute{
+					Optional: true,
+				},
+				"website": schema.StringAttribute{
+					Optional: true,
+				},
+				"gender": schema.StringAttribute{
+					Optional: true,
+				},
+				"birthdate": schema.StringAttribute{
+					Optional: true,
+				},
+				"zoneinfo": schema.StringAttribute{
+					Optional: true,
+				},
+				"locale": schema.StringAttribute{
+					Optional: true,
+				},
+				"updated_at": schema.StringAttribute{
+					Optional: true,
+				},
+				"email": schema.StringAttribute{
+					Optional: true,
+				},
+				"email_verified": schema.StringAttribute{
+					Optional: true,
+				},
+				"phone_number": schema.StringAttribute{
+					Optional: true,
+				},
+				"mobile_number": schema.StringAttribute{
+					Optional: true,
+				},
+				"address": schema.StringAttribute{
+					Optional: true,
+				},
+				"sub": schema.StringAttribute{
+					Optional: true,
+				},
+				"custom_fields": schema.MapAttribute{
+					ElementType: types.StringType,
+					Optional:    true,
+				},
+			},
+			Default: objectdefault.StaticValue(userInfoDefaultValue()),
+		},
+		"domains": schema.SetAttribute{
+			ElementType:         types.StringType,
+			MarkdownDescription: "The domains of the provider.",
+			Optional:            true,
+		},
+	},
 }
 
 func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

@@ -16,7 +16,18 @@ import (
 )
 
 type PasswordPolicy struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewPasswordPolicy() resource.Resource {
+	return &PasswordPolicy{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_PASSWORD_POLICY,
+				Schema: &passwordPolicySchema,
+			},
+		),
+	}
 }
 
 type PasswordPolicyConfig struct {
@@ -29,80 +40,55 @@ type PasswordPolicyConfig struct {
 	LowerAndUppercase types.Bool   `tfsdk:"lower_and_uppercase"`
 }
 
-func NewPasswordPolicy() resource.Resource {
-	return &PasswordPolicy{}
-}
-
-func (r *PasswordPolicy) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_password_policy"
-}
-
-func (r *PasswordPolicy) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *PasswordPolicy) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Password Policy resource in the provider allows you to manage the password policy within the Cidaas." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:password_policy_read" +
-			"\n- cidaas:password_policy_write" +
-			"\n- cidaas:password_policy_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique identifier of the password policy.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"policy_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the password policy.",
-			},
-			"maximum_length": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)` ",
-				Validators: []validator.Int64{
-					int64validator.AtLeastSumOf(
-						path.MatchRoot("minimum_length"),
-						path.MatchRoot("no_of_special_chars"),
-						path.MatchRoot("no_of_digits"),
-					),
-				},
-			},
-			"minimum_length": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.",
-				Validators: []validator.Int64{
-					int64validator.AtLeast(5),
-				},
-			},
-			"no_of_special_chars": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "The required number of special characters in the password.",
-			},
-			"no_of_digits": schema.Int64Attribute{
-				Required:            true,
-				MarkdownDescription: "The required number of digits in the password.",
-			},
-			"lower_and_uppercase": schema.BoolAttribute{
-				Required:            true,
-				MarkdownDescription: "Specifies whether the password must contain both lowercase and uppercase letters.",
+var passwordPolicySchema = schema.Schema{
+	MarkdownDescription: "The Password Policy resource in the provider allows you to manage the password policy within the Cidaas." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:password_policy_read" +
+		"\n- cidaas:password_policy_write" +
+		"\n- cidaas:password_policy_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "Unique identifier of the password policy.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"policy_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The name of the password policy.",
+		},
+		"maximum_length": schema.Int64Attribute{
+			Required:            true,
+			MarkdownDescription: "The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)` ",
+			Validators: []validator.Int64{
+				int64validator.AtLeastSumOf(
+					path.MatchRoot("minimum_length"),
+					path.MatchRoot("no_of_special_chars"),
+					path.MatchRoot("no_of_digits"),
+				),
+			},
+		},
+		"minimum_length": schema.Int64Attribute{
+			Required:            true,
+			MarkdownDescription: "The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.",
+			Validators: []validator.Int64{
+				int64validator.AtLeast(5),
+			},
+		},
+		"no_of_special_chars": schema.Int64Attribute{
+			Required:            true,
+			MarkdownDescription: "The required number of special characters in the password.",
+		},
+		"no_of_digits": schema.Int64Attribute{
+			Required:            true,
+			MarkdownDescription: "The required number of digits in the password.",
+		},
+		"lower_and_uppercase": schema.BoolAttribute{
+			Required:            true,
+			MarkdownDescription: "Specifies whether the password must contain both lowercase and uppercase letters.",
+		},
+	},
 }
 
 func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

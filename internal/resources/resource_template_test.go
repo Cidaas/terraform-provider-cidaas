@@ -83,7 +83,7 @@ func testTemplateConfig(locale, templateKey, templateType, content string) strin
 			template_type = "%s"
 			content       = "%s"
 		}
-		`, acctest.BaseURL, locale, templateKey, templateType, content)
+		`, "https://automation-test.dev.cidaas.eu", locale, templateKey, templateType, content)
 }
 
 func checkTemplateDestroyed(s *terraform.State) error {
@@ -170,7 +170,7 @@ func TestTemplate_MissingRequired(t *testing.T) {
 							base_url = "%s"
 						}
 						resource "cidaas_template" "example" {}
-					`, acctest.BaseURL),
+					`, "https://automation-test.dev.cidaas.eu"),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`"%s" is required`, v)), // TODO: full string validation
 				},
 			},
@@ -201,7 +201,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, acctest.BaseURL),
+				`, "https://automation-test.dev.cidaas.eu"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
 					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
@@ -223,7 +223,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, acctest.BaseURL),
+				`, "https://automation-test.dev.cidaas.eu"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
 				),
@@ -245,7 +245,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, acctest.BaseURL),
+				`, "https://automation-test.dev.cidaas.eu"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
 				),

@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
@@ -21,7 +20,18 @@ import (
 )
 
 type UserGroupResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewUserGroupResource() resource.Resource {
+	return &UserGroupResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_USER_GROUP,
+				Schema: &userGroupSchema,
+			},
+		),
+	}
 }
 
 type UserGroupConfig struct {
@@ -40,132 +50,107 @@ type UserGroupConfig struct {
 	UpdatedAt                   types.String `tfsdk:"updated_at"`
 }
 
-func NewUserGroupResource() resource.Resource {
-	return &UserGroupResource{}
-}
-
-func (r *UserGroupResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_user_groups"
-}
-
-func (r *UserGroupResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *UserGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The cidaas_user_groups resource enables the creation of user groups in the cidaas system." +
-			" These groups allow users to be organized and assigned group-specific roles." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:groups_write" +
-			"\n- cidaas:groups_read" +
-			"\n- cidaas:groups_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unique identifier of the user group resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"group_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Type of the user group.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-			},
-			"group_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Identifier for the user group.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				// ValidateFunc: validation.StringDoesNotContainAny(" "),
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"group_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Name of the user group.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-			},
-			"parent_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Identifier of the parent user group.",
-				Default:             stringdefault.StaticString("root"),
-			},
-			"logo_url": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "URL for the user group's logo",
-			},
-			"description": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Description of the user group.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtMost(256),
-				},
-			},
-			"make_first_user_admin": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Indicates whether the first user should be made an admin.",
-				Default:             booldefault.StaticBool(false),
-			},
-			"member_profile_visibility": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Visibility of member profiles. Allowed values `public` or `full`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"public", "full"}...),
-				},
-				Default: stringdefault.StaticString("public"),
-			},
-			"none_member_profile_visibility": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Visibility of non-member profiles. Allowed values `none` or `public`.",
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"none", "public"}...),
-				},
-				Default: stringdefault.StaticString("none"),
-			},
-			"custom_fields": schema.MapAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "Custom fields for the user group.",
-			},
-			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the resource was last updated.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+var userGroupSchema = schema.Schema{
+	MarkdownDescription: "The cidaas_user_groups resource enables the creation of user groups in the cidaas system." +
+		" These groups allow users to be organized and assigned group-specific roles." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:groups_write" +
+		"\n- cidaas:groups_read" +
+		"\n- cidaas:groups_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "The unique identifier of the user group resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"group_type": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "Type of the user group.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+		},
+		"group_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "Identifier for the user group.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+			// ValidateFunc: validation.StringDoesNotContainAny(" "),
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"group_name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "Name of the user group.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+		},
+		"parent_id": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Identifier of the parent user group.",
+			Default:             stringdefault.StaticString("root"),
+		},
+		"logo_url": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "URL for the user group's logo",
+		},
+		"description": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Description of the user group.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtMost(256),
+			},
+		},
+		"make_first_user_admin": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Indicates whether the first user should be made an admin.",
+			Default:             booldefault.StaticBool(false),
+		},
+		"member_profile_visibility": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Visibility of member profiles. Allowed values `public` or `full`.",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"public", "full"}...),
+			},
+			Default: stringdefault.StaticString("public"),
+		},
+		"none_member_profile_visibility": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "Visibility of non-member profiles. Allowed values `none` or `public`.",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"none", "public"}...),
+			},
+			Default: stringdefault.StaticString("none"),
+		},
+		"custom_fields": schema.MapAttribute{
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "Custom fields for the user group.",
+		},
+		"created_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the resource was created.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"updated_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the resource was last updated.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+	},
 }
 
 func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

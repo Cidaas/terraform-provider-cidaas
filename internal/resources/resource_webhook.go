@@ -23,7 +23,18 @@ import (
 )
 
 type WebhookResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewWebhookResource() resource.Resource {
+	return &WebhookResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_WEBHOOK,
+				Schema: &webhookSchema,
+			},
+		),
+	}
 }
 
 type WebhookConfig struct {
@@ -52,10 +63,6 @@ type CidaasAuthConfig struct {
 	ClientID types.String `tfsdk:"client_id"`
 }
 
-func NewWebhookResource() resource.Resource {
-	return &WebhookResource{}
-}
-
 func (w *WebhookConfig) extractAuthConfigs(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if !w.APIKeyConfig.IsNull() {
@@ -73,164 +80,143 @@ func (w *WebhookConfig) extractAuthConfigs(ctx context.Context) diag.Diagnostics
 	return diags
 }
 
-func (r *WebhookResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_webhook"
-}
-
-func (r *WebhookResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *WebhookResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system." +
-			" This resource allows you to configure webhooks with different authentication options." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:webhook_read" +
-			"\n- cidaas:webhook_write" +
-			"\n- cidaas:webhook_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unique identifier of the webhook resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+var webhookSchema = schema.Schema{
+	MarkdownDescription: "The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system." +
+		" This resource allows you to configure webhooks with different authentication options." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:webhook_read" +
+		"\n- cidaas:webhook_write" +
+		"\n- cidaas:webhook_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "The unique identifier of the webhook resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
-			"auth_type": schema.StringAttribute{
-				Required: true,
-				Description: "The attribute auth_type is to define how this url is secured from your end." +
-					"The allowed values are `APIKEY`, `TOTP` and `CIDAAS_OAUTH2`",
-				Validators: []validator.String{
-					stringvalidator.OneOf(cidaas.AllowedAuthType...),
-				},
-				PlanModifiers: []planmodifier.String{
-					&configVerifier{},
-				},
+		},
+		"auth_type": schema.StringAttribute{
+			Required: true,
+			Description: "The attribute auth_type is to define how this url is secured from your end." +
+				"The allowed values are `APIKEY`, `TOTP` and `CIDAAS_OAUTH2`",
+			Validators: []validator.String{
+				stringvalidator.OneOf(cidaas.AllowedAuthType...),
 			},
-			"url": schema.StringAttribute{
-				Required:    true,
-				Description: "The webhook url that needs to be called when an event occurs.",
+			PlanModifiers: []planmodifier.String{
+				&configVerifier{},
 			},
-			"events": schema.SetAttribute{
-				ElementType: types.StringType,
-				Required:    true,
-				Description: "A set of events that trigger the webhook.",
-				Validators: []validator.Set{
-					setvalidator.SizeAtLeast(1),
-					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf(cidaas.AllowedEvents...),
-					),
-				},
+		},
+		"url": schema.StringAttribute{
+			Required:    true,
+			Description: "The webhook url that needs to be called when an event occurs.",
+		},
+		"events": schema.SetAttribute{
+			ElementType: types.StringType,
+			Required:    true,
+			Description: "A set of events that trigger the webhook.",
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
+				setvalidator.ValueStringsAre(
+					stringvalidator.OneOf(cidaas.AllowedEvents...),
+				),
 			},
-			"apikey_config": schema.SingleNestedAttribute{
-				Optional:    true,
-				Description: "Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY.",
-				Attributes: map[string]schema.Attribute{
-					"placeholder": schema.StringAttribute{
-						Required:    true,
-						Description: "The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[a-z]+$`),
-								"must contain only lowercase alphabets",
-							),
-						},
-					},
-					"placement": schema.StringAttribute{
-						Required: true,
-						Description: "The placement of the API key in the request (e.g., query)." +
-							"The allowed value are `header` and `query`.",
-						Validators: []validator.String{
-							stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
-						},
-					},
-					"key": schema.StringAttribute{
-						Required: true,
-						Description: "The API key that will be used to authenticate the webhook request." +
-							"The key that will be passed in the request header or in query param as configured in the attribute `placement`",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-						},
+		},
+		"apikey_config": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY.",
+			Attributes: map[string]schema.Attribute{
+				"placeholder": schema.StringAttribute{
+					Required:    true,
+					Description: "The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z]+$`),
+							"must contain only lowercase alphabets",
+						),
 					},
 				},
-			},
-			"totp_config": schema.SingleNestedAttribute{
-				Optional:    true,
-				Description: "Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP.",
-				Attributes: map[string]schema.Attribute{
-					"placeholder": schema.StringAttribute{
-						Required:    true,
-						Description: "A placeholder value for the TOTP.",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-							stringvalidator.RegexMatches(
-								regexp.MustCompile(`^[a-z]+$`),
-								"must contain only lowercase alphabets",
-							),
-						},
-					},
-					"placement": schema.StringAttribute{
-						Required: true,
-						Description: "The placement of the TOTP in the request." +
-							"The allowed value are `header` and `query`.",
-						Validators: []validator.String{
-							stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
-						},
-					},
-					"key": schema.StringAttribute{
-						Required:    true,
-						Description: "The key used for TOTP authentication.",
-						Validators: []validator.String{
-							stringvalidator.LengthAtLeast(1),
-						},
+				"placement": schema.StringAttribute{
+					Required: true,
+					Description: "The placement of the API key in the request (e.g., query)." +
+						"The allowed value are `header` and `query`.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
 					},
 				},
-			},
-			"cidaas_auth_config": schema.SingleNestedAttribute{
-				Optional:    true,
-				Description: "Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2.",
-				Attributes: map[string]schema.Attribute{
-					"client_id": schema.StringAttribute{
-						Required:    true,
-						Description: "The client ID for Cidaas authentication.",
+				"key": schema.StringAttribute{
+					Required: true,
+					Description: "The API key that will be used to authenticate the webhook request." +
+						"The key that will be passed in the request header or in query param as configured in the attribute `placement`",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
 					},
-				},
-			},
-			"disable": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "Flag to disable the webhook.",
-				Default:     booldefault.StaticBool(false),
-			},
-			"created_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the webhook was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed:    true,
-				Description: "The timestamp when the webhook was last updated.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 		},
-	}
+		"totp_config": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP.",
+			Attributes: map[string]schema.Attribute{
+				"placeholder": schema.StringAttribute{
+					Required:    true,
+					Description: "A placeholder value for the TOTP.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z]+$`),
+							"must contain only lowercase alphabets",
+						),
+					},
+				},
+				"placement": schema.StringAttribute{
+					Required: true,
+					Description: "The placement of the TOTP in the request." +
+						"The allowed value are `header` and `query`.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
+					},
+				},
+				"key": schema.StringAttribute{
+					Required:    true,
+					Description: "The key used for TOTP authentication.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+			},
+		},
+		"cidaas_auth_config": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2.",
+			Attributes: map[string]schema.Attribute{
+				"client_id": schema.StringAttribute{
+					Required:    true,
+					Description: "The client ID for Cidaas authentication.",
+				},
+			},
+		},
+		"disable": schema.BoolAttribute{
+			Optional:    true,
+			Computed:    true,
+			Description: "Flag to disable the webhook.",
+			Default:     booldefault.StaticBool(false),
+		},
+		"created_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the webhook was created.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"updated_at": schema.StringAttribute{
+			Computed:    true,
+			Description: "The timestamp when the webhook was last updated.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+	},
 }
 
 func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl

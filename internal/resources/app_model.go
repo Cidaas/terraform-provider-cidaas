@@ -168,10 +168,6 @@ type AppConfig struct {
 	suggestVerificationMethods *SuggestVerificationMethods
 	groupRoleRestriction       *GroupRoleRestriction
 	basicSettings              *BasicSettings
-
-	CommonConfigs types.Object `tfsdk:"common_configs"`
-
-	commonConfigs *CommonConfigs
 }
 
 type AllowedGroups struct {
@@ -334,10 +330,6 @@ func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 	if !w.MobileSettings.IsNull() && !w.MobileSettings.IsUnknown() {
 		w.mobileSettings = &AppMobileSettings{}
 		diags = w.MobileSettings.As(ctx, w.mobileSettings, basetypes.ObjectAsOptions{})
-	}
-	if !w.CommonConfigs.IsNull() && !w.CommonConfigs.IsUnknown() {
-		w.commonConfigs = &CommonConfigs{}
-		diags = w.CommonConfigs.As(ctx, w.commonConfigs, basetypes.ObjectAsOptions{})
 	}
 	if !w.SocialProviders.IsNull() && !w.SocialProviders.IsUnknown() {
 		w.socialProviders = make([]*SocialProviderData, 0, len(w.SocialProviders.Elements()))
