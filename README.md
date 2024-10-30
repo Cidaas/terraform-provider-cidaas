@@ -238,35 +238,85 @@ Alternatively, you can resolve the issue by deleting the existing state of the s
 However, this approach can be risky, so please proceed with caution.
 Ensure you only delete the specific resource from the state file that is causing the error, not the entire file or any other resources.
 
-### V3 App Resource Highlights:
+From version 3.3.0, the attribute `common_configs` is not supported anymore. Instead, we encourage you to use the custom module **terraform-cidaas-app**.
+The module provides a variable with the same name `common_configs` which
+supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
+of multiple apps to a common variable and inherit the properties.
 
-- The resource app can now be set up with minimal configuration. The following parameters are the only required ones to create an app.
-In the [schema](#schema) section, only client_name is shown as **required** because the other attributes can be configured in common_configs.
-However, each attribute must appear either in the main configuration block or in common_configs. `client_name` cannot be part of common_configs.
+Link to the custom module https://github.com/Cidaas/terraform-cidaas-app
 
-  - client_name
-  - client_type
-  - company_name                   
-  - company_address                
-  - company_website                 
-  - allowed_scopes                
-  - redirect_uris
-  - allowed_logout_urls
-- Attribute `common_configs` added to share same configuration across multiple apps. Pleas check the samples in **examples** directory that demonstrates the use of `common_configs`.
-- If you need to override any specific attribute for a particular resource where the same attribute is available in `common_configs`, you can supply the main configuration attribute directly within the resource block.
-- If your configuration involves a single resource or if the common configuration attributes are not shared across multiple resources we do not suggest using `common_configs`.
+##### Module usage:
 
-## Example Usage(V3 configuration)
+```hcl
+// local.tfvars
+common_configs = {
+  client_type     = "SINGLE_PAGE"
+  company_address = "Wimsheim"
+  company_name    = "WidasConcepts GmbH"
+  company_address = "Maybachstraße 2, 71299 Wimsheim, Germany"
+  company_website = "https://widas.com"
+  redirect_uris = [
+    "https://cidaas.de/callback",
+  ]
+  allowed_logout_urls = [
+    "https://cidaas.de/logout"
+  ]
+  allowed_scopes = [
+    "openid",
+  ]
+}
+
+// main.tf
+provider "cidaas" {
+  base_url = "https://cidaas.de"
+}
+
+module "app1" {
+  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+
+  providers = {
+    cidaas = cidaas
+  }
+  client_name    = "Demo App"
+  common_configs = var.common_configs
+}
+
+module "app2" {
+  source = "git@github.com:Cidaas/terraform-cidaas-app.git"
+  providers = {
+    cidaas = cidaas
+  }
+  client_name    = "Demo IOS App"
+  client_type    = "IOS"
+  common_configs = var.common_configs
+}
+```
+You can explore more on the module in the github repo.
+
+## Example Usage
 
 ```terraform
-# This sample demonstrates the use of both main configuration attributes and common_configs.
-# It is important to note that configuring both simultaneously is not necessary.
-# Please refer to the documentation of the app resource for more details.
-
 resource "cidaas_app" "sample" {
   client_name                     = "Test Terraform Application" // unique
-  client_display_name             = "Display Name of the app"    // unique
-  content_align                   = "CENTER"                     // Default: CENTER
+  client_type                     = "SINGLE_PAGE"
+  accent_color                    = "#ef4923"                        // Default: #ef4923
+  primary_color                   = "#ef4923"                        // Default: #f7941d
+  media_type                      = "IMAGE"                          // Default: IMAGE
+  allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"] // Default: ["EMAIL", "MOBILE", "USER_NAME"]
+  redirect_uris                   = ["https://cidaas.com"]
+  allowed_logout_urls             = ["https://cidaas.com"]
+  enable_deduplication            = true      // Default: false
+  auto_login_after_register       = true      // Default: false
+  enable_passwordless_auth        = false     // Default: true
+  register_with_login_information = false     // Default: false
+  fds_enabled                     = false     // Default: true
+  hosted_page_group               = "default" // Default: default
+  company_name                    = "Widas ID GmbH"
+  company_address                 = "01"
+  company_website                 = "https://cidaas.com"
+  allowed_scopes                  = ["openid", "cidaas:register", "profile"]
+  client_display_name             = "Display Name of the app" // unique
+  content_align                   = "CENTER"                  // Default: CENTER
   post_logout_redirect_uris       = ["https://cidaas.com"]
   logo_align                      = "CENTER" // Default: CENTER
   allow_disposable_email          = false    // Default: false
@@ -350,105 +400,22 @@ resource "cidaas_app" "sample" {
     status : "active"
     version : "1.0.0"
   }
-  // common config starts here. The attributes from common config can be part of main config
-  // if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app
-  common_configs = {
-    client_type                       = "SINGLE_PAGE"
-    accent_color                      = "#ef4923"                        // Default: #ef4923
-    primary_color                     = "#ef4923"                        // Default: #f7941d
-    media_type                        = "IMAGE"                          // Default: IMAGE
-    allow_login_with                  = ["EMAIL", "MOBILE", "USER_NAME"] // Default: ["EMAIL", "MOBILE", "USER_NAME"]
-    redirect_uris                     = ["https://cidaas.com"]
-    allowed_logout_urls               = ["https://cidaas.com"]
-    enable_deduplication              = true      // Default: false
-    auto_login_after_register         = true      // Default: false
-    enable_passwordless_auth          = false     // Default: true
-    register_with_login_information   = false     // Default: false
-    fds_enabled                       = false     // Default: true
-    hosted_page_group                 = "default" // Default: default
-    company_name                      = "Widas ID GmbH"
-    company_address                   = "01"
-    company_website                   = "https://cidaas.com"
-    allowed_scopes                    = ["openid", "cidaas:register", "profile"]
-    response_types                    = ["code", "token", "id_token"] // Default: ["code", "token", "id_token"]
-    grant_types                       = ["client_credentials"]        // Default: ["implicit", "authorization_code", "password", "refresh_token"]
-    login_providers                   = ["login_provider1", "login_provider2"]
-    is_hybrid_app                     = true // Default: false
-    allowed_web_origins               = ["https://cidaas.com"]
-    allowed_origins                   = ["https://cidaas.com"]
-    default_max_age                   = 86400      // Default: 86400
-    token_lifetime_in_seconds         = 86400      // Default: 86400
-    id_token_lifetime_in_seconds      = 86400      // Default: 86400
-    refresh_token_lifetime_in_seconds = 15780000   // Default: 15780000
-    template_group_id                 = "custtemp" // Default: default
-    editable                          = true       // Default: true
-    social_providers = [{
-      provider_name = "cidaas social provider"
-      social_id     = "fdc63bd0-6044-4fa0-abff"
-      display_name  = "cidaas"
-    }]
-    custom_providers = [{
-      logo_url      = "https://cidaas.com/logo-url"
-      provider_name = "sample-custom-provider"
-      display_name  = "sample-custom-provider"
-      type          = "CUSTOM_OPENID_CONNECT"
-    }]
-    saml_providers = [{
-      logo_url      = "https://cidaas.com/logo-url"
-      provider_name = "sample-sampl-provider"
-      display_name  = "sample-sampl-provider"
-      type          = "SAMPL_IDP_PROVIDER"
-    }]
-    ad_providers = [{
-      logo_url      = "https://cidaas.com/logo-url"
-      provider_name = "sample-ad-provider"
-      display_name  = "sample-ad-provider"
-      type          = "ADD_PROVIDER"
-    }]
-    jwe_enabled  = true // Default: false
-    user_consent = true // Default: false
-    allowed_groups = [{
-      group_id      = "developer101"
-      roles         = ["developer", "qa", "admin"]
-      default_roles = ["developer"]
-    }]
-    operations_allowed_groups = [{
-      group_id      = "developer101"
-      roles         = ["developer", "qa", "admin"]
-      default_roles = ["developer"]
-    }]
-    enabled                     = true // Default: true
-    always_ask_mfa              = true // Default: false
-    allowed_mfa                 = ["OFF"]
-    email_verification_required = true // Default: true
-    allowed_roles               = ["sample"]
-    default_roles               = ["sample"]
-    enable_classical_provider   = true     // Default: true
-    is_remember_me_selected     = true     // Default: true
-    bot_provider                = "CIDAAS" // Default: CIDAAS
-    allow_guest_login           = true     // Default: false
-    #  mfa Default:
-    #  {
-    #   setting = "OFF"
-    #  }
-    mfa = {
-      setting = "OFF"
-    }
-    webfinger      = "no_redirection"
-    default_scopes = ["sample"]
-    pending_scopes = ["sample"]
-  }
 }
 ```
-
-For more samples on common_configs, please refer to the examples folder.
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
+- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
+- `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
 - `client_name` (String) Name of the client.
+- `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
+- `company_address` (String) The company address.
+- `company_name` (String) The name of the company that the client belongs to.
+- `company_website` (String) The URL of the company website.
+- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
 
 ### Optional
 
@@ -461,11 +428,9 @@ For more samples on common_configs, please refer to the examples folder.
 - `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
 - `allowed_fields` (Set of String)
 - `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
-- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
 - `allowed_mfa` (Set of String)
 - `allowed_origins` (Set of String) List of the origins allowed to access the client.
 - `allowed_roles` (Set of String)
-- `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
 - `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
 - `always_ask_mfa` (Boolean)
 - `application_meta_data` (Map of String) A map to add metadata of a client.
@@ -482,13 +447,8 @@ For more samples on common_configs, please refer to the examples folder.
 - `client_display_name` (String) The display name of the client.
 - `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
 - `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-- `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
 - `client_uri` (String)
-- `common_configs` (Attributes) The `common_configs` attribute is used for sharing the same configuration across multiple cidaas_app resources. It is a map of some attributes from the main configuration. Please check the list of the attributes that it supports in the common_confis section. if an attribute is available both common_config and main config then attribute from the main config will be considered to create an app (see [below for nested schema](#nestedatt--common_configs))
 - `communication_medium_verification` (String)
-- `company_address` (String) The company address.
-- `company_name` (String) The name of the company that the client belongs to.
-- `company_website` (String) The URL of the company website.
 - `consent_page_group` (String)
 - `consent_refs` (Set of String)
 - `contacts` (Set of String) The contacts of the client.
@@ -543,7 +503,6 @@ For more samples on common_configs, please refer to the examples folder.
 - `policy_uri` (String) The URL to the policy of a client.
 - `post_logout_redirect_uris` (Set of String)
 - `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
-- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
 - `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
 - `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
 - `registration_access_token` (String)
@@ -636,141 +595,6 @@ Optional:
 
 - `client_secret` (String, Sensitive) Secret key for the client ID
 - `client_secret_expires_at` (Number) The time when the clientsecret expires
-
-
-
-<a id="nestedatt--common_configs"></a>
-### Nested Schema for `common_configs`
-
-Optional:
-
-- `accent_color` (String)
-- `ad_providers` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--ad_providers))
-- `allow_guest_login` (Boolean)
-- `allow_login_with` (Set of String)
-- `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--allowed_groups))
-- `allowed_logout_urls` (Set of String)
-- `allowed_mfa` (Set of String)
-- `allowed_origins` (Set of String)
-- `allowed_roles` (Set of String)
-- `allowed_scopes` (Set of String)
-- `allowed_web_origins` (Set of String)
-- `always_ask_mfa` (Boolean)
-- `auto_login_after_register` (Boolean)
-- `bot_provider` (String)
-- `client_type` (String)
-- `company_address` (String)
-- `company_name` (String)
-- `company_website` (String)
-- `custom_providers` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--custom_providers))
-- `default_max_age` (Number)
-- `default_roles` (Set of String)
-- `default_scopes` (Set of String)
-- `editable` (Boolean)
-- `email_verification_required` (Boolean)
-- `enable_classical_provider` (Boolean)
-- `enable_deduplication` (Boolean)
-- `enable_passwordless_auth` (Boolean)
-- `enabled` (Boolean)
-- `fds_enabled` (Boolean)
-- `grant_types` (Set of String)
-- `hosted_page_group` (String)
-- `id_token_lifetime_in_seconds` (Number)
-- `is_hybrid_app` (Boolean)
-- `is_remember_me_selected` (Boolean)
-- `login_providers` (Set of String)
-- `logo_align` (String)
-- `media_type` (String)
-- `mfa` (Attributes) (see [below for nested schema](#nestedatt--common_configs--mfa))
-- `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--operations_allowed_groups))
-- `pending_scopes` (Set of String)
-- `primary_color` (String)
-- `redirect_uris` (Set of String)
-- `refresh_token_lifetime_in_seconds` (Number)
-- `register_with_login_information` (Boolean)
-- `response_types` (Set of String)
-- `saml_providers` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--saml_providers))
-- `social_providers` (Attributes List) (see [below for nested schema](#nestedatt--common_configs--social_providers))
-- `template_group_id` (String)
-- `token_lifetime_in_seconds` (Number)
-- `webfinger` (String)
-
-<a id="nestedatt--common_configs--ad_providers"></a>
-### Nested Schema for `common_configs.ad_providers`
-
-Optional:
-
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
-
-<a id="nestedatt--common_configs--allowed_groups"></a>
-### Nested Schema for `common_configs.allowed_groups`
-
-Optional:
-
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
-
-<a id="nestedatt--common_configs--custom_providers"></a>
-### Nested Schema for `common_configs.custom_providers`
-
-Optional:
-
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
-
-<a id="nestedatt--common_configs--mfa"></a>
-### Nested Schema for `common_configs.mfa`
-
-Optional:
-
-- `allowed_methods` (Set of String)
-- `setting` (String)
-- `time_interval_in_seconds` (Number)
-
-
-<a id="nestedatt--common_configs--operations_allowed_groups"></a>
-### Nested Schema for `common_configs.operations_allowed_groups`
-
-Optional:
-
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
-
-<a id="nestedatt--common_configs--saml_providers"></a>
-### Nested Schema for `common_configs.saml_providers`
-
-Optional:
-
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
-
-<a id="nestedatt--common_configs--social_providers"></a>
-### Nested Schema for `common_configs.social_providers`
-
-Optional:
-
-- `provider_name` (String)
-- `social_id` (String)
 
 
 

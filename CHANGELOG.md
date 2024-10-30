@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.0
+#### Removed common_configs from resource app
+
+The attribute `common_configs` is removed from the resource cidaas_app as we introduce [terraform-cidaas-app](https://github.com/Cidaas/terraform-cidaas-app) module.
+
 ### 3.2.0
 #### Addition of datasources
 
