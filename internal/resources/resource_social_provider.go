@@ -36,7 +36,18 @@ var allowedProviders = []string{
 }
 
 type SocialProvider struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewSocialProvider() resource.Resource {
+	return &SocialProvider{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_SOCIAL_PROVIDER,
+				Schema: &socialProviderSchema,
+			},
+		),
+	}
 }
 
 type SocialProviderConfig struct {
@@ -72,10 +83,6 @@ type UserInfoFields struct {
 	ExternalKey   types.String `tfsdk:"external_key"`
 	IsCustomField types.Bool   `tfsdk:"is_custom_field"`
 	IsSystemField types.Bool   `tfsdk:"is_system_field"`
-}
-
-func NewSocialProvider() resource.Resource {
-	return &SocialProvider{}
 }
 
 func (r *SocialProvider) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
@@ -114,184 +121,163 @@ func (r *SocialProvider) ValidateConfig(ctx context.Context, req resource.Valida
 	}
 }
 
-func (r *SocialProvider) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_social_provider"
-}
-
-func (r *SocialProvider) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *SocialProvider) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas." +
-			"\n Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others." +
-			"\n\n Ensure that the below scopes are assigned to the client:" +
-			"\n- cidaas:providers_read" +
-			"\n- cidaas:providers_write" +
-			"\n- cidaas:providers_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "The unique identifier of the social provider",
+var socialProviderSchema = schema.Schema{
+	MarkdownDescription: "The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas." +
+		"\n Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others." +
+		"\n\n Ensure that the below scopes are assigned to the client:" +
+		"\n- cidaas:providers_read" +
+		"\n- cidaas:providers_write" +
+		"\n- cidaas:providers_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed: true,
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
-			"name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-				MarkdownDescription: "The name of the social provider configuration. This should be unique within your Cidaas environment.",
+			MarkdownDescription: "The unique identifier of the social provider",
+		},
+		"name": schema.StringAttribute{
+			Required: true,
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
 			},
-			"provider_name": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(allowedProviders...),
-				},
-				MarkdownDescription: "The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.",
+			MarkdownDescription: "The name of the social provider configuration. This should be unique within your Cidaas environment.",
+		},
+		"provider_name": schema.StringAttribute{
+			Required: true,
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
 			},
-			"enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(allowedProviders...),
 			},
-			"client_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The client ID provided by the social provider. This is used to authenticate your application with the social provider.",
-			},
-			"client_secret": schema.StringAttribute{
-				Required:            true,
-				Sensitive:           true,
-				MarkdownDescription: "The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.",
-			},
-			"scopes": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "A list of scopes of the social provider.",
-			},
-			"claims": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "A map defining required and optional claims to be requested from the social provider.",
-				Attributes: map[string]schema.Attribute{
-					"required_claims": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Defines the claims that are required from the social provider.",
-						Attributes: map[string]schema.Attribute{
-							"user_info": schema.SetAttribute{
-								ElementType:         types.StringType,
-								Optional:            true,
-								MarkdownDescription: "A list of user information claims that are required.",
-							},
-							"id_token": schema.SetAttribute{
-								ElementType:         types.StringType,
-								Optional:            true,
-								MarkdownDescription: "A list of ID token claims that are required.",
-							},
-						},
-					},
-					"optional_claims": schema.SingleNestedAttribute{
-						Optional:            true,
-						MarkdownDescription: "Defines the claims that are optional from the social provider.",
-						Attributes: map[string]schema.Attribute{
-							"user_info": schema.SetAttribute{
-								ElementType:         types.StringType,
-								Optional:            true,
-								MarkdownDescription: "A list of user information claims that are optional.",
-							},
-							"id_token": schema.SetAttribute{
-								ElementType:         types.StringType,
-								Optional:            true,
-								MarkdownDescription: "A list of ID token claims that are optional.",
-							},
-						},
-					},
-				},
-				Default: objectdefault.StaticValue(
-					types.ObjectValueMust(
-						map[string]attr.Type{
-							"required_claims": types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"user_info": types.SetType{ElemType: types.StringType},
-									"id_token":  types.SetType{ElemType: types.StringType},
-								},
-							},
-							"optional_claims": types.ObjectType{
-								AttrTypes: map[string]attr.Type{
-									"user_info": types.SetType{ElemType: types.StringType},
-									"id_token":  types.SetType{ElemType: types.StringType},
-								},
-							},
-						},
-						map[string]attr.Value{
-							"required_claims": types.ObjectValueMust(map[string]attr.Type{
-								"user_info": types.SetType{ElemType: types.StringType},
-								"id_token":  types.SetType{ElemType: types.StringType},
-							},
-								map[string]attr.Value{
-									"user_info": types.SetNull(types.StringType),
-									"id_token":  types.SetNull(types.StringType),
-								}),
-							"optional_claims": types.ObjectValueMust(map[string]attr.Type{
-								"user_info": types.SetType{ElemType: types.StringType},
-								"id_token":  types.SetType{ElemType: types.StringType},
-							},
-								map[string]attr.Value{
-									"user_info": types.SetNull(types.StringType),
-									"id_token":  types.SetNull(types.StringType),
-								}),
-						}),
-				),
-			},
-			"userinfo_fields": schema.ListNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "A list of user info fields to be mapped between the social provider and Cidaas.",
-				NestedObject: schema.NestedAttributeObject{
+			MarkdownDescription: "The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.",
+		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             booldefault.StaticBool(false),
+			MarkdownDescription: "A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.",
+		},
+		"client_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The client ID provided by the social provider. This is used to authenticate your application with the social provider.",
+		},
+		"client_secret": schema.StringAttribute{
+			Required:            true,
+			Sensitive:           true,
+			MarkdownDescription: "The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.",
+		},
+		"scopes": schema.SetAttribute{
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "A list of scopes of the social provider.",
+		},
+		"claims": schema.SingleNestedAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A map defining required and optional claims to be requested from the social provider.",
+			Attributes: map[string]schema.Attribute{
+				"required_claims": schema.SingleNestedAttribute{
+					Optional:            true,
+					MarkdownDescription: "Defines the claims that are required from the social provider.",
 					Attributes: map[string]schema.Attribute{
-						"inner_key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The internal key used by Cidaas.",
+						"user_info": schema.SetAttribute{
+							ElementType:         types.StringType,
+							Optional:            true,
+							MarkdownDescription: "A list of user information claims that are required.",
 						},
-						"external_key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The external key used by the social provider.",
+						"id_token": schema.SetAttribute{
+							ElementType:         types.StringType,
+							Optional:            true,
+							MarkdownDescription: "A list of ID token claims that are required.",
 						},
-						"is_custom_field": schema.BoolAttribute{
-							Required:            true,
-							MarkdownDescription: "A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.",
+					},
+				},
+				"optional_claims": schema.SingleNestedAttribute{
+					Optional:            true,
+					MarkdownDescription: "Defines the claims that are optional from the social provider.",
+					Attributes: map[string]schema.Attribute{
+						"user_info": schema.SetAttribute{
+							ElementType:         types.StringType,
+							Optional:            true,
+							MarkdownDescription: "A list of user information claims that are optional.",
 						},
-						"is_system_field": schema.BoolAttribute{
-							Required:            true,
-							MarkdownDescription: "A flag indicating whether the field is a system field. Set to `true` if it is a system field.",
+						"id_token": schema.SetAttribute{
+							ElementType:         types.StringType,
+							Optional:            true,
+							MarkdownDescription: "A list of ID token claims that are optional.",
 						},
 					},
 				},
 			},
-			"enabled_for_admin_portal": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.",
+			Default: objectdefault.StaticValue(
+				types.ObjectValueMust(
+					map[string]attr.Type{
+						"required_claims": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"user_info": types.SetType{ElemType: types.StringType},
+								"id_token":  types.SetType{ElemType: types.StringType},
+							},
+						},
+						"optional_claims": types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"user_info": types.SetType{ElemType: types.StringType},
+								"id_token":  types.SetType{ElemType: types.StringType},
+							},
+						},
+					},
+					map[string]attr.Value{
+						"required_claims": types.ObjectValueMust(map[string]attr.Type{
+							"user_info": types.SetType{ElemType: types.StringType},
+							"id_token":  types.SetType{ElemType: types.StringType},
+						},
+							map[string]attr.Value{
+								"user_info": types.SetNull(types.StringType),
+								"id_token":  types.SetNull(types.StringType),
+							}),
+						"optional_claims": types.ObjectValueMust(map[string]attr.Type{
+							"user_info": types.SetType{ElemType: types.StringType},
+							"id_token":  types.SetType{ElemType: types.StringType},
+						},
+							map[string]attr.Value{
+								"user_info": types.SetNull(types.StringType),
+								"id_token":  types.SetNull(types.StringType),
+							}),
+					}),
+			),
+		},
+		"userinfo_fields": schema.ListNestedAttribute{
+			Optional:            true,
+			MarkdownDescription: "A list of user info fields to be mapped between the social provider and Cidaas.",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"inner_key": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The internal key used by Cidaas.",
+					},
+					"external_key": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The external key used by the social provider.",
+					},
+					"is_custom_field": schema.BoolAttribute{
+						Required:            true,
+						MarkdownDescription: "A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.",
+					},
+					"is_system_field": schema.BoolAttribute{
+						Required:            true,
+						MarkdownDescription: "A flag indicating whether the field is a system field. Set to `true` if it is a system field.",
+					},
+				},
 			},
 		},
-	}
+		"enabled_for_admin_portal": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             booldefault.StaticBool(false),
+			MarkdownDescription: "A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.",
+		},
+	},
 }
 
 func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

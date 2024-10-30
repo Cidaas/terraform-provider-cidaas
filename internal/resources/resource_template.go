@@ -43,142 +43,127 @@ type TemplateConfig struct {
 }
 
 type TemplateResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
 }
 
 func NewTemplateResource() resource.Resource {
-	return &TemplateResource{}
-}
-
-func (r *TemplateResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_template"
-}
-
-func (r *TemplateResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
+	return &TemplateResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_TEMPLATE,
+				Schema: &templateSchema,
+			},
+		),
 	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-	cidaasClient = client
 }
 
-func (r *TemplateResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Template resource in the provider is used to define and manage templates within the Cidaas system." +
-			" Templates are used for emails, SMS, IVR, and push notifications." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:templates_read" +
-			"\n- cidaas:templates_write" +
-			"\n- cidaas:templates_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:    true,
-				Description: "The unique identifier of the template resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"locale": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						func() []string {
-							validLocals := make([]string, len(util.Locals))
-							for i, locale := range util.Locals {
-								validLocals[i] = strings.ToLower(locale.LocaleString)
-							}
-							return validLocals
-						}()...),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"template_key": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The unique name of the template. It cannot be updated for an existing state.",
-				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[A-Z0-9_-]+$`),
-						`must be a valid string consisting only of uppercase letters, digits (0-9), underscores (_), and hyphens (-). Example: SAMPLE, 12345, SAMPLE-TEMPLATE, SAMPLE_TEMPLATE, SAMPLE12345, SAMPLE-1234`,
-					),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"template_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(allowedTemplateTypes...),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"content": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The content of the template.",
-			},
-			"subject": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Applicable only for template_type EMAIL. It represents the subject of an email.",
-			},
-			"template_owner": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: "The template owner of the template.",
-			},
-			"usage_type": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates." +
-					" It should be set to `GENERAL` when cidaas does not provide an allowed list of values.",
-				Computed: true,
-			},
-			"processing_type": schema.StringAttribute{
-				Optional: true,
-				MarkdownDescription: "The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates." +
-					" It should be set to `GENERAL` when cidaas does not provide an allowed list of values.",
-			},
-			"verification_type": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.",
-			},
-			"language": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The language based on the local provided in the configuration.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"group_id": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.",
-			},
-			"is_system_template": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM",
-				Default:             booldefault.StaticBool(false),
-				PlanModifiers: []planmodifier.Bool{
-					&systemTemplateValidator{},
-				},
+var templateSchema = schema.Schema{
+	MarkdownDescription: "The Template resource in the provider is used to define and manage templates within the Cidaas system." +
+		" Templates are used for emails, SMS, IVR, and push notifications." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:templates_read" +
+		"\n- cidaas:templates_write" +
+		"\n- cidaas:templates_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:    true,
+			Description: "The unique identifier of the template resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"locale": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(
+					func() []string {
+						validLocals := make([]string, len(util.Locals))
+						for i, locale := range util.Locals {
+							validLocals[i] = strings.ToLower(locale.LocaleString)
+						}
+						return validLocals
+					}()...),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"template_key": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The unique name of the template. It cannot be updated for an existing state.",
+			Validators: []validator.String{
+				stringvalidator.RegexMatches(
+					regexp.MustCompile(`^[A-Z0-9_-]+$`),
+					`must be a valid string consisting only of uppercase letters, digits (0-9), underscores (_), and hyphens (-). Example: SAMPLE, 12345, SAMPLE-TEMPLATE, SAMPLE_TEMPLATE, SAMPLE12345, SAMPLE-1234`,
+				),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"template_type": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(allowedTemplateTypes...),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"content": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The content of the template.",
+		},
+		"subject": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Applicable only for template_type EMAIL. It represents the subject of an email.",
+		},
+		"template_owner": schema.StringAttribute{
+			Computed: true,
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+			MarkdownDescription: "The template owner of the template.",
+		},
+		"usage_type": schema.StringAttribute{
+			Optional: true,
+			MarkdownDescription: "The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates." +
+				" It should be set to `GENERAL` when cidaas does not provide an allowed list of values.",
+			Computed: true,
+		},
+		"processing_type": schema.StringAttribute{
+			Optional: true,
+			MarkdownDescription: "The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates." +
+				" It should be set to `GENERAL` when cidaas does not provide an allowed list of values.",
+		},
+		"verification_type": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.",
+		},
+		"language": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The language based on the local provided in the configuration.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"group_id": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.",
+		},
+		"is_system_template": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM",
+			Default:             booldefault.StaticBool(false),
+			PlanModifiers: []planmodifier.Bool{
+				&systemTemplateValidator{},
+			},
+		},
+	},
 }
 
 func (r *TemplateResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
@@ -214,6 +199,7 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	var plan, config TemplateConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
 	resp.Diagnostics.Append(validateSystemTemplateConfig(config)...)
 	if resp.Diagnostics.HasError() {
 		return

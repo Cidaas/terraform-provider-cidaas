@@ -21,7 +21,18 @@ import (
 )
 
 type ConsentResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewConsentResource() resource.Resource {
+	return &ConsentResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_CONSENT,
+				Schema: &consentSchema,
+			},
+		),
+	}
 }
 
 type ConsentConfig struct {
@@ -33,83 +44,58 @@ type ConsentConfig struct {
 	UpdatedAt      types.String `tfsdk:"updated_at"`
 }
 
-func NewConsentResource() resource.Resource {
-	return &ConsentResource{}
-}
-
-func (r *ConsentResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_consent"
-}
-
-func (r *ConsentResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
-}
-
-func (r *ConsentResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:tenant_consent_read" +
-			"\n- cidaas:tenant_consent_write" +
-			"\n- cidaas:tenant_consent_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the consent resource.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The name of the consent.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"consent_group_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The `consent_group_id` to which the consent belongs.",
-				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
-				},
-				PlanModifiers: []planmodifier.String{
-					&validators.UniqueIdentifier{},
-				},
-			},
-			"enabled": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "The flag to enable or disable a speicific consent. By default, the value is set to `true`",
-				Default:             booldefault.StaticBool(true),
-			},
-			"created_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The timestamp when the consent version was created.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"updated_at": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The timestamp when the consent version was last updated.",
+var consentSchema = schema.Schema{
+	MarkdownDescription: "The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:tenant_consent_read" +
+		"\n- cidaas:tenant_consent_write" +
+		"\n- cidaas:tenant_consent_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The unique identifier of the consent resource.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"name": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The name of the consent.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"consent_group_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The `consent_group_id` to which the consent belongs.",
+			Validators: []validator.String{
+				stringvalidator.LengthAtLeast(1),
+			},
+			PlanModifiers: []planmodifier.String{
+				&validators.UniqueIdentifier{},
+			},
+		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The flag to enable or disable a speicific consent. By default, the value is set to `true`",
+			Default:             booldefault.StaticBool(true),
+		},
+		"created_at": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The timestamp when the consent version was created.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
+			},
+		},
+		"updated_at": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The timestamp when the consent version was last updated.",
+		},
+	},
 }
 
 func (r *ConsentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

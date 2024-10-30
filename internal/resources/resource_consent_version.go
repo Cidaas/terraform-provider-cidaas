@@ -27,7 +27,18 @@ const (
 )
 
 type ConsentVersionResource struct {
-	cidaasClient *cidaas.Client
+	BaseResource
+}
+
+func NewConsentVersionResource() resource.Resource {
+	return &ConsentVersionResource{
+		BaseResource: NewBaseResource(
+			BaseResourceConfig{
+				Name:   RESOURCE_CONSENT_VERSION,
+				Schema: &consentversionSchema,
+			},
+		),
+	}
 }
 
 type ConsentVersionConfig struct {
@@ -46,29 +57,6 @@ type ConsentLocale struct {
 	Content types.String `tfsdk:"content"`
 	Locale  types.String `tfsdk:"locale"`
 	URL     types.String `tfsdk:"url"`
-}
-
-func NewConsentVersionResource() resource.Resource {
-	return &ConsentVersionResource{}
-}
-
-func (r *ConsentVersionResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_consent_version"
-}
-
-func (r *ConsentVersionResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	if req.ProviderData == nil {
-		return
-	}
-	client, ok := req.ProviderData.(*cidaas.Client)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-	r.cidaasClient = client
 }
 
 func (r *ConsentVersionResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, res *resource.ValidateConfigResponse) {
@@ -107,96 +95,94 @@ func (r *ConsentVersionResource) ValidateConfig(ctx context.Context, req resourc
 	}
 }
 
-func (r *ConsentVersionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas." +
-			"\n This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale." +
-			"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
-			"\n- cidaas:tenant_consent_read" +
-			"\n- cidaas:tenant_consent_write" +
-			"\n- cidaas:tenant_consent_delete",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier of the consent version.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"consent_type": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(SCOPES, URL),
-				},
-				PlanModifiers: []planmodifier.String{
-					validators.UniqueIdentifier{},
-				},
-			},
-			"consent_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.",
-				PlanModifiers: []planmodifier.String{
-					validators.UniqueIdentifier{},
-				},
-			},
-			"version": schema.Float64Attribute{
-				Required:            true,
-				MarkdownDescription: "The version number of the consent. It can not be updated for a specific consent version.",
-				PlanModifiers: []planmodifier.Float64{
-					validators.ImmutableInt64Identifier{},
-				},
-			},
-			"scopes": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				MarkdownDescription: "A set of scopes related to the consent. It can not be updated for a specific consent version." +
-					"\nNote that the attribute `scopes` is required only if the `consent_type` is set to **SCOPES**.",
-				PlanModifiers: []planmodifier.Set{
-					validators.ImmutableSetIdentifier{},
-				},
-			},
-			"required_fields": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				MarkdownDescription: "A set of fields that are required for the consent. It can not be updated for a specific consent version." +
-					"\nNote that the attribute `required_fields` is required only if the `consent_type` is set to **SCOPES**.",
-				PlanModifiers: []planmodifier.Set{
-					validators.ImmutableSetIdentifier{},
-				},
-			},
-			"consent_locales": schema.SetNestedAttribute{
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"content": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "The content of the consent version associated with a specific locale.",
-						},
-						"locale": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The locale for which the consent version is created. e.g. `en-us`, `de`.",
-							Validators: []validator.String{
-								stringvalidator.OneOf(
-									func() []string {
-										validLocals := make([]string, len(util.Locals)) //nolint:gofumpt
-										for i, locale := range util.Locals {
-											validLocals[i] = strings.ToLower(locale.LocaleString)
-										}
-										return validLocals
-									}()...),
-							},
-						},
-						"url": schema.StringAttribute{
-							Optional: true,
-							MarkdownDescription: "The url to the consent page of the created consent version." +
-								"\nNote that the attribute `url` is required only if the `consent_type` is set to **URL**.",
-						},
-					},
-				},
-				Required: true,
+var consentversionSchema = schema.Schema{
+	MarkdownDescription: "The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas." +
+		"\n This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale." +
+		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
+		"\n- cidaas:tenant_consent_read" +
+		"\n- cidaas:tenant_consent_write" +
+		"\n- cidaas:tenant_consent_delete",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			Computed:            true,
+			MarkdownDescription: "The unique identifier of the consent version.",
+			PlanModifiers: []planmodifier.String{
+				stringplanmodifier.UseStateForUnknown(),
 			},
 		},
-	}
+		"consent_type": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.",
+			Validators: []validator.String{
+				stringvalidator.OneOf(SCOPES, URL),
+			},
+			PlanModifiers: []planmodifier.String{
+				validators.UniqueIdentifier{},
+			},
+		},
+		"consent_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.",
+			PlanModifiers: []planmodifier.String{
+				validators.UniqueIdentifier{},
+			},
+		},
+		"version": schema.Float64Attribute{
+			Required:            true,
+			MarkdownDescription: "The version number of the consent. It can not be updated for a specific consent version.",
+			PlanModifiers: []planmodifier.Float64{
+				validators.ImmutableInt64Identifier{},
+			},
+		},
+		"scopes": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			MarkdownDescription: "A set of scopes related to the consent. It can not be updated for a specific consent version." +
+				"\nNote that the attribute `scopes` is required only if the `consent_type` is set to **SCOPES**.",
+			PlanModifiers: []planmodifier.Set{
+				validators.ImmutableSetIdentifier{},
+			},
+		},
+		"required_fields": schema.SetAttribute{
+			ElementType: types.StringType,
+			Optional:    true,
+			MarkdownDescription: "A set of fields that are required for the consent. It can not be updated for a specific consent version." +
+				"\nNote that the attribute `required_fields` is required only if the `consent_type` is set to **SCOPES**.",
+			PlanModifiers: []planmodifier.Set{
+				validators.ImmutableSetIdentifier{},
+			},
+		},
+		"consent_locales": schema.SetNestedAttribute{
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"content": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "The content of the consent version associated with a specific locale.",
+					},
+					"locale": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The locale for which the consent version is created. e.g. `en-us`, `de`.",
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								func() []string {
+									validLocals := make([]string, len(util.Locals)) //nolint:gofumpt
+									for i, locale := range util.Locals {
+										validLocals[i] = strings.ToLower(locale.LocaleString)
+									}
+									return validLocals
+								}()...),
+						},
+					},
+					"url": schema.StringAttribute{
+						Optional: true,
+						MarkdownDescription: "The url to the consent page of the created consent version." +
+							"\nNote that the attribute `url` is required only if the `consent_type` is set to **URL**.",
+					},
+				},
+			},
+			Required: true,
+		},
+	},
 }
 
 func (cv *ConsentVersionConfig) extract(ctx context.Context) diag.Diagnostics {
