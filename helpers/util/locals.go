@@ -13,6 +13,7 @@ type LocaleData struct {
 	Variant         string
 }
 
+// TODO: read from api for a dynamic list
 var Locals = []LocaleData{
 	{LocaleString: "ar", Country: "", DisplayCountry: "", DisplayLanguage: "Arabic", DisplayName: "Arabic", DisplayVariant: "", ISO3Country: "", ISO3Language: "ara", Language: "ar", Variant: ""},
 	{LocaleString: "ar-AE", Country: "AE", DisplayCountry: "United Arab Emirates", DisplayLanguage: "Arabic", DisplayName: "Arabic (United Arab Emirates)", DisplayVariant: "", ISO3Country: "ARE", ISO3Language: "ara", Language: "ar", Variant: ""},
@@ -44,6 +45,7 @@ var Locals = []LocaleData{
 	{LocaleString: "da-DK", Country: "DK", DisplayCountry: "Denmark", DisplayLanguage: "Danish", DisplayName: "Danish (Denmark)", DisplayVariant: "", ISO3Country: "DNK", ISO3Language: "dan", Language: "da", Variant: ""},
 	{LocaleString: "de", Country: "", DisplayCountry: "", DisplayLanguage: "German", DisplayName: "German", DisplayVariant: "", ISO3Country: "", ISO3Language: "deu", Language: "de", Variant: ""},
 	{LocaleString: "de-AT", Country: "AT", DisplayCountry: "Austria", DisplayLanguage: "German", DisplayName: "German (Austria)", DisplayVariant: "", ISO3Country: "AUT", ISO3Language: "deu", Language: "de", Variant: ""},
+	{LocaleString: "de-BE", Country: "BE", DisplayCountry: "Belgium", DisplayLanguage: "German", DisplayName: "German (Belgium)", DisplayVariant: "", ISO3Country: "BEL", ISO3Language: "deu", Language: "de", Variant: ""},
 	{LocaleString: "de-CH", Country: "CH", DisplayCountry: "Switzerland", DisplayLanguage: "German", DisplayName: "German (Switzerland)", DisplayVariant: "", ISO3Country: "CHE", ISO3Language: "deu", Language: "de", Variant: ""},
 	{LocaleString: "de-DE", Country: "DE", DisplayCountry: "Germany", DisplayLanguage: "German", DisplayName: "German (Germany)", DisplayVariant: "", ISO3Country: "DEU", ISO3Language: "deu", Language: "de", Variant: ""},
 	{LocaleString: "de-LU", Country: "LU", DisplayCountry: "Luxembourg", DisplayLanguage: "German", DisplayName: "German (Luxembourg)", DisplayVariant: "", ISO3Country: "LUX", ISO3Language: "deu", Language: "de", Variant: ""},
@@ -149,8 +151,11 @@ var Locals = []LocaleData{
 	{LocaleString: "zh-CN", Country: "CN", DisplayCountry: "China", DisplayLanguage: "Chinese", DisplayName: "Chinese (China)", DisplayVariant: "", ISO3Country: "CHN", ISO3Language: "zho", Language: "zh", Variant: ""},
 	{LocaleString: "zh-HK", Country: "HK", DisplayCountry: "Hong Kong", DisplayLanguage: "Chinese", DisplayName: "Chinese (Hong Kong)", DisplayVariant: "", ISO3Country: "HKG", ISO3Language: "zho", Language: "zh", Variant: ""},
 	{LocaleString: "zh-TW", Country: "TW", DisplayCountry: "Taiwan", DisplayLanguage: "Chinese", DisplayName: "Chinese (Taiwan)", DisplayVariant: "", ISO3Country: "TWN", ISO3Language: "zho", Language: "zh", Variant: ""},
+	{LocaleString: "zh-Hans", Country: "CN", DisplayCountry: "China", DisplayLanguage: "Simplified Chinese", DisplayName: "Chinese (Simplified, China)", DisplayVariant: "", ISO3Country: "CHN", ISO3Language: "zho", Language: "zh", Variant: "Hans"},
+	{LocaleString: "zh-Hant", Country: "TW", DisplayCountry: "Taiwan", DisplayLanguage: "Traditional Chinese", DisplayName: "Chinese (Traditional, Taiwan)", DisplayVariant: "", ISO3Country: "TWN", ISO3Language: "zho", Language: "zh", Variant: "Hant"},
 	{LocaleString: "rm", Country: "", DisplayCountry: "", DisplayLanguage: "Romansh", DisplayName: "Romansh", DisplayVariant: "", ISO3Country: "", ISO3Language: "roh", Language: "rm", Variant: ""},
 	{LocaleString: "rm-CH", Country: "CH", DisplayCountry: "Switzerland", DisplayLanguage: "Romansh", DisplayName: "Romansh (Switzerland)", DisplayVariant: "", ISO3Country: "CHE", ISO3Language: "roh", Language: "rm", Variant: ""},
+	{LocaleString: "id", Country: "ID", DisplayCountry: "Indonesia", DisplayLanguage: "Indonesian", DisplayName: "Indonesian (Indonesia)", DisplayVariant: "", ISO3Country: "IDN", ISO3Language: "ind", Language: "id", Variant: ""},
 }
 
 func GetLanguageForLocale(locale string) string {
