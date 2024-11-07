@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.1
+#### Enhanced Locale Support
+
+The provider now includes additional locales `de-BE`, `id`, `zh-Hans` and `zh-Hant`.
+
 ### 3.3.0
 #### Removed common_configs from resource app
 
