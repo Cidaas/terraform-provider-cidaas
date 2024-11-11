@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.2
+#### Enhancements
+
+- Enhanced validation on attributes processing_type and usage_type in resource cidaas_template
+
 ### 3.3.1
 #### Enhanced Locale Support
 
