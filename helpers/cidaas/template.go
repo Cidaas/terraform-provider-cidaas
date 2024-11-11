@@ -46,6 +46,12 @@ type MasterList struct {
 type TemplateType struct {
 	TemplateType    string           `json:"templateType,omitempty"`
 	ProcessingTypes []ProcessingType `json:"processingTypes,omitempty"`
+	Default         Default          `json:"default,omitempty"`
+}
+
+type Default struct {
+	UsageType      string `json:"usageType,omitempty"`
+	ProcessingType string `json:"processingType,omitempty"`
 }
 
 type ProcessingType struct {

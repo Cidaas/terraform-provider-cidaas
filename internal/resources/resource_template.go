@@ -222,6 +222,8 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TemplateConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
+	resp.Diagnostics.Append(validateSystemTemplateConfig(state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -265,6 +267,8 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 	var plan, state TemplateConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
+	resp.Diagnostics.Append(validateSystemTemplateConfig(plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -447,6 +451,9 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 		processingTypesByTemplateType := map[string][]string{}
 		processingTypes := map[string]cidaas.ProcessingType{}
 
+		defaultProcessingType := "GENERAL"
+		defaultUsageType := "GENERAL"
+
 		// must be enabled as well
 		for i, v := range masterListMap[config.TemplateKey.ValueString()].TemplateTypes {
 			allowedTemplateTypes[i] = v.TemplateType
@@ -455,6 +462,14 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				p = append(p, value.ProcessingType)
 				key := v.TemplateType + "-" + value.ProcessingType
 				processingTypes[key] = value
+			}
+			if v.TemplateType == config.TemplateType.ValueString() {
+				if v.Default.ProcessingType != "" {
+					defaultProcessingType = v.Default.ProcessingType
+				}
+				if v.Default.UsageType != "" {
+					defaultUsageType = v.Default.UsageType
+				}
 			}
 			processingTypesByTemplateType[v.TemplateType] = p
 		}
@@ -483,8 +498,8 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				)
 				return diags
 			}
-		} else if config.ProcessingType.IsNull() || (!config.ProcessingType.IsNull() && config.ProcessingType.ValueString() != "GENERAL") {
-			message := "The attribute \033[1mprocessing_type\033[0m must be set to \033[1mGENERAL\033[0m for the provided configuration."
+		} else if config.ProcessingType.IsNull() || (!config.ProcessingType.IsNull() && config.ProcessingType.ValueString() != defaultProcessingType) {
+			message := fmt.Sprintf("The attribute \033[1mprocessing_type\033[0m must be set to \033[1m%s\033[0m for the provided configuration.", defaultProcessingType)
 			diags.AddError(
 				"Unexpected Resource Configuration",
 				message,
@@ -549,8 +564,8 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				)
 				return diags
 			}
-		} else if config.UsageType.IsNull() || (!config.UsageType.IsNull() && config.UsageType.ValueString() != "GENERAL") {
-			message := "The attribute \033[1musage_type\033[0m  must be set to \033[1mGENERAL\033[0m for the provided configuration."
+		} else if config.UsageType.IsNull() || (!config.UsageType.IsNull() && config.UsageType.ValueString() != defaultUsageType) {
+			message := fmt.Sprintf("The attribute \033[1musage_type\033[0m  must be set to \033[1m%s\033[0m for the provided configuration.", defaultUsageType)
 			diags.AddError(
 				"Unexpected Resource Configuration",
 				message,
