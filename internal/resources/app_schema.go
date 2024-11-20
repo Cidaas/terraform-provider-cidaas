@@ -1026,14 +1026,14 @@ var resourceAppSchema = schema.Schema{
 			Optional: true,
 			Attributes: map[string]schema.Attribute{
 				"match_condition": schema.StringAttribute{
-					Optional: true,
+					Required: true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("and", "or"),
 					},
 					MarkdownDescription: "The match condition for the role restriction",
 				},
 				"filters": schema.ListNestedAttribute{
-					Optional:            true,
+					Required:            true,
 					MarkdownDescription: "An array of group role filters.",
 					NestedObject: schema.NestedAttributeObject{
 						Attributes: map[string]schema.Attribute{

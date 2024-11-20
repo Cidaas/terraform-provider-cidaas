@@ -1390,8 +1390,11 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 		state.SuggestVerificationMethods = obj
 	}
 
-	if res.Data.GroupRoleRestriction != nil && (((operation == CREATE || operation == UPDATE) && !config.GroupRoleRestriction.IsNull()) ||
-		operation == IMPORT || operation == READ) {
+	// groupSelectionRestriction can not be empty object
+	if res.Data.GroupRoleRestriction != nil &&
+		len(res.Data.GroupRoleRestriction.Filters) > 0 &&
+		(((operation == CREATE || operation == UPDATE) && !config.GroupRoleRestriction.IsNull()) ||
+			operation == IMPORT || operation == READ) {
 		roleFilterType := map[string]attr.Type{
 			"match_condition": types.StringType,
 			"roles":           types.SetType{ElemType: types.StringType},

@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.3.3
+
+#### Enhancements
+
+- `match_condition` and `filters` attributes in `group_role_restriction`(cidaas_app) are now required if `group_role_restriction` is declared in the configuration. This helps prevent misconfiguration.
+- cidaas_app import now ignore empty `group_role_restriction` objects in the api response fixing schema mismarch issue.
+
 ### 3.3.2
 #### Enhancements
 
