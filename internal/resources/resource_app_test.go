@@ -134,6 +134,11 @@ func testAppConfig(clientName, companyWebsite string) string {
         status : "active"
         version : "1.0.0"
       }
+      suggest_verification_methods = {
+        mandatory_config = {}
+        optional_config = {}
+        skip_duration_in_days = 7
+      }
     }`,
 		os.Getenv("BASE_URL"),
 		clientName,
@@ -164,6 +169,11 @@ func TestApp_CommonConfig(t *testing.T) {
 					redirect_uris       = ["https://ciddas.com"]
 					group_selection     = {}
 					login_spi           = {}
+          suggest_verification_methods = {
+            mandatory_config = {}
+            optional_config = {}
+            skip_duration_in_days = 7
+          }
 				}		
 			`, acctest.BaseURL, clientName),
 				Check: resource.ComposeAggregateTestCheckFunc(

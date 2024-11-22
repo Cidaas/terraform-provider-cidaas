@@ -1026,14 +1026,14 @@ var resourceAppSchema = schema.Schema{
 			Optional: true,
 			Attributes: map[string]schema.Attribute{
 				"match_condition": schema.StringAttribute{
-					Optional: true,
+					Required: true,
 					Validators: []validator.String{
 						stringvalidator.OneOf("and", "or"),
 					},
 					MarkdownDescription: "The match condition for the role restriction",
 				},
 				"filters": schema.ListNestedAttribute{
-					Optional:            true,
+					Required:            true,
 					MarkdownDescription: "An array of group role filters.",
 					NestedObject: schema.NestedAttributeObject{
 						Attributes: map[string]schema.Attribute{
@@ -1066,6 +1066,10 @@ var resourceAppSchema = schema.Schema{
 		},
 		"basic_settings": schema.SingleNestedAttribute{
 			Optional: true,
+			Computed: true,
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
 				"client_id": schema.StringAttribute{
 					Computed:            true,
@@ -1091,6 +1095,7 @@ var resourceAppSchema = schema.Schema{
 				},
 				"client_secrets": schema.ListNestedAttribute{
 					Optional:            true,
+					Computed:            true,
 					MarkdownDescription: "An array of client secret data (Max size is 2)",
 					NestedObject: schema.NestedAttributeObject{
 						Attributes: map[string]schema.Attribute{
@@ -1110,6 +1115,13 @@ var resourceAppSchema = schema.Schema{
 					Validators: []validator.List{
 						listvalidator.SizeAtMost(2),
 					},
+					Default: listdefault.StaticValue(types.ListValueMust(
+						types.ObjectType{
+							AttrTypes: map[string]attr.Type{
+								"client_secret":            types.StringType,
+								"client_secret_expires_at": types.Int64Type,
+							},
+						}, []attr.Value{})),
 				},
 			},
 		},
