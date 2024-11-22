@@ -1494,6 +1494,30 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 			},
 		)
 		state.BasicSettings = basicSettings
+	} else {
+		basicSettings := types.ObjectValueMust(
+			map[string]attr.Type{
+				"client_id":           types.StringType,
+				"redirect_uris":       types.SetType{ElemType: types.StringType},
+				"allowed_logout_urls": types.SetType{ElemType: types.StringType},
+				"allowed_scopes":      types.SetType{ElemType: types.StringType},
+				"client_secrets": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+					"client_secret":            types.StringType,
+					"client_secret_expires_at": types.Int64Type,
+				}}},
+			},
+			map[string]attr.Value{
+				"client_id":           types.StringValue(res.Data.ClientID),
+				"redirect_uris":       util.SetValueOrNull(res.Data.RedirectURIS),
+				"allowed_logout_urls": util.SetValueOrNull(res.Data.AllowedLogoutUrls),
+				"allowed_scopes":      util.SetValueOrNull(res.Data.AllowedScopes),
+				"client_secrets": types.ListValueMust(types.ObjectType{AttrTypes: map[string]attr.Type{
+					"client_secret":            types.StringType,
+					"client_secret_expires_at": types.Int64Type,
+				}}, []attr.Value{}),
+			},
+		)
+		state.BasicSettings = basicSettings
 	}
 	return diags
 }
