@@ -296,6 +296,7 @@ resource "cidaas_app" "sample" {
 ### Optional
 
 - `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
+- `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
 - `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
 - `additional_access_token_payload` (Set of String) Access token payload definition.
 - `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
@@ -490,7 +491,7 @@ Optional:
 <a id="nestedatt--group_role_restriction"></a>
 ### Nested Schema for `group_role_restriction`
 
-Optional:
+Required:
 
 - `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
 - `match_condition` (String) The match condition for the role restriction

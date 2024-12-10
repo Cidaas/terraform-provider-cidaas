@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.3.4
+
+#### Enhancements
+
+- Attribute `accept_roles_in_the_registration` added to the resource cidaas_app.
+
 ### 3.3.3
 
 #### Enhancements
