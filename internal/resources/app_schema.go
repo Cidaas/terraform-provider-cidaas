@@ -1125,6 +1125,12 @@ var resourceAppSchema = schema.Schema{
 				},
 			},
 		},
+		"accept_roles_in_the_registration": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A boolean flag that determines whether roles can be accepted during the registration process.",
+			Default:             booldefault.StaticBool(false),
+		},
 	},
 }
 

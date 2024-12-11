@@ -101,6 +101,7 @@ type AppConfig struct {
 	RequireAuthTime                  types.Bool `tfsdk:"require_auth_time"`
 	EnableLoginSpi                   types.Bool `tfsdk:"enable_login_spi"`
 	BackchannelLogoutSessionRequired types.Bool `tfsdk:"backchannel_logout_session_required"`
+	AcceptRolesInTheRegistration     types.Bool `tfsdk:"accept_roles_in_the_registration"`
 
 	DefaultMaxAge                 types.Int64 `tfsdk:"default_max_age"`
 	TokenLifetimeInSeconds        types.Int64 `tfsdk:"token_lifetime_in_seconds"`
@@ -467,6 +468,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		RequireAuthTime:                  plan.RequireAuthTime.ValueBoolPointer(),
 		EnableLoginSpi:                   plan.EnableLoginSpi.ValueBoolPointer(),
 		BackchannelLogoutSessionRequired: plan.BackchannelLogoutSessionRequired.ValueBoolPointer(),
+		AcceptRolesInTheRegistration:     plan.AcceptRolesInTheRegistration.ValueBoolPointer(),
 	}
 
 	if plan.PasswordPolicyRef.IsNull() {
@@ -934,6 +936,7 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.RequireAuthTime, &state.RequireAuthTime, "require_auth_time", operation, false)...)
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.EnableLoginSpi, &state.EnableLoginSpi, "enable_login_spi", operation, false)...)
 	diags.Append(BoolValueOrNullWithPlanValue(res.Data.BackchannelLogoutSessionRequired, &state.BackchannelLogoutSessionRequired, "backchannel_logout_session_required", operation, false)...)
+	diags.Append(BoolValueOrNullWithPlanValue(res.Data.AcceptRolesInTheRegistration, &state.AcceptRolesInTheRegistration, "accept_roles_in_the_registration", operation, false)...)
 
 	state.DefaultMaxAge = util.Int64ValueOrNull(res.Data.DefaultMaxAge)
 	state.TokenLifetimeInSeconds = util.Int64ValueOrNull(res.Data.TokenLifetimeInSeconds)
