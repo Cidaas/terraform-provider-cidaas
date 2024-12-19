@@ -336,32 +336,65 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	metadataAttributeTypes := map[string]attr.Type{}
-	metadataAttributes := map[string]attr.Value{}
+	metadataAttributeTypes := map[string]attr.Type{
+		"name":               types.StringType,
+		"family_name":        types.StringType,
+		"given_name":         types.StringType,
+		"middle_name":        types.StringType,
+		"nickname":           types.StringType,
+		"preferred_username": types.StringType,
+		"profile":            types.StringType,
+		"picture":            types.StringType,
+		"website":            types.StringType,
+		"gender":             types.StringType,
+		"birthdate":          types.StringType,
+		"zoneinfo":           types.StringType,
+		"locale":             types.StringType,
+		"updated_at":         types.StringType,
+		"email":              types.StringType,
+		"email_verified":     types.StringType,
+		"phone_number":       types.StringType,
+		"mobile_number":      types.StringType,
+		"address":            types.StringType,
+		"sub":                types.StringType,
+	}
+
+	metadataAttributes := map[string]attr.Value{
+		"name":               types.StringNull(),
+		"family_name":        types.StringNull(),
+		"given_name":         types.StringNull(),
+		"middle_name":        types.StringNull(),
+		"nickname":           types.StringNull(),
+		"preferred_username": types.StringNull(),
+		"profile":            types.StringNull(),
+		"picture":            types.StringNull(),
+		"website":            types.StringNull(),
+		"gender":             types.StringNull(),
+		"birthdate":          types.StringNull(),
+		"zoneinfo":           types.StringNull(),
+		"locale":             types.StringNull(),
+		"updated_at":         types.StringNull(),
+		"email":              types.StringNull(),
+		"email_verified":     types.StringNull(),
+		"phone_number":       types.StringNull(),
+		"mobile_number":      types.StringNull(),
+		"address":            types.StringNull(),
+		"sub":                types.StringNull(),
+	}
+
 	customFields := map[string]attr.Value{}
-
 	hasCustomfield := false
-	for key, value := range res.Data.UserinfoFields {
-		val := value
-		supportedUserInfoFields := []string{
-			"name", "family_name", "given_name", "middle_name", "nickname", "preferred_username",
-			"profile", "picture", "website", "gender", "birthdate", "zoneinfo", "locale", "updated_at", "email", "email_verified",
-			"phone_number", "mobile_number", "address", "sub",
-		}
+
+	for key, field := range res.Data.UserinfoFields {
 		if strings.HasPrefix(key, "customFields.") {
-			customFields[strings.TrimPrefix(key, "customFields.")] = util.StringValueOrNull(&val)
+			customFieldKey := strings.TrimPrefix(key, "customFields.")
+			customFields[customFieldKey] = types.StringValue(field.ExtFieldKey)
 			hasCustomfield = true
-		} else if util.StringInSlice(key, supportedUserInfoFields) {
-			metadataAttributeTypes[key] = types.StringType
-			metadataAttributes[key] = util.StringValueOrNull(&val)
+		} else if _, exists := metadataAttributes[key]; exists {
+			metadataAttributes[key] = types.StringValue(field.ExtFieldKey)
 		}
 	}
 
-	// The sub attribute is handled separately to support in userinfo configuration. The attribute is not available in admin ui
-	if _, exists := metadataAttributes["sub"]; !exists {
-		metadataAttributeTypes["sub"] = types.StringType
-		metadataAttributes["sub"] = types.StringNull()
-	}
 	metadataAttributeTypes["custom_fields"] = types.MapType{ElemType: types.StringType}
 	if hasCustomfield {
 		metadataAttributes["custom_fields"] = types.MapValueMust(types.StringType, customFields)
@@ -443,42 +476,87 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 	cp.Scopes.Scopes = childScopes
 	cp.Scopes.DisplayLabel = plan.ScopeDisplayLabel.ValueString()
 
-	uf := map[string]string{}
-
 	if !plan.UserinfoFields.IsNull() {
-		uf["name"] = plan.userinfoFields.Name.ValueString()
-		uf["family_name"] = plan.userinfoFields.FamilyName.ValueString()
-		uf["given_name"] = plan.userinfoFields.GivenName.ValueString()
-		uf["middle_name"] = plan.userinfoFields.MiddleName.ValueString()
-		uf["nickname"] = plan.userinfoFields.Nickname.ValueString()
-		uf["preferred_username"] = plan.userinfoFields.PreferredUsername.ValueString()
-		uf["profile"] = plan.userinfoFields.Profile.ValueString()
-		uf["picture"] = plan.userinfoFields.Picture.ValueString()
-		uf["website"] = plan.userinfoFields.Website.ValueString()
-		uf["gender"] = plan.userinfoFields.Gender.ValueString()
-		uf["birthdate"] = plan.userinfoFields.Birthdate.ValueString()
-		uf["zoneinfo"] = plan.userinfoFields.Zoneinfo.ValueString()
-		uf["locale"] = plan.userinfoFields.Locale.ValueString()
-		uf["updated_at"] = plan.userinfoFields.UpdatedAt.ValueString()
-		uf["email"] = plan.userinfoFields.Email.ValueString()
-		uf["email_verified"] = plan.userinfoFields.EmailVerified.ValueString()
-		uf["phone_number"] = plan.userinfoFields.PhoneNumber.ValueString()
-		uf["mobile_number"] = plan.userinfoFields.MobileNumber.ValueString()
-		uf["address"] = plan.userinfoFields.Address.ValueString()
-		uf["sub"] = plan.userinfoFields.Sub.ValueString()
+		// Initialize the map
+		cp.UserinfoFields = make(map[string]*cidaas.UserInfoField)
 
-		if len(plan.userinfoFields.CustomFields.Elements()) > 0 {
+		// Add standard fields
+		if !plan.userinfoFields.Name.IsNull() {
+			cp.UserinfoFields["name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Name.ValueString()}
+		}
+		if !plan.userinfoFields.FamilyName.IsNull() {
+			cp.UserinfoFields["family_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.FamilyName.ValueString()}
+		}
+		if !plan.userinfoFields.GivenName.IsNull() {
+			cp.UserinfoFields["given_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.GivenName.ValueString()}
+		}
+		if !plan.userinfoFields.MiddleName.IsNull() {
+			cp.UserinfoFields["middle_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.MiddleName.ValueString()}
+		}
+		if !plan.userinfoFields.Nickname.IsNull() {
+			cp.UserinfoFields["nickname"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Nickname.ValueString()}
+		}
+		if !plan.userinfoFields.PreferredUsername.IsNull() {
+			cp.UserinfoFields["preferred_username"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.PreferredUsername.ValueString()}
+		}
+		if !plan.userinfoFields.Profile.IsNull() {
+			cp.UserinfoFields["profile"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Profile.ValueString()}
+		}
+		if !plan.userinfoFields.Picture.IsNull() {
+			cp.UserinfoFields["picture"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Picture.ValueString()}
+		}
+		if !plan.userinfoFields.Website.IsNull() {
+			cp.UserinfoFields["website"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Website.ValueString()}
+		}
+		if !plan.userinfoFields.Gender.IsNull() {
+			cp.UserinfoFields["gender"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Gender.ValueString()}
+		}
+		if !plan.userinfoFields.Birthdate.IsNull() {
+			cp.UserinfoFields["birthdate"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Birthdate.ValueString()}
+		}
+		if !plan.userinfoFields.Zoneinfo.IsNull() {
+			cp.UserinfoFields["zoneinfo"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Zoneinfo.ValueString()}
+		}
+		if !plan.userinfoFields.Locale.IsNull() {
+			cp.UserinfoFields["locale"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Locale.ValueString()}
+		}
+		if !plan.userinfoFields.UpdatedAt.IsNull() {
+			cp.UserinfoFields["updated_at"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.UpdatedAt.ValueString()}
+		}
+		if !plan.userinfoFields.Email.IsNull() {
+			cp.UserinfoFields["email"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Email.ValueString()}
+		}
+		if !plan.userinfoFields.EmailVerified.IsNull() {
+			cp.UserinfoFields["email_verified"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.EmailVerified.ValueString()}
+		}
+		if !plan.userinfoFields.PhoneNumber.IsNull() {
+			cp.UserinfoFields["phone_number"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.PhoneNumber.ValueString()}
+		}
+		if !plan.userinfoFields.MobileNumber.IsNull() {
+			cp.UserinfoFields["mobile_number"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.MobileNumber.ValueString()}
+		}
+		if !plan.userinfoFields.Address.IsNull() {
+			cp.UserinfoFields["address"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Address.ValueString()}
+		}
+		if !plan.userinfoFields.Sub.IsNull() {
+			cp.UserinfoFields["sub"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Sub.ValueString()}
+		}
+
+		// Handle custom fields
+		if !plan.userinfoFields.CustomFields.IsNull() {
 			var cfMap map[string]string
 			diag = plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
 			if diag.HasError() {
 				return nil, diag
 			}
-			for k, v := range cfMap {
-				uf["customFields."+k] = v
+
+			// Add custom fields with "customFields." prefix
+			for key, value := range cfMap {
+				cp.UserinfoFields["customFields."+key] = &cidaas.UserInfoField{ExtFieldKey: value}
 			}
 		}
 	}
-	cp.UserinfoFields = uf
+
 	return &cp, nil
 }
 
