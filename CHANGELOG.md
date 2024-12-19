@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.3.5
+
+#### Enhancements
+
+- Extend custom provider resource to support custom provider new api contract.
+
 ### 3.3.4
 
 #### Enhancements

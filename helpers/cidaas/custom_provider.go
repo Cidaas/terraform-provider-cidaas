@@ -19,19 +19,23 @@ type ScopeChild struct {
 	Recommended bool   `json:"recommended,omitempty"`
 }
 type CustomProviderModel struct {
-	ID                    string            `json:"_id,omitempty"`
-	ClientID              string            `json:"client_id,omitempty"`
-	ClientSecret          string            `json:"client_secret,omitempty"`
-	DisplayName           string            `json:"display_name,omitempty"`
-	StandardType          string            `json:"standard_type,omitempty"`
-	AuthorizationEndpoint string            `json:"authorization_endpoint,omitempty"`
-	TokenEndpoint         string            `json:"token_endpoint,omitempty"`
-	ProviderName          string            `json:"provider_name,omitempty"`
-	LogoURL               string            `json:"logo_url,omitempty"`
-	UserinfoEndpoint      string            `json:"userinfo_endpoint,omitempty"`
-	UserinfoFields        map[string]string `json:"userinfo_fields,omitempty"`
-	Scopes                Scopes            `json:"scopes,omitempty"`
-	Domains               []string          `json:"domains,omitempty"`
+	ID                    string                    `json:"_id,omitempty"`
+	ClientID              string                    `json:"client_id,omitempty"`
+	ClientSecret          string                    `json:"client_secret,omitempty"`
+	DisplayName           string                    `json:"display_name,omitempty"`
+	StandardType          string                    `json:"standard_type,omitempty"`
+	AuthorizationEndpoint string                    `json:"authorization_endpoint,omitempty"`
+	TokenEndpoint         string                    `json:"token_endpoint,omitempty"`
+	ProviderName          string                    `json:"provider_name,omitempty"`
+	LogoURL               string                    `json:"logo_url,omitempty"`
+	UserinfoEndpoint      string                    `json:"userinfo_endpoint,omitempty"`
+	UserinfoFields        map[string]*UserInfoField `json:"userInfoFields,omitempty"`
+	Scopes                Scopes                    `json:"scopes,omitempty"`
+	Domains               []string                  `json:"domains,omitempty"`
+}
+
+type UserInfoField struct {
+	ExtFieldKey string `json:"extFieldKey"`
 }
 
 type CustomProviderResponse struct {
