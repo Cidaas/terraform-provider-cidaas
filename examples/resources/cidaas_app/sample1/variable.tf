@@ -139,12 +139,6 @@ variable "common_configs" {
         })
       })))
     }))
-    basic_settings = optional(object({
-      client_secrets = optional(list(object({
-        client_secret            = optional(string)
-        client_secret_expires_at = optional(number)
-      })))
-    }))
     mfa = optional(object({
       setting                  = optional(string)
       time_interval_in_seconds = optional(number)

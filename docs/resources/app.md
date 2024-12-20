@@ -315,7 +315,6 @@ resource "cidaas_app" "sample" {
 - `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
 - `backchannel_logout_uri` (String)
 - `background_uri` (String) The URL to the background image of the client.
-- `basic_settings` (Attributes) (see [below for nested schema](#nestedatt--basic_settings))
 - `blocking_mechanism_ref` (String)
 - `bot_captcha_ref` (String)
 - `bot_provider` (String)
@@ -449,30 +448,6 @@ Optional:
 - `default_roles` (Set of String)
 - `group_id` (String)
 - `roles` (Set of String)
-
-
-<a id="nestedatt--basic_settings"></a>
-### Nested Schema for `basic_settings`
-
-Optional:
-
-- `client_secrets` (Attributes List) An array of client secret data (Max size is 2) (see [below for nested schema](#nestedatt--basic_settings--client_secrets))
-
-Read-Only:
-
-- `allowed_logout_urls` (Set of String) An array of allowed logout URLs for the app where the app should be redirected after successful logout
-- `allowed_scopes` (Set of String) Allowed scopes for the app
-- `client_id` (String) Unique client ID of the app
-- `redirect_uris` (Set of String) An array of redirect URIs for the app where the app should be redirected after successful login
-
-<a id="nestedatt--basic_settings--client_secrets"></a>
-### Nested Schema for `basic_settings.client_secrets`
-
-Optional:
-
-- `client_secret` (String, Sensitive) Secret key for the client ID
-- `client_secret_expires_at` (Number) The time when the clientsecret expires
-
 
 
 <a id="nestedatt--custom_providers"></a>

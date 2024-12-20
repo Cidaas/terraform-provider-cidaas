@@ -3,7 +3,6 @@ package resources
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -1061,67 +1060,6 @@ var resourceAppSchema = schema.Schema{
 							},
 						},
 					},
-				},
-			},
-		},
-		"basic_settings": schema.SingleNestedAttribute{
-			Optional: true,
-			Computed: true,
-			PlanModifiers: []planmodifier.Object{
-				objectplanmodifier.UseStateForUnknown(),
-			},
-			Attributes: map[string]schema.Attribute{
-				"client_id": schema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: "Unique client ID of the app",
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
-				"redirect_uris": schema.SetAttribute{
-					Computed:            true,
-					ElementType:         types.StringType,
-					MarkdownDescription: "An array of redirect URIs for the app where the app should be redirected after successful login",
-				},
-				"allowed_logout_urls": schema.SetAttribute{
-					Computed:            true,
-					ElementType:         types.StringType,
-					MarkdownDescription: "An array of allowed logout URLs for the app where the app should be redirected after successful logout",
-				},
-				"allowed_scopes": schema.SetAttribute{
-					Computed:            true,
-					ElementType:         types.StringType,
-					MarkdownDescription: "Allowed scopes for the app",
-				},
-				"client_secrets": schema.ListNestedAttribute{
-					Optional:            true,
-					Computed:            true,
-					MarkdownDescription: "An array of client secret data (Max size is 2)",
-					NestedObject: schema.NestedAttributeObject{
-						Attributes: map[string]schema.Attribute{
-							"client_secret": schema.StringAttribute{
-								Optional:            true,
-								Computed:            true,
-								Sensitive:           true,
-								MarkdownDescription: "Secret key for the client ID",
-							},
-							"client_secret_expires_at": schema.Int64Attribute{
-								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "The time when the clientsecret expires",
-							},
-						},
-					},
-					Validators: []validator.List{
-						listvalidator.SizeAtMost(2),
-					},
-					Default: listdefault.StaticValue(types.ListValueMust(
-						types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"client_secret":            types.StringType,
-								"client_secret_expires_at": types.Int64Type,
-							},
-						}, []attr.Value{})),
 				},
 			},
 		},

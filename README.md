@@ -1,14 +1,16 @@
 ![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
-## About Cidaas:
+## About Cidaas
+
 [Cidaas](https://www.cidaas.com)
  is a fast and secure Cloud Identity & Access Management solution that standardises what’s important and simplifies what’s complex.
 
-## Feature set includes:
-* Single Sign On (SSO) based on OAuth 2.0, OpenID Connect, SAML 2.0 
-* Multi-Factor-Authentication with more than 14 authentication methods, including TOTP and FIDO2 
-* Passwordless Authentication 
-* Social Login (e.g. Facebook, Google, LinkedIn and more) as well as Enterprise Identity Provider (e.g. SAML or AD) 
+## Feature set includes
+
+* Single Sign On (SSO) based on OAuth 2.0, OpenID Connect, SAML 2.0
+* Multi-Factor-Authentication with more than 14 authentication methods, including TOTP and FIDO2
+* Passwordless Authentication
+* Social Login (e.g. Facebook, Google, LinkedIn and more) as well as Enterprise Identity Provider (e.g. SAML or AD)
 * Security in Machine-to-Machine (M2M) and IoT
 
 <a href="https://terraform.io">
@@ -25,10 +27,8 @@ The Terraform provider for Cidaas enables interaction with Cidaas instances that
 
 ## Prerequisites
 
-- Ensure Terraform is installed on your local machine. Find installation instructions for different operating systems [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
-- [Go](https://go.dev/doc/install) (1.21)
-
-
+* Ensure Terraform is installed on your local machine. Find installation instructions for different operating systems [here](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
+* [Go](https://go.dev/doc/install) (1.21)
 
 ## Documentation
 
@@ -60,13 +60,15 @@ Terraform pulls the version configured of the Cidaas provider for your infrastru
 
 To authenticate and authorize Terraform operations with Cidaas, set the necessary environment variables. These variables include your Cidaas client credentials, allowing the Terraform provider to complete the client credentials flow and generate an access_token. Execute the following commands in your terminal, replacing placeholders with your actual Cidaas client ID and client secret.
 
-### For Linux and MacOS:
+### For Linux and MacOS
+
 ```bash
 export TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID="ENTER CIDAAS CLIENT ID"
 export TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET="ENTER CIDAAS CLIENT SECRET"
 ```
 
-### For Windows:
+### For Windows
+
 ```bash
 Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID -Value “ENTER CIDAAS CLIENT ID“
 Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET -Value “ENTER CIDAAS CLIENT SECRET“
@@ -92,80 +94,78 @@ By following these steps, you integrate the Cidaas Terraform provider enabling y
 
 The Terraform provider for Cidaas supports a variety of resources that enables you to manage and configure different aspects of your Cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your Cidaas resources as code.
 
-
 Explore the following resources to understand their attributes, functionalities and how to use them in your Terraform configurations:
 
-- [cidaas_app](#cidaas_app-resource)
-- [cidaas_consent](#cidaas_consent-resource)
-- [cidaas_consent_group](#cidaas_consent_group-resource)
-- [cidaas_consent_version](#cidaas_consent_version-resource)
-- [cidaas_custom_provider](#cidaas_custom_provider-resource)
-- [cidaas_group_type](#cidaas_group_type-resource-previously-cidaas_user_group_category)
-- [cidaas_hosted_page](#cidaas_hosted_page-resource)
-- [cidaas_password_policy](#cidaas_password_policy-resource)
-- [cidaas_registration_field](#cidaas_registration_field-resource)
-- [cidaas_role](#cidaas_role-resource)
-- [cidaas_scope_group](#cidaas_scope_group-resource)
-- [cidaas_scope](#cidaas_scope-resource)
-- [cidaas_social_provider](#cidaas_social_provider-resource)
-- [cidaas_template_group](#cidaas_template_group-resource)
-- [cidaas_template](#cidaas_template-resource)
-- [cidaas_user_groups](#cidaas_user_groups-resource)
-- [cidaas_webhook](#cidaas_webhook-resource)
+* [cidaas_app](#cidaas_app-resource)
+* [cidaas_consent](#cidaas_consent-resource)
+* [cidaas_consent_group](#cidaas_consent_group-resource)
+* [cidaas_consent_version](#cidaas_consent_version-resource)
+* [cidaas_custom_provider](#cidaas_custom_provider-resource)
+* [cidaas_group_type](#cidaas_group_type-resource-previously-cidaas_user_group_category)
+* [cidaas_hosted_page](#cidaas_hosted_page-resource)
+* [cidaas_password_policy](#cidaas_password_policy-resource)
+* [cidaas_registration_field](#cidaas_registration_field-resource)
+* [cidaas_role](#cidaas_role-resource)
+* [cidaas_scope_group](#cidaas_scope_group-resource)
+* [cidaas_scope](#cidaas_scope-resource)
+* [cidaas_social_provider](#cidaas_social_provider-resource)
+* [cidaas_template_group](#cidaas_template_group-resource)
+* [cidaas_template](#cidaas_template-resource)
+* [cidaas_user_groups](#cidaas_user_groups-resource)
+* [cidaas_webhook](#cidaas_webhook-resource)
 
 ## Datasources
 
 The provider also provides a list of datasources to fetch your required data that can be referenced in your terraform configuration.
 
-
 Here is the list of the datasources the provider supports:
 
-- [cidaas_consent](#cidaas_consent-data-source)
-- [cidaas_custom_provider](#cidaas_custom_provider-data-source)
-- [cidaas_group_type](#cidaas_group_type-data-source)
-- [cidaas_registration_field](#cidaas_registration_field-data-source)
-- [cidaas_role](#cidaas_role-data-source)
-- [cidaas_scope_group](#cidaas_scope_group-data-source)
-- [cidaas_scope](#cidaas_scope-data-source)
-- [cidaas_social_provider](#cidaas_social_provider-data-source)
-- [cidaas_system_template_option](#cidaas_system_template_option-data-source)
-
+* [cidaas_consent](#cidaas_consent-data-source)
+* [cidaas_custom_provider](#cidaas_custom_provider-data-source)
+* [cidaas_group_type](#cidaas_group_type-data-source)
+* [cidaas_registration_field](#cidaas_registration_field-data-source)
+* [cidaas_role](#cidaas_role-data-source)
+* [cidaas_scope_group](#cidaas_scope_group-data-source)
+* [cidaas_scope](#cidaas_scope-data-source)
+* [cidaas_social_provider](#cidaas_social_provider-data-source)
+* [cidaas_system_template_option](#cidaas_system_template_option-data-source)
 
 # cidaas_app (Resource)
 
 The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:apps_read
-- cidaas:apps_write
-- cidaas:apps_delete
+* cidaas:apps_read
+* cidaas:apps_write
+* cidaas:apps_delete
 
+## V2 to V3 Migration
 
-## V2 to V3 Migration:
 If you are migrating from v2 to v3, please note the following changes in the v3 version:
 
-### Attributes not supported in app config anymore:
+### Attributes not supported in app config anymore
 
-- client_secret_expires_at
-- client_id_issued_at
-- push_config
-- created_at
-- updated_at
-- admin_client
-- deleted
-- app_owner
-- application_type
+* client_secret_expires_at
+* client_id_issued_at
+* push_config
+* created_at
+* updated_at
+* admin_client
+* deleted
+* app_owner
+* application_type
 
 ### Change in data types of some attributes
 
- - social_providers
- - custom_providers
- - saml_providers
- - ad_providers
+* social_providers
+* custom_providers
+* saml_providers
+* ad_providers
 
  The above attributes now has to be provided as set of objects.
 
- #### Example:
+#### Example
+
  ```terraform
  {
   ...
@@ -189,7 +189,9 @@ If you are migrating from v2 to v3, please note the following changes in the v3 
   ]
  }
  ```
+
 ### Handling schema change error for existing state
+
 If you encounter the following error message when the below specified attributes are present in the state, please follow the steps to fix the error:
 
 ```shell
@@ -200,11 +202,12 @@ There was an error reading the saved resource state using the current resource s
 AttributeName("group_selection"): invalid JSON, expected "{", got "["
 ```
 
-#### Affected Attributes:
+#### Affected Attributes
+
 - group_selection
-- login_spi
-- mfa
-- mobile_settings
+* login_spi
+* mfa
+* mobile_settings
 
 To resolve this issue, manually update the Terraform state file by following these steps:
 
@@ -212,9 +215,10 @@ To resolve this issue, manually update the Terraform state file by following the
 2. Search for the affected attributes listed above.
 3. Update their types to JSON objects. Ensure they are set as objects (`{}`) and not arrays (`[]`).
 
-##### Example:
+##### Example
 
 Before:
+
 ```json
 "group_selection": [
   {
@@ -226,6 +230,7 @@ Before:
 ```
 
 After:
+
 ```json
 "group_selection": {
   "selectable_groups" : ["developer-users"]
@@ -243,9 +248,9 @@ The module provides a variable with the same name `common_configs` which
 supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
 of multiple apps to a common variable and inherit the properties.
 
-Link to the custom module https://github.com/Cidaas/terraform-cidaas-app
+Link to the custom module <https://github.com/Cidaas/terraform-cidaas-app>
 
-##### Module usage:
+##### Module usage
 
 ```hcl
 // local.tfvars
@@ -291,6 +296,7 @@ module "app2" {
   common_configs = var.common_configs
 }
 ```
+
 You can explore more on the module in the github repo.
 
 ## Example Usage
@@ -408,334 +414,311 @@ resource "cidaas_app" "sample" {
 
 ### Required
 
-- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
-- `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
-- `client_name` (String) Name of the client.
-- `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
-- `company_address` (String) The company address.
-- `company_name` (String) The name of the company that the client belongs to.
-- `company_website` (String) The URL of the company website.
-- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
+* `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
+* `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
+* `client_name` (String) Name of the client.
+* `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
+* `company_address` (String) The company address.
+* `company_name` (String) The name of the company that the client belongs to.
+* `company_website` (String) The URL of the company website.
+* `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
 
 ### Optional
 
-- `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
-- `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
-- `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
-- `additional_access_token_payload` (Set of String) Access token payload definition.
-- `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
-- `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
-- `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
-- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
-- `allowed_fields` (Set of String)
-- `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
-- `allowed_mfa` (Set of String)
-- `allowed_origins` (Set of String) List of the origins allowed to access the client.
-- `allowed_roles` (Set of String)
-- `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
-- `always_ask_mfa` (Boolean)
-- `application_meta_data` (Map of String) A map to add metadata of a client.
-- `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
-- `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
-- `backchannel_logout_uri` (String)
-- `background_uri` (String) The URL to the background image of the client.
-- `basic_settings` (Attributes) (see [below for nested schema](#nestedatt--basic_settings))
-- `blocking_mechanism_ref` (String)
-- `bot_captcha_ref` (String)
-- `bot_provider` (String)
-- `captcha_ref` (String)
-- `captcha_refs` (Set of String)
-- `client_display_name` (String) The display name of the client.
-- `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-- `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-- `client_uri` (String)
-- `communication_medium_verification` (String)
-- `consent_page_group` (String)
-- `consent_refs` (Set of String)
-- `contacts` (Set of String) The contacts of the client.
-- `content_align` (String) The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHTThe default is set to `CENTER`.
-- `custom_providers` (Attributes List) A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider. (see [below for nested schema](#nestedatt--custom_providers))
-- `default_acr_values` (Set of String)
-- `default_max_age` (Number) The default maximum age for the token in seconds. Default is 86400 seconds (24 hours).
-- `default_roles` (Set of String)
-- `default_scopes` (Set of String)
-- `description` (String)
-- `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
-- `email_verification_required` (Boolean)
-- `enable_bot_detection` (Boolean)
-- `enable_classical_provider` (Boolean)
-- `enable_deduplication` (Boolean) Enable deduplication.
-- `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
-- `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
-- `enabled` (Boolean)
-- `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
-- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
-- `group_ids` (Set of String)
-- `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
-- `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
-- `group_types` (Set of String)
-- `hosted_page_group` (String) Hosted page group.
-- `id_token_encrypted_response_alg` (String)
-- `id_token_encrypted_response_enc` (String)
-- `id_token_lifetime_in_seconds` (Number) The lifetime of the id_token in seconds. Default is 86400 seconds (24 hours).
-- `id_token_signed_response_alg` (String)
-- `imprint_uri` (String) The URL to the imprint page.
-- `initiate_login_uri` (String)
-- `is_group_login_selection_enabled` (Boolean)
-- `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
-- `is_login_success_page_enabled` (Boolean)
-- `is_register_success_page_enabled` (Boolean)
-- `is_remember_me_selected` (Boolean)
-- `jwe_enabled` (Boolean) Flag to specify whether JSON Web Encryption (JWE) should be enabled for encrypting data.
-- `jwks` (String)
-- `jwks_uri` (String)
-- `login_providers` (Set of String) With this attribute one can setup login provider to the client.
-- `login_spi` (Attributes) A map defining the Login SPI configuration. (see [below for nested schema](#nestedatt--login_spi))
-- `logo_align` (String)
-- `logo_uri` (String)
-- `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
-- `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
-- `mfa_configuration` (String)
-- `mobile_number_verification_required` (Boolean)
-- `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
-- `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
-- `password_policy_ref` (String)
-- `pending_scopes` (Set of String)
-- `policy_uri` (String) The URL to the policy of a client.
-- `post_logout_redirect_uris` (Set of String)
-- `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
-- `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
-- `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
-- `registration_access_token` (String)
-- `registration_client_uri` (String)
-- `request_object_encryption_alg` (String)
-- `request_object_encryption_enc` (String)
-- `request_object_signing_alg` (String)
-- `request_uris` (Set of String)
-- `require_auth_time` (Boolean) Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.
-- `required_fields` (Set of String) The required fields while registering to the client.
-- `response_types` (Set of String) The response types of the client. The default value is set to `['code','token', 'id_token']`
-- `role` (String)
-- `saml_providers` (Attributes List) A list of SAML identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--saml_providers))
-- `sector_identifier_uri` (String)
-- `smart_mfa` (Boolean)
-- `social_providers` (Attributes List) A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc... (see [below for nested schema](#nestedatt--social_providers))
-- `sub` (String)
-- `subject_type` (String)
-- `suggest_mfa` (Set of String)
-- `suggest_verification_methods` (Attributes) Configuration for verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods))
-- `template_group_id` (String) The id of the template group to be configured for commenication. Default is set to the system default group.
-- `token_endpoint_auth_method` (String)
-- `token_endpoint_auth_signing_alg` (String)
-- `token_lifetime_in_seconds` (Number) The lifetime of the token in seconds. Default is 86400 seconds (24 hours).
-- `tos_uri` (String) The URL to the TOS of a client.
-- `user_consent` (Boolean) Specifies whether user consent is required or not. Default is `false`
-- `userinfo_encrypted_response_alg` (String)
-- `userinfo_encrypted_response_enc` (String)
-- `userinfo_signed_response_alg` (String)
-- `validate_phone_number` (Boolean) if enabled, phone number is validaed. Default is set to `false` while creating an app.
-- `video_url` (String) The URL to the video of the client.
-- `web_message_uris` (Set of String) A list of URLs for web messages used.
-- `webfinger` (String)
+* `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
+* `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
+* `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
+* `additional_access_token_payload` (Set of String) Access token payload definition.
+* `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
+* `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
+* `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
+* `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
+* `allowed_fields` (Set of String)
+* `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
+* `allowed_mfa` (Set of String)
+* `allowed_origins` (Set of String) List of the origins allowed to access the client.
+* `allowed_roles` (Set of String)
+* `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
+* `always_ask_mfa` (Boolean)
+* `application_meta_data` (Map of String) A map to add metadata of a client.
+* `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
+* `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
+* `backchannel_logout_uri` (String)
+* `background_uri` (String) The URL to the background image of the client.
+* `blocking_mechanism_ref` (String)
+* `bot_captcha_ref` (String)
+* `bot_provider` (String)
+* `captcha_ref` (String)
+* `captcha_refs` (Set of String)
+* `client_display_name` (String) The display name of the client.
+* `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
+* `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
+* `client_uri` (String)
+* `communication_medium_verification` (String)
+* `consent_page_group` (String)
+* `consent_refs` (Set of String)
+* `contacts` (Set of String) The contacts of the client.
+* `content_align` (String) The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHTThe default is set to `CENTER`.
+* `custom_providers` (Attributes List) A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider. (see [below for nested schema](#nestedatt--custom_providers))
+* `default_acr_values` (Set of String)
+* `default_max_age` (Number) The default maximum age for the token in seconds. Default is 86400 seconds (24 hours).
+* `default_roles` (Set of String)
+* `default_scopes` (Set of String)
+* `description` (String)
+* `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
+* `email_verification_required` (Boolean)
+* `enable_bot_detection` (Boolean)
+* `enable_classical_provider` (Boolean)
+* `enable_deduplication` (Boolean) Enable deduplication.
+* `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
+* `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
+* `enabled` (Boolean)
+* `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
+* `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
+* `group_ids` (Set of String)
+* `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
+* `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
+* `group_types` (Set of String)
+* `hosted_page_group` (String) Hosted page group.
+* `id_token_encrypted_response_alg` (String)
+* `id_token_encrypted_response_enc` (String)
+* `id_token_lifetime_in_seconds` (Number) The lifetime of the id_token in seconds. Default is 86400 seconds (24 hours).
+* `id_token_signed_response_alg` (String)
+* `imprint_uri` (String) The URL to the imprint page.
+* `initiate_login_uri` (String)
+* `is_group_login_selection_enabled` (Boolean)
+* `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
+* `is_login_success_page_enabled` (Boolean)
+* `is_register_success_page_enabled` (Boolean)
+* `is_remember_me_selected` (Boolean)
+* `jwe_enabled` (Boolean) Flag to specify whether JSON Web Encryption (JWE) should be enabled for encrypting data.
+* `jwks` (String)
+* `jwks_uri` (String)
+* `login_providers` (Set of String) With this attribute one can setup login provider to the client.
+* `login_spi` (Attributes) A map defining the Login SPI configuration. (see [below for nested schema](#nestedatt--login_spi))
+* `logo_align` (String)
+* `logo_uri` (String)
+* `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
+* `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
+* `mfa_configuration` (String)
+* `mobile_number_verification_required` (Boolean)
+* `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
+* `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
+* `password_policy_ref` (String)
+* `pending_scopes` (Set of String)
+* `policy_uri` (String) The URL to the policy of a client.
+* `post_logout_redirect_uris` (Set of String)
+* `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
+* `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
+* `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
+* `registration_access_token` (String)
+* `registration_client_uri` (String)
+* `request_object_encryption_alg` (String)
+* `request_object_encryption_enc` (String)
+* `request_object_signing_alg` (String)
+* `request_uris` (Set of String)
+* `require_auth_time` (Boolean) Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.
+* `required_fields` (Set of String) The required fields while registering to the client.
+* `response_types` (Set of String) The response types of the client. The default value is set to `['code','token', 'id_token']`
+* `role` (String)
+* `saml_providers` (Attributes List) A list of SAML identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--saml_providers))
+* `sector_identifier_uri` (String)
+* `smart_mfa` (Boolean)
+* `social_providers` (Attributes List) A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc... (see [below for nested schema](#nestedatt--social_providers))
+* `sub` (String)
+* `subject_type` (String)
+* `suggest_mfa` (Set of String)
+* `suggest_verification_methods` (Attributes) Configuration for verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods))
+* `template_group_id` (String) The id of the template group to be configured for commenication. Default is set to the system default group.
+* `token_endpoint_auth_method` (String)
+* `token_endpoint_auth_signing_alg` (String)
+* `token_lifetime_in_seconds` (Number) The lifetime of the token in seconds. Default is 86400 seconds (24 hours).
+* `tos_uri` (String) The URL to the TOS of a client.
+* `user_consent` (Boolean) Specifies whether user consent is required or not. Default is `false`
+* `userinfo_encrypted_response_alg` (String)
+* `userinfo_encrypted_response_enc` (String)
+* `userinfo_signed_response_alg` (String)
+* `validate_phone_number` (Boolean) if enabled, phone number is validaed. Default is set to `false` while creating an app.
+* `video_url` (String) The URL to the video of the client.
+* `web_message_uris` (Set of String) A list of URLs for web messages used.
+* `webfinger` (String)
 
 ### Read-Only
 
-- `id` (String) The ID of the resource.
+* `id` (String) The ID of the resource.
 
 <a id="nestedatt--ad_providers"></a>
+
 ### Nested Schema for `ad_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--allow_guest_login_groups"></a>
+
 ### Nested Schema for `allow_guest_login_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--allowed_groups"></a>
+
 ### Nested Schema for `allowed_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
-
-<a id="nestedatt--basic_settings"></a>
-### Nested Schema for `basic_settings`
-
-Optional:
-
-- `client_secrets` (Attributes List) An array of client secret data (Max size is 2) (see [below for nested schema](#nestedatt--basic_settings--client_secrets))
-
-Read-Only:
-
-- `allowed_logout_urls` (Set of String) An array of allowed logout URLs for the app where the app should be redirected after successful logout
-- `allowed_scopes` (Set of String) Allowed scopes for the app
-- `client_id` (String) Unique client ID of the app
-- `redirect_uris` (Set of String) An array of redirect URIs for the app where the app should be redirected after successful login
-
-<a id="nestedatt--basic_settings--client_secrets"></a>
-### Nested Schema for `basic_settings.client_secrets`
-
-Optional:
-
-- `client_secret` (String, Sensitive) Secret key for the client ID
-- `client_secret_expires_at` (Number) The time when the clientsecret expires
-
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--custom_providers"></a>
+
 ### Nested Schema for `custom_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--group_role_restriction"></a>
+
 ### Nested Schema for `group_role_restriction`
 
 Required:
 
-- `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
-- `match_condition` (String) The match condition for the role restriction
+* `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
+* `match_condition` (String) The match condition for the role restriction
 
 <a id="nestedatt--group_role_restriction--filters"></a>
+
 ### Nested Schema for `group_role_restriction.filters`
 
 Optional:
 
-- `group_id` (String) The unique ID of the user group.
-- `role_filter` (Attributes) A filter for roles within the group. (see [below for nested schema](#nestedatt--group_role_restriction--filters--role_filter))
+* `group_id` (String) The unique ID of the user group.
+* `role_filter` (Attributes) A filter for roles within the group. (see [below for nested schema](#nestedatt--group_role_restriction--filters--role_filter))
 
 <a id="nestedatt--group_role_restriction--filters--role_filter"></a>
+
 ### Nested Schema for `group_role_restriction.filters.role_filter`
 
 Optional:
 
-- `match_condition` (String) The match condition for the roles (AND or OR).
-- `roles` (Set of String) An array of role names.
-
-
-
+* `match_condition` (String) The match condition for the roles (AND or OR).
+* `roles` (Set of String) An array of role names.
 
 <a id="nestedatt--group_selection"></a>
+
 ### Nested Schema for `group_selection`
 
 Optional:
 
-- `always_show_group_selection` (Boolean)
-- `selectable_group_types` (Set of String)
-- `selectable_groups` (Set of String)
-
+* `always_show_group_selection` (Boolean)
+* `selectable_group_types` (Set of String)
+* `selectable_groups` (Set of String)
 
 <a id="nestedatt--login_spi"></a>
+
 ### Nested Schema for `login_spi`
 
 Optional:
 
-- `oauth_client_id` (String)
-- `spi_url` (String)
-
+* `oauth_client_id` (String)
+* `spi_url` (String)
 
 <a id="nestedatt--mfa"></a>
+
 ### Nested Schema for `mfa`
 
 Optional:
 
-- `allowed_methods` (Set of String) Optional set of allowed MFA methods.
-- `setting` (String) Specifies the Multi-Factor Authentication (MFA) setting. Allowed values are 'OFF', 'ALWAYS', 'SMART', 'TIME_BASED' and 'SMART_PLUS_TIME_BASED'.
-- `time_interval_in_seconds` (Number) Optional time interval in seconds for time-based Multi-Factor Authentication.
-
+* `allowed_methods` (Set of String) Optional set of allowed MFA methods.
+* `setting` (String) Specifies the Multi-Factor Authentication (MFA) setting. Allowed values are 'OFF', 'ALWAYS', 'SMART', 'TIME_BASED' and 'SMART_PLUS_TIME_BASED'.
+* `time_interval_in_seconds` (Number) Optional time interval in seconds for time-based Multi-Factor Authentication.
 
 <a id="nestedatt--mobile_settings"></a>
+
 ### Nested Schema for `mobile_settings`
 
 Optional:
 
-- `bundle_id` (String)
-- `key_hash` (String)
-- `package_name` (String)
-- `team_id` (String)
-
+* `bundle_id` (String)
+* `key_hash` (String)
+* `package_name` (String)
+* `team_id` (String)
 
 <a id="nestedatt--operations_allowed_groups"></a>
+
 ### Nested Schema for `operations_allowed_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--saml_providers"></a>
+
 ### Nested Schema for `saml_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--social_providers"></a>
+
 ### Nested Schema for `social_providers`
 
 Optional:
 
-- `provider_name` (String)
-- `social_id` (String)
-
+* `provider_name` (String)
+* `social_id` (String)
 
 <a id="nestedatt--suggest_verification_methods"></a>
+
 ### Nested Schema for `suggest_verification_methods`
 
 Optional:
 
-- `mandatory_config` (Attributes) Configuration for mandatory verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods--mandatory_config))
-- `optional_config` (Attributes) Configuration for optional verification methods (see [below for nested schema](#nestedatt--suggest_verification_methods--optional_config))
-- `skip_duration_in_days` (Number) The number of days for which the verification methods can be skipped (default is 7 days).
+* `mandatory_config` (Attributes) Configuration for mandatory verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods--mandatory_config))
+* `optional_config` (Attributes) Configuration for optional verification methods (see [below for nested schema](#nestedatt--suggest_verification_methods--optional_config))
+* `skip_duration_in_days` (Number) The number of days for which the verification methods can be skipped (default is 7 days).
 
 <a id="nestedatt--suggest_verification_methods--mandatory_config"></a>
+
 ### Nested Schema for `suggest_verification_methods.mandatory_config`
 
 Optional:
 
-- `methods` (Set of String) List of mandatory verification methods.
-- `range` (String) The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.
-- `skip_until` (String) The date and time until which the mandatory methods can be skipped.
-
+* `methods` (Set of String) List of mandatory verification methods.
+* `range` (String) The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.
+* `skip_until` (String) The date and time until which the mandatory methods can be skipped.
 
 <a id="nestedatt--suggest_verification_methods--optional_config"></a>
+
 ### Nested Schema for `suggest_verification_methods.optional_config`
 
 Optional:
 
-- `methods` (Set of String) List of optional verification methods.
+* `methods` (Set of String) List of optional verification methods.
 
 ## Import
 
@@ -752,9 +735,10 @@ terraform import cidaas_app.sample client_id
 The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -771,18 +755,18 @@ resource "cidaas_consent" "sample" {
 
 ### Required
 
-- `consent_group_id` (String) The `consent_group_id` to which the consent belongs.
-- `name` (String) The name of the consent.
+* `consent_group_id` (String) The `consent_group_id` to which the consent belongs.
+* `name` (String) The name of the consent.
 
 ### Optional
 
-- `enabled` (Boolean) The flag to enable or disable a speicific consent. By default, the value is set to `true`
+* `enabled` (Boolean) The flag to enable or disable a speicific consent. By default, the value is set to `true`
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the consent version was created.
-- `id` (String) The unique identifier of the consent resource.
-- `updated_at` (String) The timestamp when the consent version was last updated.
+* `created_at` (String) The timestamp when the consent version was created.
+* `id` (String) The unique identifier of the consent resource.
+* `updated_at` (String) The timestamp when the consent version was last updated.
 
 ## Import
 
@@ -800,9 +784,10 @@ The Consent Group resource in the provider allows you to define and manage conse
  Consent Groups are useful to organize and manage consents by grouping related consent items together.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -818,17 +803,17 @@ resource "cidaas_consent_group" "sample" {
 
 ### Required
 
-- `group_name` (String) The name of the consent group.
+* `group_name` (String) The name of the consent group.
 
 ### Optional
 
-- `description` (String) Description of the consent group.
+* `description` (String) Description of the consent group.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the consent group was created.
-- `id` (String) The unique identifier of the consent group.
-- `updated_at` (String) The timestamp when the consent group was last updated.
+* `created_at` (String) The timestamp when the consent group was created.
+* `id` (String) The unique identifier of the consent group.
+* `updated_at` (String) The timestamp when the consent group was last updated.
 
 ## Import
 
@@ -844,9 +829,10 @@ The Consent Version resource in the provider allows you to manage different vers
  This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -895,33 +881,34 @@ resource "cidaas_consent_version" "v2" {
 
 ### Required
 
-- `consent_id` (String) The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.
-- `consent_locales` (Attributes Set) (see [below for nested schema](#nestedatt--consent_locales))
-- `version` (Number) The version number of the consent. It can not be updated for a specific consent version.
+* `consent_id` (String) The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.
+* `consent_locales` (Attributes Set) (see [below for nested schema](#nestedatt--consent_locales))
+* `version` (Number) The version number of the consent. It can not be updated for a specific consent version.
 
 ### Optional
 
-- `consent_type` (String) Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.
-- `required_fields` (Set of String) A set of fields that are required for the consent. It can not be updated for a specific consent version.
+* `consent_type` (String) Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.
+* `required_fields` (Set of String) A set of fields that are required for the consent. It can not be updated for a specific consent version.
 Note that the attribute `required_fields` is required only if the `consent_type` is set to **SCOPES**.
-- `scopes` (Set of String) A set of scopes related to the consent. It can not be updated for a specific consent version.
+* `scopes` (Set of String) A set of scopes related to the consent. It can not be updated for a specific consent version.
 Note that the attribute `scopes` is required only if the `consent_type` is set to **SCOPES**.
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the consent version.
+* `id` (String) The unique identifier of the consent version.
 
 <a id="nestedatt--consent_locales"></a>
+
 ### Nested Schema for `consent_locales`
 
 Required:
 
-- `locale` (String) The locale for which the consent version is created. e.g. `en-us`, `de`.
+* `locale` (String) The locale for which the consent version is created. e.g. `en-us`, `de`.
 
 Optional:
 
-- `content` (String) The content of the consent version associated with a specific locale.
-- `url` (String) The url to the consent page of the created consent version.
+* `content` (String) The content of the consent version associated with a specific locale.
+* `url` (String) The url to the consent page of the created consent version.
 Note that the attribute `url` is required only if the `consent_type` is set to **URL**.
 
 ## Import
@@ -941,16 +928,17 @@ terraform import cidaas_consent_version.v1 3f453233-92d4-475b-b10e:813fbd47-6c50
 This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:providers_read
-- cidaas:providers_write
-- cidaas:providers_delete
 
+* cidaas:providers_read
+* cidaas:providers_write
+* cidaas:providers_delete
 
-### V2 to V3 Migration:
+### V2 to V3 Migration
+
 If you are migrating from v2 to v3, please note the following changes in the v3 version:
 
-- The attribute `scopes` now has to be set as an array of objects instead of separate separate object
-- `custom_fields` in userinfo_fields should be passed as object as shown in the Example Usage section
+* The attribute `scopes` now has to be set as an array of objects instead of separate separate object
+* `custom_fields` in userinfo_fields should be passed as object as shown in the Example Usage section
 
 ## Old configuration
 
@@ -981,7 +969,6 @@ resource "cidaas_custom_provider" "sample" {
   }
 }
 ```
-
 
 ## Example Usage(V3 configuration)
 
@@ -1043,62 +1030,63 @@ resource "cidaas_custom_provider" "sample" {
 
 ### Required
 
-- `authorization_endpoint` (String) The URL for authorization of the provider.
-- `client_id` (String) The client ID of the provider.
-- `client_secret` (String, Sensitive) The client secret of the provider.
-- `display_name` (String) The display name of the provider.
-- `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
-- `scope_display_label` (String) Display label for the scope of the provider.
-- `token_endpoint` (String) The URL to generate token with this provider.
-- `userinfo_endpoint` (String) The URL to fetch user details using this provider.
+* `authorization_endpoint` (String) The URL for authorization of the provider.
+* `client_id` (String) The client ID of the provider.
+* `client_secret` (String, Sensitive) The client secret of the provider.
+* `display_name` (String) The display name of the provider.
+* `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
+* `scope_display_label` (String) Display label for the scope of the provider.
+* `token_endpoint` (String) The URL to generate token with this provider.
+* `userinfo_endpoint` (String) The URL to fetch user details using this provider.
 
 ### Optional
 
-- `domains` (Set of String) The domains of the provider.
-- `logo_url` (String) The URL for the provider's logo.
-- `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
-- `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
-- `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
+* `domains` (Set of String) The domains of the provider.
+* `logo_url` (String) The URL for the provider's logo.
+* `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
+* `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
+* `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
 
 ### Read-Only
 
-- `id` (String) The ID of the resource.
+* `id` (String) The ID of the resource.
 
 <a id="nestedatt--scopes"></a>
+
 ### Nested Schema for `scopes`
 
 Optional:
 
-- `recommended` (Boolean) Indicates if the scope is recommended.
-- `required` (Boolean) Indicates if the scope is required.
-- `scope_name` (String) The name of the scope, e.g., `openid`, `profile`.
-
+* `recommended` (Boolean) Indicates if the scope is recommended.
+* `required` (Boolean) Indicates if the scope is required.
+* `scope_name` (String) The name of the scope, e.g., `openid`, `profile`.
 
 <a id="nestedatt--userinfo_fields"></a>
+
 ### Nested Schema for `userinfo_fields`
 
 Optional:
 
-- `address` (String)
-- `birthdate` (String)
-- `custom_fields` (Map of String)
-- `email` (String)
-- `email_verified` (String)
-- `family_name` (String)
-- `gender` (String)
-- `given_name` (String)
-- `locale` (String)
-- `middle_name` (String)
-- `mobile_number` (String)
-- `name` (String)
-- `nickname` (String)
-- `phone_number` (String)
-- `picture` (String)
-- `preferred_username` (String)
-- `profile` (String)
-- `updated_at` (String)
-- `website` (String)
-- `zoneinfo` (String)
+* `address` (String)
+* `birthdate` (String)
+* `custom_fields` (Map of String)
+* `email` (String)
+* `email_verified` (String)
+* `family_name` (String)
+* `gender` (String)
+* `given_name` (String)
+* `locale` (String)
+* `middle_name` (String)
+* `mobile_number` (String)
+* `name` (String)
+* `nickname` (String)
+* `phone_number` (String)
+* `picture` (String)
+* `preferred_username` (String)
+* `profile` (String)
+* `updated_at` (String)
+* `website` (String)
+* `zoneinfo` (String)
 
 ## Import
 
@@ -1113,12 +1101,13 @@ terraform import cidaas_custom_provider.resource_name provider_name
 The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the Cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:group_type_read
-- cidaas:group_type_write
-- cidaas:group_type_delete
 
+* cidaas:group_type_read
+* cidaas:group_type_write
+* cidaas:group_type_delete
 
-### V2 to V3 Migration:
+### V2 to V3 Migration
+
 If you are migrating from v2 to v3, please note that `cidaas_user_group_category` has been renamed to `cidaas_group_type`.
 Please update your Terraform configuration files accordingly to ensure compatibility with the latest version(v3).
 
@@ -1138,19 +1127,19 @@ resource "cidaas_group_type" "sample" {
 
 ### Required
 
-- `group_type` (String) The unique identifier of the group type. This cannot be updated for an existing state.
-- `role_mode` (String) Determines the role mode for the user group type. Allowed values are `any_roles`, `no_roles`, `roles_required` and `allowed_roles`
+* `group_type` (String) The unique identifier of the group type. This cannot be updated for an existing state.
+* `role_mode` (String) Determines the role mode for the user group type. Allowed values are `any_roles`, `no_roles`, `roles_required` and `allowed_roles`
 
 ### Optional
 
-- `allowed_roles` (Set of String) List of allowed roles in this group type.
-- `description` (String) The `description` attribute provides details about the group type, explaining its purpose.
+* `allowed_roles` (Set of String) List of allowed roles in this group type.
+* `description` (String) The `description` attribute provides details about the group type, explaining its purpose.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The ID of the resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The ID of the resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 
@@ -1165,9 +1154,10 @@ terraform import cidaas_group_type.resource_name group_type
 The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:hosted_pages_write
-- cidaas:hosted_pages_read
-- cidaas:hosted_pages_delete
+
+* cidaas:hosted_pages_write
+* cidaas:hosted_pages_read
+* cidaas:hosted_pages_delete
 
 ## Example Usage
 
@@ -1197,31 +1187,32 @@ resource "cidaas_hosted_page" "sample" {
 
 ### Required
 
-- `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
-- `hosted_pages` (Attributes List) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
+* `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
+* `hosted_pages` (Attributes List) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
 
 ### Optional
 
-- `default_locale` (String) The default locale for hosted pages e.g. `en-US`.
+* `default_locale` (String) The default locale for hosted pages e.g. `en-US`.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The ID of the resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The ID of the resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 <a id="nestedatt--hosted_pages"></a>
+
 ### Nested Schema for `hosted_pages`
 
 Required:
 
-- `hosted_page_id` (String) The identifier for the hosted page, e.g., `register_success`.
-- `url` (String) The URL for the hosted page.
+* `hosted_page_id` (String) The identifier for the hosted page, e.g., `register_success`.
+* `url` (String) The URL for the hosted page.
 
 Optional:
 
-- `content` (String) The conent of the hosted page.
-- `locale` (String) The locale for the hosted page, e.g., `en-US`.
+* `content` (String) The conent of the hosted page.
+* `locale` (String) The locale for the hosted page, e.g., `en-US`.
 
 ## Import
 
@@ -1236,9 +1227,10 @@ terraform import cidaas_hosted_page.resource_name hosted_page_id
 The Password Policy resource in the provider allows you to manage the password policy within the Cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:password_policy_read
-- cidaas:password_policy_write
-- cidaas:password_policy_delete
+
+* cidaas:password_policy_read
+* cidaas:password_policy_write
+* cidaas:password_policy_delete
 
 ## Example Usage
 
@@ -1258,16 +1250,16 @@ resource "cidaas_password_policy" "sample" {
 
 ### Required
 
-- `lower_and_uppercase` (Boolean) Specifies whether the password must contain both lowercase and uppercase letters.
-- `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)`
-- `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.
-- `no_of_digits` (Number) The required number of digits in the password.
-- `no_of_special_chars` (Number) The required number of special characters in the password.
-- `policy_name` (String) The name of the password policy.
+* `lower_and_uppercase` (Boolean) Specifies whether the password must contain both lowercase and uppercase letters.
+* `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)`
+* `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.
+* `no_of_digits` (Number) The required number of digits in the password.
+* `no_of_special_chars` (Number) The required number of special characters in the password.
+* `policy_name` (String) The name of the password policy.
 
 ### Read-Only
 
-- `id` (String) Unique identifier of the password policy.
+* `id` (String) Unique identifier of the password policy.
 
 ## Import
 
@@ -1282,19 +1274,20 @@ terraform import cidaas_password_policy.resource_name id
 The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:field_setup_read
-- cidaas:field_setup_write
-- cidaas:field_setup_delete
 
+* cidaas:field_setup_read
+* cidaas:field_setup_write
+* cidaas:field_setup_delete
 
-### V2 to V3 Migration:
+### V2 to V3 Migration
+
 If you are migrating from v2 to v3, please note that `cidaas_registration_page_field` has been renamed to `cidaas_registration_field`. Below is the list of changes in `cidaas_registration_field`:
 
-- **Multiple Locales:** Internationalization now supported via `local_texts`.
-- **Field Definition Attributes:** Added to specify maximum and minimum lengths for `TEXT` and `DATE` attributes.
-- **Extended Datatypes:** It now supports the datatypes `TEXT`, `NUMBER`, `SELECT`, `MULTISELECT`, `RADIO`, `CHECKBOX`, `PASSWORD`, `DATE`, `URL`, `EMAIL`,
-	`TEXTAREA`, `MOBILE`, `CONSENT`, `JSON_STRING`, `USERNAME`, `ARRAY`, `GROUPING` and `DAYDATE`.
-- **Configuration Updates:** Adjustments required for the below attribute as shown below:
+* **Multiple Locales:** Internationalization now supported via `local_texts`.
+* **Field Definition Attributes:** Added to specify maximum and minimum lengths for `TEXT` and `DATE` attributes.
+* **Extended Datatypes:** It now supports the datatypes `TEXT`, `NUMBER`, `SELECT`, `MULTISELECT`, `RADIO`, `CHECKBOX`, `PASSWORD`, `DATE`, `URL`, `EMAIL`,
+ `TEXTAREA`, `MOBILE`, `CONSENT`, `JSON_STRING`, `USERNAME`, `ARRAY`, `GROUPING` and `DAYDATE`.
+* **Configuration Updates:** Adjustments required for the below attribute as shown below:
 
 | old config           |      new config                                    |
 |---------------------| ----------------------------------------------|
@@ -1306,7 +1299,6 @@ If you are migrating from v2 to v3, please note that `cidaas_registration_page_f
 | locale_text_language | The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided. |
 | locale_text_locale | local_texts[i].locale |
 | locale_text_name | local_texts[i].name |
-
 
 #### Attribute `local_text`
 
@@ -1320,8 +1312,8 @@ If you are migrating from v2 to v3, please note that `cidaas_registration_page_f
 | attributes | The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. example shown below |
 | consent_label | required when data_type is CONSENT. exmaple shown below |
 
-
 ### Example of `attributes`
+
 ```terraform
  local_texts = [
     {
@@ -1339,6 +1331,7 @@ If you are migrating from v2 to v3, please note that `cidaas_registration_page_f
 ```
 
 ### Example of `consent_label`
+
 ```terraform
 local_texts = [
     {
@@ -1366,7 +1359,8 @@ local_texts = [
 
 Ensure your Terraform configurations are updated accordingly to maintain compatibility with the latest version.
 
-## Old configuration:
+## Old configuration
+
 ```terraform
 resource "cidaas_registration_page_field" "sample" {
   claimable              = true
@@ -1442,80 +1436,81 @@ resource "cidaas_registration_field" "text" {
 
 ### Required
 
-- `data_type` (String) The data type of the field. This cannot be modified for an existing resource. Allowed values are `TEXT`,`NUMBER`,`SELECT`,`MULTISELECT`,`RADIO`,`CHECKBOX`,`PASSWORD`,`DATE`,`URL`,`EMAIL`,`TEXTAREA`,`MOBILE`,`CONSENT`,`JSON_STRING`,`USERNAME`,`ARRAY`,`GROUPING`,`DAYDATE`,
-- `field_key` (String) The unique identifier of the registration field. This cannot be modified for an existing resource.
-- `local_texts` (Attributes List) The localized detail of the registration field. (see [below for nested schema](#nestedatt--local_texts))
+* `data_type` (String) The data type of the field. This cannot be modified for an existing resource. Allowed values are `TEXT`,`NUMBER`,`SELECT`,`MULTISELECT`,`RADIO`,`CHECKBOX`,`PASSWORD`,`DATE`,`URL`,`EMAIL`,`TEXTAREA`,`MOBILE`,`CONSENT`,`JSON_STRING`,`USERNAME`,`ARRAY`,`GROUPING`,`DAYDATE`,
+* `field_key` (String) The unique identifier of the registration field. This cannot be modified for an existing resource.
+* `local_texts` (Attributes List) The localized detail of the registration field. (see [below for nested schema](#nestedatt--local_texts))
 
 ### Optional
 
-- `claimable` (Boolean) Flag to mark if a field is claimable. Defaults set to `true`
-- `consent_refs` (Set of String) List of consents(the ids of the consent in cidaas must be passed) in registration. The data type must be `CONSENT` in this case
-- `enabled` (Boolean) Flag to mark if a field is enabled. Defaults set to `true`
-- `field_definition` (Attributes) (see [below for nested schema](#nestedatt--field_definition))
-- `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`. Defaults to `CUSTOM`. This cannot be modified for an existing resource. `SYSTEM` fields cannot be created but can be modified. To modify an existing field import it first and then update.
-- `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
-- `is_group` (Boolean) Setting is_group to `true` creates a registration field group. Defaults set to `false` The data_type attribute must be set to TEXT when is_group is true.
-- `is_list` (Boolean)
-- `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
-- `order` (Number) The attribute order is used to set the order of the Field in the UI. Defaults set to `1`
-- `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
-- `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
-- `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
-- `required` (Boolean) Flag to mark if a field is required in registration. Defaults set to `false`
-- `scopes` (Set of String) The scopes of the registration field.
-- `unique` (Boolean) Flag to mark if a field is unique. Defaults set to `false`
+* `claimable` (Boolean) Flag to mark if a field is claimable. Defaults set to `true`
+* `consent_refs` (Set of String) List of consents(the ids of the consent in cidaas must be passed) in registration. The data type must be `CONSENT` in this case
+* `enabled` (Boolean) Flag to mark if a field is enabled. Defaults set to `true`
+* `field_definition` (Attributes) (see [below for nested schema](#nestedatt--field_definition))
+* `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`. Defaults to `CUSTOM`. This cannot be modified for an existing resource. `SYSTEM` fields cannot be created but can be modified. To modify an existing field import it first and then update.
+* `internal` (Boolean) Flag to mark if a field is internal. Defaults set to `false`
+* `is_group` (Boolean) Setting is_group to `true` creates a registration field group. Defaults set to `false` The data_type attribute must be set to TEXT when is_group is true.
+* `is_list` (Boolean)
+* `is_searchable` (Boolean) Flag to mark if a field is searchable. Defaults set to `true`
+* `order` (Number) The attribute order is used to set the order of the Field in the UI. Defaults set to `1`
+* `overwrite_with_null_value_from_social_provider` (Boolean) Set to true if you want the value should be reset by identity provider. Defaults set to `false`
+* `parent_group_id` (String) The ID of the parent registration group. Defaults to `DEFAULT` if not provided.
+* `read_only` (Boolean) Flag to mark if a field is read only. Defaults set to `false`
+* `required` (Boolean) Flag to mark if a field is required in registration. Defaults set to `false`
+* `scopes` (Set of String) The scopes of the registration field.
+* `unique` (Boolean) Flag to mark if a field is unique. Defaults set to `false`
 
 ### Read-Only
 
-- `base_data_type` (String) The base data type of the field. This is computed property.
-- `id` (String) The ID of the resource
+* `base_data_type` (String) The base data type of the field. This is computed property.
+* `id` (String) The ID of the resource
 
 <a id="nestedatt--local_texts"></a>
+
 ### Nested Schema for `local_texts`
 
 Required:
 
-- `name` (String) The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
+* `name` (String) The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`.
 
 Optional:
 
-- `attributes` (Attributes List) The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--attributes))
-- `consent_label` (Attributes) required when data_type is CONSENT. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--consent_label))
-- `locale` (String) The locale of the field. example: de-DE.
-- `max_length_msg` (String) warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.
-- `min_length_msg` (String) warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.
-- `required_msg` (String) When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.
+* `attributes` (Attributes List) The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--attributes))
+* `consent_label` (Attributes) required when data_type is CONSENT. Example provided in the example section. (see [below for nested schema](#nestedatt--local_texts--consent_label))
+* `locale` (String) The locale of the field. example: de-DE.
+* `max_length_msg` (String) warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string.
+* `min_length_msg` (String) warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string.
+* `required_msg` (String) When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field.
 
 <a id="nestedatt--local_texts--attributes"></a>
+
 ### Nested Schema for `local_texts.attributes`
 
 Required:
 
-- `key` (String)
-- `value` (String)
-
+* `key` (String)
+* `value` (String)
 
 <a id="nestedatt--local_texts--consent_label"></a>
+
 ### Nested Schema for `local_texts.consent_label`
 
 Required:
 
-- `label` (String)
-- `label_text` (String)
-
-
+* `label` (String)
+* `label_text` (String)
 
 <a id="nestedatt--field_definition"></a>
+
 ### Nested Schema for `field_definition`
 
 Optional:
 
-- `initial_date` (String) The initial date. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
-- `initial_date_view` (String) The view of the calender. Applicable only for DATE attributes. Allowed values: `month`, `year` and `multi-year`
-- `max_date` (String) The maximum date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
-- `max_length` (Number) The maximum length of a string type attribute.
-- `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
-- `min_length` (Number) The minimum length of a string type attribute
+* `initial_date` (String) The initial date. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
+* `initial_date_view` (String) The view of the calender. Applicable only for DATE attributes. Allowed values: `month`, `year` and `multi-year`
+* `max_date` (String) The maximum date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
+* `max_length` (Number) The maximum length of a string type attribute.
+* `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
+* `min_length` (Number) The minimum length of a string type attribute
 
 ## Import
 
@@ -1530,9 +1525,10 @@ terraform import cidaas_registration_page_field.resource_name field_key
 The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:roles_read
-- cidaas:roles_write
-- cidaas:roles_delete
+
+* cidaas:roles_read
+* cidaas:roles_write
+* cidaas:roles_delete
 
 ## Example Usage
 
@@ -1549,16 +1545,16 @@ resource "cidaas_role" "sample" {
 
 ### Required
 
-- `role` (String) The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.
+* `role` (String) The unique identifier of the role. The role name must be unique across the cidaas system and cannot be updated for an existing state.
 
 ### Optional
 
-- `description` (String) The `description` attribute provides details about the role, explaining its purpose.
-- `name` (String) The name of the role.
+* `description` (String) The `description` attribute provides details about the role, explaining its purpose.
+* `name` (String) The name of the role.
 
 ### Read-Only
 
-- `id` (String) The ID of the role resource.
+* `id` (String) The ID of the role resource.
 
 ## Import
 
@@ -1573,9 +1569,10 @@ terraform import cidaas_role.resource_name role
 The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:scopes_read
-- cidaas:scopes_write
-- cidaas:scopes_delete
+
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
 
 ## Example Usage
 
@@ -1591,17 +1588,17 @@ resource "cidaas_scope_group" "sample" {
 
 ### Required
 
-- `group_name` (String) The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.
+* `group_name` (String) The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.
 
 ### Optional
 
-- `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
+* `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The ID of th resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The ID of th resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 
@@ -1616,22 +1613,24 @@ terraform import cidaas_scope_group.resource_name group_name
 The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client).
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:scopes_read
-- cidaas:scopes_write
-- cidaas:scopes_delete
 
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
 
-### V2 to V3 Migration:
+### V2 to V3 Migration
+
 If you are migrating from v2 to v3, please note the following changes in the v3 version:
 
-- The `locale`, `language`, `title` and `description` attributes have been removed and replaced with a `localized_descriptions` block that supports a scope with multiple locale with better internationalization. Earlier only one locale was supported by the terraform plugin.
-- `localized_descriptions` is a list of objects, each containing:
-  - locale
-  - title
-  - description
-- The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided.
+* The `locale`, `language`, `title` and `description` attributes have been removed and replaced with a `localized_descriptions` block that supports a scope with multiple locale with better internationalization. Earlier only one locale was supported by the terraform plugin.
+* `localized_descriptions` is a list of objects, each containing:
+  * locale
+  * title
+  * description
+* The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided.
 
-## old configuration:
+## old configuration
+
 ```terraform
 resource "scope" "sample" {
   locale                = "en-US"
@@ -1678,31 +1677,32 @@ resource "cidaas_scope" "sample" {
 
 ### Required
 
-- `scope_key` (String) Unique identifier for the scope. This cannot be updated for an existing state.
+* `scope_key` (String) Unique identifier for the scope. This cannot be updated for an existing state.
 
 ### Optional
 
-- `group_name` (Set of String) List of scope_groups to associate the scope with.
-- `localized_descriptions` (Attributes List) (see [below for nested schema](#nestedatt--localized_descriptions))
-- `required_user_consent` (Boolean) Indicates whether user consent is required for the scope.
-- `scope_owner` (String) The owner of the scope. e.g. `ADMIN`
-- `security_level` (String) The security level of the scope, e.g., `PUBLIC`. Allowed values are `PUBLIC` and `CONFIDENTIAL`
+* `group_name` (Set of String) List of scope_groups to associate the scope with.
+* `localized_descriptions` (Attributes List) (see [below for nested schema](#nestedatt--localized_descriptions))
+* `required_user_consent` (Boolean) Indicates whether user consent is required for the scope.
+* `scope_owner` (String) The owner of the scope. e.g. `ADMIN`
+* `security_level` (String) The security level of the scope, e.g., `PUBLIC`. Allowed values are `PUBLIC` and `CONFIDENTIAL`
 
 ### Read-Only
 
-- `id` (String) The ID of the resource.
+* `id` (String) The ID of the resource.
 
 <a id="nestedatt--localized_descriptions"></a>
+
 ### Nested Schema for `localized_descriptions`
 
 Required:
 
-- `title` (String) The title of the scope in the configured locale.
+* `title` (String) The title of the scope in the configured locale.
 
 Optional:
 
-- `description` (String) The description of the scope in the configured locale.
-- `locale` (String) The locale for the scope, e.g., `en-US`.
+* `description` (String) The description of the scope in the configured locale.
+* `locale` (String) The locale for the scope, e.g., `en-US`.
 
 ## Import
 
@@ -1718,9 +1718,10 @@ The `cidaas_social_provider` resource allows you to configure and manage social 
  Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
 
  Ensure that the below scopes are assigned to the client:
-- cidaas:providers_read
-- cidaas:providers_write
-- cidaas:providers_delete
+
+* cidaas:providers_read
+* cidaas:providers_write
+* cidaas:providers_delete
 
 ## Example Usage
 
@@ -1761,6 +1762,7 @@ resource "cidaas_social_provider" "sample" {
 ```
 
 ### Configuring a Social Provider to a Client
+
 To configure a social provider for a client in your Terraform configuration, you need to update the `cidaas_app` resources with the details from the `cidaas_social_provider` resource. Below is an example demonstrating how you can configure a social provider for a client:
 
 ```terraform
@@ -1782,59 +1784,60 @@ resource "cidaas_app" "app_sample" {
 
 ### Required
 
-- `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
-- `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
-- `name` (String) The name of the social provider configuration. This should be unique within your Cidaas environment.
-- `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
+* `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
+* `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
+* `name` (String) The name of the social provider configuration. This should be unique within your Cidaas environment.
+* `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
 
 ### Optional
 
-- `claims` (Attributes) A map defining required and optional claims to be requested from the social provider. (see [below for nested schema](#nestedatt--claims))
-- `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
-- `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
-- `scopes` (Set of String) A list of scopes of the social provider.
-- `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and Cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
+* `claims` (Attributes) A map defining required and optional claims to be requested from the social provider. (see [below for nested schema](#nestedatt--claims))
+* `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
+* `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
+* `scopes` (Set of String) A list of scopes of the social provider.
+* `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and Cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the social provider
+* `id` (String) The unique identifier of the social provider
 
 <a id="nestedatt--claims"></a>
+
 ### Nested Schema for `claims`
 
 Optional:
 
-- `optional_claims` (Attributes) Defines the claims that are optional from the social provider. (see [below for nested schema](#nestedatt--claims--optional_claims))
-- `required_claims` (Attributes) Defines the claims that are required from the social provider. (see [below for nested schema](#nestedatt--claims--required_claims))
+* `optional_claims` (Attributes) Defines the claims that are optional from the social provider. (see [below for nested schema](#nestedatt--claims--optional_claims))
+* `required_claims` (Attributes) Defines the claims that are required from the social provider. (see [below for nested schema](#nestedatt--claims--required_claims))
 
 <a id="nestedatt--claims--optional_claims"></a>
+
 ### Nested Schema for `claims.optional_claims`
 
 Optional:
 
-- `id_token` (Set of String) A list of ID token claims that are optional.
-- `user_info` (Set of String) A list of user information claims that are optional.
-
+* `id_token` (Set of String) A list of ID token claims that are optional.
+* `user_info` (Set of String) A list of user information claims that are optional.
 
 <a id="nestedatt--claims--required_claims"></a>
+
 ### Nested Schema for `claims.required_claims`
 
 Optional:
 
-- `id_token` (Set of String) A list of ID token claims that are required.
-- `user_info` (Set of String) A list of user information claims that are required.
-
-
+* `id_token` (Set of String) A list of ID token claims that are required.
+* `user_info` (Set of String) A list of user information claims that are required.
 
 <a id="nestedatt--userinfo_fields"></a>
+
 ### Nested Schema for `userinfo_fields`
 
 Required:
 
-- `external_key` (String) The external key used by the social provider.
-- `inner_key` (String) The internal key used by Cidaas.
-- `is_custom_field` (Boolean) A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.
-- `is_system_field` (Boolean) A flag indicating whether the field is a system field. Set to `true` if it is a system field.
+* `external_key` (String) The external key used by the social provider.
+* `inner_key` (String) The internal key used by Cidaas.
+* `is_custom_field` (Boolean) A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.
+* `is_system_field` (Boolean) A flag indicating whether the field is a system field. Set to `true` if it is a system field.
 
 ## Import
 
@@ -1850,9 +1853,10 @@ terraform import cidaas_social_provider.sample google:8d789b3d-b312-4251
 The cidaas_template_group resource in the provider is used to define and manage templates groups within the Cidaas system. Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:templates_read
-- cidaas:templates_write
-- cidaas:templates_delete
+
+* cidaas:templates_read
+* cidaas:templates_write
+* cidaas:templates_delete
 
 ## Example Usage
 
@@ -1901,69 +1905,70 @@ resource "cidaas_template_group" "sample-tg-2" {
 
 ### Required
 
-- `group_id` (String) The group_id of the Template Group. The group_id is used to import an existing template group. The maximum allowed length of a group_id is **15** characters.
+* `group_id` (String) The group_id of the Template Group. The group_id is used to import an existing template group. The maximum allowed length of a group_id is **15** characters.
 
 ### Optional
 
-- `email_sender_config` (Attributes) The `email_sender_config` is used to configure your email sender. (see [below for nested schema](#nestedatt--email_sender_config))
-- `ivr_sender_config` (Attributes) The configuration of the IVR sender. (see [below for nested schema](#nestedatt--ivr_sender_config))
-- `push_sender_config` (Attributes) The configuration of the PUSH notification sender. (see [below for nested schema](#nestedatt--push_sender_config))
-- `sms_sender_config` (Attributes) The configuration of the SMS sender. (see [below for nested schema](#nestedatt--sms_sender_config))
+* `email_sender_config` (Attributes) The `email_sender_config` is used to configure your email sender. (see [below for nested schema](#nestedatt--email_sender_config))
+* `ivr_sender_config` (Attributes) The configuration of the IVR sender. (see [below for nested schema](#nestedatt--ivr_sender_config))
+* `push_sender_config` (Attributes) The configuration of the PUSH notification sender. (see [below for nested schema](#nestedatt--push_sender_config))
+* `sms_sender_config` (Attributes) The configuration of the SMS sender. (see [below for nested schema](#nestedatt--sms_sender_config))
 
 ### Read-Only
 
-- `id` (String) The ID of the resource
+* `id` (String) The ID of the resource
 
 <a id="nestedatt--email_sender_config"></a>
+
 ### Nested Schema for `email_sender_config`
 
 Optional:
 
-- `from_email` (String) The email from address from which the emails will be sent when the specific group is configured.
-- `from_name` (String) The `from_name` attribute is the display name that appears in the 'From' field of the emails.
-- `reply_to` (String) The `reply_to` attribute is the email address where replies should be directed.
-- `sender_names` (Set of String) The `sender_names` attribute defines the names associated with email senders.
+* `from_email` (String) The email from address from which the emails will be sent when the specific group is configured.
+* `from_name` (String) The `from_name` attribute is the display name that appears in the 'From' field of the emails.
+* `reply_to` (String) The `reply_to` attribute is the email address where replies should be directed.
+* `sender_names` (Set of String) The `sender_names` attribute defines the names associated with email senders.
 
 Read-Only:
 
-- `id` (String) The `ID` of the configured email sender.
-
+* `id` (String) The `ID` of the configured email sender.
 
 <a id="nestedatt--ivr_sender_config"></a>
+
 ### Nested Schema for `ivr_sender_config`
 
 Optional:
 
-- `sender_names` (Set of String)
+* `sender_names` (Set of String)
 
 Read-Only:
 
-- `id` (String)
-
+* `id` (String)
 
 <a id="nestedatt--push_sender_config"></a>
+
 ### Nested Schema for `push_sender_config`
 
 Optional:
 
-- `sender_names` (Set of String)
+* `sender_names` (Set of String)
 
 Read-Only:
 
-- `id` (String)
-
+* `id` (String)
 
 <a id="nestedatt--sms_sender_config"></a>
+
 ### Nested Schema for `sms_sender_config`
 
 Optional:
 
-- `from_name` (String)
-- `sender_names` (Set of String)
+* `from_name` (String)
+* `sender_names` (Set of String)
 
 Read-Only:
 
-- `id` (String)
+* `id` (String)
 
 ## Import
 
@@ -1978,25 +1983,26 @@ terraform import cidaas_template_group.resource_name group_id
 The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:templates_read
-- cidaas:templates_write
-- cidaas:templates_delete
 
-### V2 to V3 Migration:
+* cidaas:templates_read
+* cidaas:templates_write
+* cidaas:templates_delete
+
+### V2 to V3 Migration
+
 If you are migrating from v2 to v3, please note the changes in the format of the import identifier:
 
-- In **v2**, the import identifier was formed by joining template_key, template_type and locale with the character `-`. For example: `TERRAFORM_TEMPLATE-SMS-en-us`.
+* In **v2**, the import identifier was formed by joining template_key, template_type and locale with the character `-`. For example: `TERRAFORM_TEMPLATE-SMS-en-us`.
 
-- In **v3**, the import identifier format has been updated. The character `-` is replaced by the character `:`. For example: `TERRAFORM_TEMPLATE:SMS:en-us`.
+* In **v3**, the import identifier format has been updated. The character `-` is replaced by the character `:`. For example: `TERRAFORM_TEMPLATE:SMS:en-us`.
 
+### Managing System Templates
 
-### Managing System Templates:
-
-- To create system templates, set the **is_system_template** flag to `true`.
+* To create system templates, set the **is_system_template** flag to `true`.
 By default, this value is `false` and creates custom templates when applied.
-- When creating system templates validation checks are applied and suggestions are
+* When creating system templates validation checks are applied and suggestions are
 provided in error messages to assist users in creating system templates.
-- System templates cannot be imported using the standard Terraform import command. Instead, users
+* System templates cannot be imported using the standard Terraform import command. Instead, users
 must create a configuration that matches the existing system template and run terraform apply.
 
 ## Example Usage
@@ -2065,25 +2071,25 @@ resource "cidaas_template" "system-template-2" {
 
 ### Required
 
-- `content` (String) The content of the template.
-- `locale` (String) The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
-- `template_key` (String) The unique name of the template. It cannot be updated for an existing state.
-- `template_type` (String) The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.
+* `content` (String) The content of the template.
+* `locale` (String) The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
+* `template_key` (String) The unique name of the template. It cannot be updated for an existing state.
+* `template_type` (String) The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.
 
 ### Optional
 
-- `group_id` (String) The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.
-- `is_system_template` (Boolean) A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM
-- `processing_type` (String) The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
-- `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
-- `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
-- `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
+* `group_id` (String) The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.
+* `is_system_template` (Boolean) A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM
+* `processing_type` (String) The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
+* `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
+* `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
+* `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the template resource.
-- `language` (String) The language based on the local provided in the configuration.
-- `template_owner` (String) The template owner of the template.
+* `id` (String) The unique identifier of the template resource.
+* `language` (String) The language based on the local provided in the configuration.
+* `template_owner` (String) The template owner of the template.
 
 ## Import
 
@@ -2108,9 +2114,10 @@ terraform import cidaas_template.sample TERRAFORM_TEMPLATE:SMS:de-de
 The cidaas_user_groups resource enables the creation of user groups in the cidaas system. These groups allow users to be organized and assigned group-specific roles.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:groups_write
-- cidaas:groups_read
-- cidaas:groups_delete
+
+* cidaas:groups_write
+* cidaas:groups_read
+* cidaas:groups_delete
 
 ## Example Usage
 
@@ -2149,25 +2156,25 @@ resource "cidaas_user_groups" "child-user-group" {
 
 ### Required
 
-- `group_id` (String) Identifier for the user group.
-- `group_name` (String) Name of the user group.
-- `group_type` (String) Type of the user group.
+* `group_id` (String) Identifier for the user group.
+* `group_name` (String) Name of the user group.
+* `group_type` (String) Type of the user group.
 
 ### Optional
 
-- `custom_fields` (Map of String) Custom fields for the user group.
-- `description` (String) Description of the user group.
-- `logo_url` (String) URL for the user group's logo
-- `make_first_user_admin` (Boolean) Indicates whether the first user should be made an admin.
-- `member_profile_visibility` (String) Visibility of member profiles. Allowed values `public` or `full`.
-- `none_member_profile_visibility` (String) Visibility of non-member profiles. Allowed values `none` or `public`.
-- `parent_id` (String) Identifier of the parent user group.
+* `custom_fields` (Map of String) Custom fields for the user group.
+* `description` (String) Description of the user group.
+* `logo_url` (String) URL for the user group's logo
+* `make_first_user_admin` (Boolean) Indicates whether the first user should be made an admin.
+* `member_profile_visibility` (String) Visibility of member profiles. Allowed values `public` or `full`.
+* `none_member_profile_visibility` (String) Visibility of non-member profiles. Allowed values `none` or `public`.
+* `parent_id` (String) Identifier of the parent user group.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The unique identifier of the user group resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The unique identifier of the user group resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 
@@ -2182,9 +2189,10 @@ terraform import cidaas_user_groups.resource_name group_id
 The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system. This resource allows you to configure webhooks with different authentication options.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:webhook_read
-- cidaas:webhook_write
-- cidaas:webhook_delete
+
+* cidaas:webhook_read
+* cidaas:webhook_write
+* cidaas:webhook_delete
 
 ## Example Usage
 
@@ -2223,49 +2231,50 @@ resource "cidaas_webhook" "sample_webhook" {
 
 ### Required
 
-- `auth_type` (String) The attribute auth_type is to define how this url is secured from your end.The allowed values are `APIKEY`, `TOTP` and `CIDAAS_OAUTH2`
-- `events` (Set of String) A set of events that trigger the webhook.
-- `url` (String) The webhook url that needs to be called when an event occurs.
+* `auth_type` (String) The attribute auth_type is to define how this url is secured from your end.The allowed values are `APIKEY`, `TOTP` and `CIDAAS_OAUTH2`
+* `events` (Set of String) A set of events that trigger the webhook.
+* `url` (String) The webhook url that needs to be called when an event occurs.
 
 ### Optional
 
-- `apikey_config` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_config))
-- `cidaas_auth_config` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
-- `disable` (Boolean) Flag to disable the webhook.
-- `totp_config` (Attributes) Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP. (see [below for nested schema](#nestedatt--totp_config))
+* `apikey_config` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_config))
+* `cidaas_auth_config` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
+* `disable` (Boolean) Flag to disable the webhook.
+* `totp_config` (Attributes) Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP. (see [below for nested schema](#nestedatt--totp_config))
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the webhook was created.
-- `id` (String) The unique identifier of the webhook resource.
-- `updated_at` (String) The timestamp when the webhook was last updated.
+* `created_at` (String) The timestamp when the webhook was created.
+* `id` (String) The unique identifier of the webhook resource.
+* `updated_at` (String) The timestamp when the webhook was last updated.
 
 <a id="nestedatt--apikey_config"></a>
+
 ### Nested Schema for `apikey_config`
 
 Required:
 
-- `key` (String) The API key that will be used to authenticate the webhook request.The key that will be passed in the request header or in query param as configured in the attribute `placement`
-- `placeholder` (String) The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.
-- `placement` (String) The placement of the API key in the request (e.g., query).The allowed value are `header` and `query`.
-
+* `key` (String) The API key that will be used to authenticate the webhook request.The key that will be passed in the request header or in query param as configured in the attribute `placement`
+* `placeholder` (String) The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.
+* `placement` (String) The placement of the API key in the request (e.g., query).The allowed value are `header` and `query`.
 
 <a id="nestedatt--cidaas_auth_config"></a>
+
 ### Nested Schema for `cidaas_auth_config`
 
 Required:
 
-- `client_id` (String) The client ID for Cidaas authentication.
-
+* `client_id` (String) The client ID for Cidaas authentication.
 
 <a id="nestedatt--totp_config"></a>
+
 ### Nested Schema for `totp_config`
 
 Required:
 
-- `key` (String) The key used for TOTP authentication.
-- `placeholder` (String) A placeholder value for the TOTP.
-- `placement` (String) The placement of the TOTP in the request.The allowed value are `header` and `query`.
+* `key` (String) The key used for TOTP authentication.
+* `placeholder` (String) A placeholder value for the TOTP.
+* `placement` (String) The placement of the TOTP in the request.The allowed value are `header` and `query`.
 
 ## Import
 
@@ -2282,7 +2291,6 @@ terraform import cidaas_webhook.sample ae90d6ba-9a5a-49b6-9a50-b8db759e9b90
 The data source `cidaas_consent` returns a list of consents available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
-
 ## Example Usage
 
 ```terraform
@@ -2295,39 +2303,39 @@ data "cidaas_consent" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `consent` (Block List) The returned list of consents. (see [below for nested schema](#nestedblock--consent))
-- `id` (String) The data source's unique ID.
+* `consent` (Block List) The returned list of consents. (see [below for nested schema](#nestedblock--consent))
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--consent"></a>
+
 ### Nested Schema for `consent`
 
 Read-Only:
 
-- `consent_name` (String) The name of the consent.
-- `id` (String) The unique identifier of the consent.
+* `consent_name` (String) The name of the consent.
+* `id` (String) The unique identifier of the consent.
 
 ## Filterable Fields
 
@@ -2337,7 +2345,6 @@ Read-Only:
 
 The data source `cidaas_custom_provider` returns a list of custom providers available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2351,53 +2358,51 @@ data "cidaas_custom_provider" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `custom_provider` (Block List) The returned list of custom providers. (see [below for nested schema](#nestedblock--custom_provider))
-- `id` (String) The data source's unique ID.
+* `custom_provider` (Block List) The returned list of custom providers. (see [below for nested schema](#nestedblock--custom_provider))
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--custom_provider"></a>
+
 ### Nested Schema for `custom_provider`
 
 Read-Only:
 
-- `domains` (Set of String) The domains of the provider.
-- `id` (String) The unique identifier of the custom provider.
-- `provider_name` (String) The name of the custom provider.
-- `standard_type` (String) Type of standard. `OAUTH2` or `OPENID_CONNECT`.
+* `domains` (Set of String) The domains of the provider.
+* `id` (String) The unique identifier of the custom provider.
+* `provider_name` (String) The name of the custom provider.
+* `standard_type` (String) Type of standard. `OAUTH2` or `OPENID_CONNECT`.
 
 ## Filterable Fields
 
 * `provider_name`
 * `standard_type`
 
-
 # cidaas_group_type (Data Source)
 
 The data source `cidaas_group_type` returns a list of group types available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2414,42 +2419,42 @@ data "cidaas_group_type" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `group_type` (Block List) The returned list of group types. (see [below for nested schema](#nestedblock--group_type))
-- `id` (String) The data source's unique ID.
+* `group_type` (Block List) The returned list of group types. (see [below for nested schema](#nestedblock--group_type))
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--group_type"></a>
+
 ### Nested Schema for `group_type`
 
 Read-Only:
 
-- `allowed_roles` (Set of String) List of allowed roles in a group type.
-- `description` (String) The description of the group type
-- `group_type` (String) The unique identifier of the group type.
-- `id` (String) The identifier of the group type.
-- `role_mode` (String) Determines the role mode for the user group type.
+* `allowed_roles` (Set of String) List of allowed roles in a group type.
+* `description` (String) The description of the group type
+* `group_type` (String) The unique identifier of the group type.
+* `id` (String) The identifier of the group type.
+* `role_mode` (String) Determines the role mode for the user group type.
 
 ## Filterable Fields
 
@@ -2462,7 +2467,6 @@ Read-Only:
 The data source `cidaas_registration_field` returns a list of registration fields available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
-
 ## Example Usage
 
 ```terraform
@@ -2474,51 +2478,51 @@ data "cidaas_registration_field" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
-- `registration_field` (Block List) The returned list of registration fields. (see [below for nested schema](#nestedblock--registration_field))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `registration_field` (Block List) The returned list of registration fields. (see [below for nested schema](#nestedblock--registration_field))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--registration_field"></a>
+
 ### Nested Schema for `registration_field`
 
 Required:
 
-- `field_key` (String) The unique name of the registration field.
+* `field_key` (String) The unique name of the registration field.
 
 Read-Only:
 
-- `data_type` (String) The data type of the field.
-- `enabled` (Boolean) Flag to identify if a field is enabled.
-- `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`.
-- `id` (String) The unique identifier of the group type.
-- `internal` (Boolean) Flag to identify if a field is internal.
-- `is_group` (Boolean) Flag to identify if a field is group field.
-- `order` (Number) The order of the Field in the UI.
-- `parent_group_id` (String) The ID of the parent registration group.
-- `read_only` (Boolean) Flag to identify if a field is read only.
-- `required` (Boolean) Flag to identify if a field is required in registration.
+* `data_type` (String) The data type of the field.
+* `enabled` (Boolean) Flag to identify if a field is enabled.
+* `field_type` (String) Specifies whether the field type is `SYSTEM` or `CUSTOM`.
+* `id` (String) The unique identifier of the group type.
+* `internal` (Boolean) Flag to identify if a field is internal.
+* `is_group` (Boolean) Flag to identify if a field is group field.
+* `order` (Number) The order of the Field in the UI.
+* `parent_group_id` (String) The ID of the parent registration group.
+* `read_only` (Boolean) Flag to identify if a field is read only.
+* `required` (Boolean) Flag to identify if a field is required in registration.
 
 ## Filterable Fields
 
@@ -2537,7 +2541,6 @@ Read-Only:
 The data source `cidaas_role` returns a list of roles available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
-
 ## Example Usage
 
 ```terraform
@@ -2549,40 +2552,40 @@ data "cidaas_role" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
-- `role` (Block List) The returned list of roles. (see [below for nested schema](#nestedblock--role))
+* `id` (String) The data source's unique ID.
+* `role` (Block List) The returned list of roles. (see [below for nested schema](#nestedblock--role))
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--role"></a>
+
 ### Nested Schema for `role`
 
 Read-Only:
 
-- `description` (String) The `description` of the role
-- `name` (String) The name of the role.
-- `role` (String) The unique identifier of the role.
+* `description` (String) The `description` of the role
+* `name` (String) The name of the role.
+* `role` (String) The unique identifier of the role.
 
 ## Filterable Fields
 
@@ -2593,7 +2596,6 @@ Read-Only:
 
 The data source `cidaas_scope_group` returns a list of scope groups available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2607,40 +2609,40 @@ data "cidaas_scope_group" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
-- `scope_group` (Block List) The returned list of scope groups (see [below for nested schema](#nestedblock--scope_group))
+* `id` (String) The data source's unique ID.
+* `scope_group` (Block List) The returned list of scope groups (see [below for nested schema](#nestedblock--scope_group))
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--scope_group"></a>
+
 ### Nested Schema for `scope_group`
 
 Read-Only:
 
-- `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
-- `group_name` (String) The name of the group.
-- `id` (String) The ID of th resource.
+* `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
+* `group_name` (String) The name of the group.
+* `id` (String) The ID of th resource.
 
 ## Filterable Fields
 
@@ -2650,7 +2652,6 @@ Read-Only:
 
 The data source `cidaas_scope` returns a list of scopes available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2672,56 +2673,57 @@ data "cidaas_scope" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
-- `scope` (Block List) The returned list of scopes. (see [below for nested schema](#nestedblock--scope))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `scope` (Block List) The returned list of scopes. (see [below for nested schema](#nestedblock--scope))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--scope"></a>
+
 ### Nested Schema for `scope`
 
 Optional:
 
-- `localized_descriptions` (Attributes List) (see [below for nested schema](#nestedatt--scope--localized_descriptions))
+* `localized_descriptions` (Attributes List) (see [below for nested schema](#nestedatt--scope--localized_descriptions))
 
 Read-Only:
 
-- `group_name` (Set of String) List of scope_groups associated with the scope.
-- `id` (String) The ID of the scope.
-- `required_user_consent` (Boolean) Indicates whether user consent is required for the scope.
-- `scope_key` (String) Unique identifier(name) for the scope.
-- `scope_owner` (String) The owner of the scope. e.g. `ADMIN`.
-- `security_level` (String) The security level of the scope, `PUBLIC` or `CONFIDENTIAL`.
+* `group_name` (Set of String) List of scope_groups associated with the scope.
+* `id` (String) The ID of the scope.
+* `required_user_consent` (Boolean) Indicates whether user consent is required for the scope.
+* `scope_key` (String) Unique identifier(name) for the scope.
+* `scope_owner` (String) The owner of the scope. e.g. `ADMIN`.
+* `security_level` (String) The security level of the scope, `PUBLIC` or `CONFIDENTIAL`.
 
 <a id="nestedatt--scope--localized_descriptions"></a>
+
 ### Nested Schema for `scope.localized_descriptions`
 
 Read-Only:
 
-- `description` (String) The description of the scope in the configured locale.
-- `locale` (String) The locale for the scope, e.g., `en-US`.
-- `title` (String) The title of the scope in the configured locale.
+* `description` (String) The description of the scope in the configured locale.
+* `locale` (String) The locale for the scope, e.g., `en-US`.
+* `title` (String) The title of the scope in the configured locale.
 
 ## Filterable Fields
 
@@ -2734,7 +2736,6 @@ Read-Only:
 
 The data source `cidaas_social_provider` returns a list of social providers available in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2751,45 +2752,45 @@ data "cidaas_social_provider" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
-- `social_provider` (Block List) The returned list of social providers. (see [below for nested schema](#nestedblock--social_provider))
+* `id` (String) The data source's unique ID.
+* `social_provider` (Block List) The returned list of social providers. (see [below for nested schema](#nestedblock--social_provider))
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--social_provider"></a>
+
 ### Nested Schema for `social_provider`
 
 Read-Only:
 
-- `client_id` (String) The client ID of the social provider.
-- `client_secret` (String, Sensitive) The client secret of the social provider.
-- `enabled` (Boolean) A flag to identify if a provider is enabled.
-- `enabled_for_admin_portal` (Boolean) A flag to identify if a social provider is enabled for the admin portal.
-- `id` (String) The unique identifier of the social provider
-- `name` (String) The name of the social provider configuration.
-- `provider_name` (String) The name of the social provider e.g; `google`, `facebook`, `linkedin` etc.
-- `scopes` (Set of String) A list of scopes of the social provider.
+* `client_id` (String) The client ID of the social provider.
+* `client_secret` (String, Sensitive) The client secret of the social provider.
+* `enabled` (Boolean) A flag to identify if a provider is enabled.
+* `enabled_for_admin_portal` (Boolean) A flag to identify if a social provider is enabled for the admin portal.
+* `id` (String) The unique identifier of the social provider
+* `name` (String) The name of the social provider configuration.
+* `provider_name` (String) The name of the social provider e.g; `google`, `facebook`, `linkedin` etc.
+* `scopes` (Set of String) A list of scopes of the social provider.
 
 ## Filterable Fields
 
@@ -2801,9 +2802,8 @@ Read-Only:
 # cidaas_system_template_option (Data Source)
 
 The data source `cidaas_system_template_option` returns a list of system templates optionsa that can be
-configured to create a system template in your Cidaas instance. 
+configured to create a system template in your Cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
-
 
 ## Example Usage
 
@@ -2820,83 +2820,86 @@ data "cidaas_system_template_option" "example" {
 }
 ```
 
-
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Optional
 
-- `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
-- `system_template_option` (Block List) The returned list of system template options. (see [below for nested schema](#nestedblock--system_template_option))
+* `filter` (Block Set) (see [below for nested schema](#nestedblock--filter))
+* `system_template_option` (Block List) The returned list of system template options. (see [below for nested schema](#nestedblock--system_template_option))
 
 ### Read-Only
 
-- `id` (String) The data source's unique ID.
+* `id` (String) The data source's unique ID.
 
 <a id="nestedblock--filter"></a>
+
 ### Nested Schema for `filter`
 
 Required:
 
-- `name` (String) The name of the attribute to filter on.
-- `values` (Set of String) The value(s) to be used in the filter.
+* `name` (String) The name of the attribute to filter on.
+* `values` (Set of String) The value(s) to be used in the filter.
 
 Optional:
 
-- `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
-
+* `match_by` (String) The type of comparison to use for this filter. Allowed values `exact`, `substring` and `regex`
 
 <a id="nestedblock--system_template_option"></a>
+
 ### Nested Schema for `system_template_option`
 
 Required:
 
-- `enabled` (Boolean) The flag to identify if a system template is enabled.
-- `template_key` (String) The key of the template.
+* `enabled` (Boolean) The flag to identify if a system template is enabled.
+* `template_key` (String) The key of the template.
 
 Optional:
 
-- `template_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types))
+* `template_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types))
 
 <a id="nestedatt--system_template_option--template_types"></a>
+
 ### Nested Schema for `system_template_option.template_types`
 
 Optional:
 
-- `processing_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types))
+* `processing_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types))
 
 Read-Only:
 
-- `template_type` (String) The type of the template. e.g. `EMAIL`
+* `template_type` (String) The type of the template. e.g. `EMAIL`
 
 <a id="nestedatt--system_template_option--template_types--processing_types"></a>
+
 ### Nested Schema for `system_template_option.template_types.processing_types`
 
 Optional:
 
-- `verification_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types--verification_types))
+* `verification_types` (Attributes List) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types--verification_types))
 
 Read-Only:
 
-- `processing_type` (String) The processing type of the template. e.g. `LINK` or `CODE`
-- `supported_tags` (Attributes) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types--supported_tags))
+* `processing_type` (String) The processing type of the template. e.g. `LINK` or `CODE`
+* `supported_tags` (Attributes) (see [below for nested schema](#nestedatt--system_template_option--template_types--processing_types--supported_tags))
 
 <a id="nestedatt--system_template_option--template_types--processing_types--verification_types"></a>
+
 ### Nested Schema for `system_template_option.template_types.processing_types.verification_types`
 
 Read-Only:
 
-- `usage_types` (Set of String) The usage type of the template. e.g. `MULTIFACTOR_AUTHENTICATION`
-- `verification_type` (String) The verification type of the template. e.g. `EMAIL`
-
+* `usage_types` (Set of String) The usage type of the template. e.g. `MULTIFACTOR_AUTHENTICATION`
+* `verification_type` (String) The verification type of the template. e.g. `EMAIL`
 
 <a id="nestedatt--system_template_option--template_types--processing_types--supported_tags"></a>
+
 ### Nested Schema for `system_template_option.template_types.processing_types.supported_tags`
 
 Read-Only:
 
-- `optional` (Set of String) This lists provides the optional tags supported in a template content.
-- `required` (Set of String) The required tags in a template. While creating a templates the required tags must be part of the content.
+* `optional` (Set of String) This lists provides the optional tags supported in a template content.
+* `required` (Set of String) The required tags in a template. While creating a templates the required tags must be part of the content.
 
 ## Filterable Fields
 
