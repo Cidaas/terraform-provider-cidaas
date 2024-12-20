@@ -160,7 +160,6 @@ type AppConfig struct {
 	MobileSettings             types.Object `tfsdk:"mobile_settings"`
 	SuggestVerificationMethods types.Object `tfsdk:"suggest_verification_methods"`
 	GroupRoleRestriction       types.Object `tfsdk:"group_role_restriction"`
-	BasicSettings              types.Object `tfsdk:"basic_settings"`
 
 	loginSpi                   *LoginSPI
 	groupSelection             *GroupSelection
@@ -168,7 +167,6 @@ type AppConfig struct {
 	mobileSettings             *AppMobileSettings
 	suggestVerificationMethods *SuggestVerificationMethods
 	groupRoleRestriction       *GroupRoleRestriction
-	basicSettings              *BasicSettings
 }
 
 type AllowedGroups struct {
@@ -367,10 +365,6 @@ func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 	if !w.GroupRoleRestriction.IsNull() && !w.GroupRoleRestriction.IsUnknown() {
 		w.groupRoleRestriction = &GroupRoleRestriction{}
 		diags = w.GroupRoleRestriction.As(ctx, w.groupRoleRestriction, basetypes.ObjectAsOptions{})
-	}
-	if !w.BasicSettings.IsNull() && !w.BasicSettings.IsUnknown() {
-		w.basicSettings = &BasicSettings{}
-		diags = w.BasicSettings.As(ctx, w.basicSettings, basetypes.ObjectAsOptions{})
 	}
 	return diags
 }
@@ -818,32 +812,6 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		}
 		grr.MatchCondition = plan.groupRoleRestriction.MatchCondition.ValueString()
 		app.GroupRoleRestriction = grr
-	}
-	if plan.basicSettings != nil {
-		basicSettings := &cidaas.BasicSettings{}
-		if !plan.RedirectURIS.IsNull() {
-			diags.Append(assignSetValues(ctx, plan.RedirectURIS, &basicSettings.RedirectURIs)...)
-		}
-		if !plan.AllowedLogoutUrls.IsNull() {
-			diags.Append(assignSetValues(ctx, plan.AllowedLogoutUrls, &basicSettings.AllowedLogoutUrls)...)
-		}
-		if !plan.AllowedScopes.IsNull() {
-			diags.Append(assignSetValues(ctx, plan.AllowedScopes, &basicSettings.AllowedScopes)...)
-		}
-		if !plan.basicSettings.ClientSecrets.IsNull() {
-			clientSecrets := make([]ClientSecret, 0, len(plan.basicSettings.ClientSecrets.Elements()))
-			diags = plan.basicSettings.ClientSecrets.ElementsAs(ctx, &clientSecrets, false)
-			target := []cidaas.ClientSecret{}
-
-			for _, value := range clientSecrets {
-				target = append(target, cidaas.ClientSecret{
-					ClientSecret:          value.ClientSecret.ValueString(),
-					ClientSecretExpiresAt: value.ClientSecretExpiresAt.ValueInt64(),
-				})
-			}
-			basicSettings.ClientSecrets = target
-		}
-		app.BasicSettings = basicSettings
 	}
 	return &app, diags
 }
@@ -1449,78 +1417,6 @@ func updateStateModel(res cidaas.AppResponse, state, config *AppConfig, operatio
 			)
 			state.GroupRoleRestriction = obj
 		}
-	}
-
-	if res.Data.BasicSettings != nil {
-		clientID := util.StringValueOrNull(&res.Data.ClientID)
-		redirectURIs := util.SetValueOrNull(res.Data.BasicSettings.RedirectURIs)
-		allowedLogoutUrls := util.SetValueOrNull(res.Data.BasicSettings.AllowedLogoutUrls)
-		allowedScopes := util.SetValueOrNull(res.Data.BasicSettings.AllowedScopes)
-
-		var clientSecrets []attr.Value
-		for _, cs := range res.Data.BasicSettings.ClientSecrets {
-			secret := cs.ClientSecret
-			csExpiresAt := cs.ClientSecretExpiresAt
-			clientSecret := types.ObjectValueMust(
-				map[string]attr.Type{
-					"client_secret":            types.StringType,
-					"client_secret_expires_at": types.Int64Type,
-				},
-				map[string]attr.Value{
-					"client_secret":            util.StringValueOrNull(&secret),
-					"client_secret_expires_at": util.Int64ValueOrNull(&csExpiresAt),
-				},
-			)
-			clientSecrets = append(clientSecrets, clientSecret)
-		}
-
-		basicSettings := types.ObjectValueMust(
-			map[string]attr.Type{
-				"client_id":           types.StringType,
-				"redirect_uris":       types.SetType{ElemType: types.StringType},
-				"allowed_logout_urls": types.SetType{ElemType: types.StringType},
-				"allowed_scopes":      types.SetType{ElemType: types.StringType},
-				"client_secrets": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-					"client_secret":            types.StringType,
-					"client_secret_expires_at": types.Int64Type,
-				}}},
-			},
-			map[string]attr.Value{
-				"client_id":           clientID,
-				"redirect_uris":       redirectURIs,
-				"allowed_logout_urls": allowedLogoutUrls,
-				"allowed_scopes":      allowedScopes,
-				"client_secrets": types.ListValueMust(types.ObjectType{AttrTypes: map[string]attr.Type{
-					"client_secret":            types.StringType,
-					"client_secret_expires_at": types.Int64Type,
-				}}, clientSecrets),
-			},
-		)
-		state.BasicSettings = basicSettings
-	} else {
-		basicSettings := types.ObjectValueMust(
-			map[string]attr.Type{
-				"client_id":           types.StringType,
-				"redirect_uris":       types.SetType{ElemType: types.StringType},
-				"allowed_logout_urls": types.SetType{ElemType: types.StringType},
-				"allowed_scopes":      types.SetType{ElemType: types.StringType},
-				"client_secrets": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-					"client_secret":            types.StringType,
-					"client_secret_expires_at": types.Int64Type,
-				}}},
-			},
-			map[string]attr.Value{
-				"client_id":           types.StringValue(res.Data.ClientID),
-				"redirect_uris":       util.SetValueOrNull(res.Data.RedirectURIS),
-				"allowed_logout_urls": util.SetValueOrNull(res.Data.AllowedLogoutUrls),
-				"allowed_scopes":      util.SetValueOrNull(res.Data.AllowedScopes),
-				"client_secrets": types.ListValueMust(types.ObjectType{AttrTypes: map[string]attr.Type{
-					"client_secret":            types.StringType,
-					"client_secret_expires_at": types.Int64Type,
-				}}, []attr.Value{}),
-			},
-		)
-		state.BasicSettings = basicSettings
 	}
 	return diags
 }
