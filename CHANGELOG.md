@@ -1,5 +1,17 @@
 ## Changelog
 
+### 3.3.7
+
+#### Enhancements
+
+- Attribute basic_settings no longer supported in resource cidaas_app.
+
+### 3.3.6
+
+#### Enhancements
+
+- Extend custom provider resource to support custom provider new api contract.
+
 ### 3.3.5
 
 #### Enhancements
@@ -20,21 +32,25 @@
 - cidaas_app import now ignore empty `group_role_restriction` objects in the api response fixing schema mismarch issue.
 
 ### 3.3.2
+
 #### Enhancements
 
 - Enhanced validation on attributes processing_type and usage_type in resource cidaas_template
 
 ### 3.3.1
+
 #### Enhanced Locale Support
 
 The provider now includes additional locales `de-BE`, `id`, `zh-Hans` and `zh-Hant`.
 
 ### 3.3.0
+
 #### Removed common_configs from resource app
 
 The attribute `common_configs` is removed from the resource cidaas_app as we introduce [terraform-cidaas-app](https://github.com/Cidaas/terraform-cidaas-app) module.
 
 ### 3.2.0
+
 #### Addition of datasources
 
 This release includes the following datasources:
@@ -65,11 +81,13 @@ The following attributes are added to the resource `cidaas_app`:
 - Fixed the issue **Consent Not Found** when the name of the consent resource is in uppercase during update & destroy
 
 ### 3.1.2
+
 #### Enhancements
 
 - **Multiple Password Policy Support:** Password Policy resource changed to support multiple policies
 
 ### 3.1.1
+
 #### Enhancements
 
 - **Locale Support for Template Resource:** Added support for the **rm** & **rm-CH** language code in the template resource.
@@ -87,18 +105,21 @@ This release includes the below new resources
 Please find the readme [here](https://github.com/Cidaas/terraform-provider-cidaas/blob/v3.1.0/README.md) to explore more on the new resources.
 
 ### 3.0.5
+
 #### Bug Fix
 
 - password_policy_ref empty string or null values can be passed as "" when configured.
 - Addressed the issue where computed attributes group_selection, login_spi & mobile_settings are not known after terraform apply, a default value {} is assigned to them.
 
 ### 3.0.4
+
 #### Bug Fix
 
 - **custom provider schema fix:** The issue with the sub attribute not aligning with the schema of the custom provider has been resolved.
 - **app schema fix**: The app resource's list nested attributes are now updated to align with the Cidaas API response.
 
 ### 3.0.3
+
 #### Enhancements
 
 - **Enhanced State Management:** Fixed state inconsistencies for attributes computed by Cidaas APIs due to dependencies or API support changes.
@@ -116,6 +137,7 @@ Please find the readme [here](https://github.com/Cidaas/terraform-provider-cidaa
 ### 3.0.1
 
 #### Removed
+
 - **URL Validation**: Removed strict URL validation that enforced URLs to start with `https://`.
 
 ### 3.0.0
@@ -139,19 +161,20 @@ Despite these improvements, some breaking changes are present. Users need to be 
 - Added support for internationalization in `cidaas_registration_field` and `cidaas_scope` with multi-language capabilities.
 - `cidaas_registration_field` now supports all the datatypes that Cidaas supports.
 
-
 ### 2.5.8
+
 #### Additions
 
 - resource cidaas_registration_page_field schema update to toggle `overwrite_with_null_value_from_social_provider` in SYSTEM fields.
 
 ### 2.5.7
+
 #### Additions
 
 - app_resource schema update to support `is_provider_visible` in customProviders, socialProviders & adProviders.
 
-
 ### 2.5.6
+
 #### Additions
 
 - `application_meta_data` added to support custom fields in cidaas_app resource.
@@ -170,7 +193,7 @@ Despite these improvements, some breaking changes are present. Users need to be 
 
 #### Bug Fixes
 
-- Fixed the issue **subject can not be empty for template_key EMAIL** even though subject is available in the terraform config file 
+- Fixed the issue **subject can not be empty for template_key EMAIL** even though subject is available in the terraform config file
 
 - app_key marked sensitive
 
