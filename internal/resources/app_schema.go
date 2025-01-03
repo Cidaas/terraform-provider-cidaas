@@ -566,6 +566,8 @@ var resourceAppSchema = schema.Schema{
 		"consent_refs": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
+			Computed:    true,
+			Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 		},
 		"communication_medium_verification": schema.StringAttribute{
 			Optional: true,

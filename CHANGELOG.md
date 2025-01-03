@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.3.8
+
+#### Bugfix
+
+- Fixed issue where empty `consent_refs` array was being omitted from API requests causing state inconsistency
+
 ### 3.3.7
 
 #### Enhancements
