@@ -79,7 +79,7 @@ type AppModel struct {
 	AllowedMfa                       []string                    `json:"allowed_mfa,omitempty"`
 	CaptchaRef                       string                      `json:"captcha_ref,omitempty"`
 	CaptchaRefs                      []string                    `json:"captcha_refs,omitempty"`
-	ConsentRefs                      []string                    `json:"consent_refs,omitempty"`
+	ConsentRefs                      []string                    `json:"consent_refs"`
 	CommunicationMediumVerification  string                      `json:"communication_medium_verification,omitempty"`
 	EmailVerificationRequired        *bool                       `json:"email_verification_required,omitempty"`
 	MobileNumberVerificationRequired *bool                       `json:"mobile_number_verification_required,omitempty"`
