@@ -125,15 +125,26 @@ resource "cidaas_custom_provider" "sample" {
 
 ### Optional
 
+- `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
 - `domains` (Set of String) The domains of the provider.
 - `logo_url` (String) The URL for the provider's logo.
 - `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
 - `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
 - `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
+- `userinfo_source` (String) Source of userinfo. Allowed values are `IDTOKEN` and `USERINFOENDPOINT`.
 
 ### Read-Only
 
 - `id` (String) The ID of the resource.
+
+<a id="nestedatt--amr_config"></a>
+### Nested Schema for `amr_config`
+
+Required:
+
+- `amr_value` (String)
+- `ext_amr_value` (String)
+
 
 <a id="nestedatt--scopes"></a>
 ### Nested Schema for `scopes`
@@ -150,27 +161,263 @@ Optional:
 
 Optional:
 
-- `address` (String)
-- `birthdate` (String)
+- `address` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--address))
+- `birthdate` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--birthdate))
 - `custom_fields` (Map of String)
-- `email` (String)
-- `email_verified` (String)
-- `family_name` (String)
-- `gender` (String)
-- `given_name` (String)
-- `locale` (String)
-- `middle_name` (String)
-- `mobile_number` (String)
-- `name` (String)
-- `nickname` (String)
-- `phone_number` (String)
-- `picture` (String)
-- `preferred_username` (String)
-- `profile` (String)
-- `sub` (String)
-- `updated_at` (String)
-- `website` (String)
-- `zoneinfo` (String)
+- `email` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email))
+- `email_verified` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--email_verified))
+- `family_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--family_name))
+- `gender` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--gender))
+- `given_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--given_name))
+- `locale` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--locale))
+- `middle_name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--middle_name))
+- `mobile_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--mobile_number))
+- `name` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--name))
+- `nickname` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--nickname))
+- `phone_number` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--phone_number))
+- `picture` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--picture))
+- `preferred_username` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--preferred_username))
+- `profile` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--profile))
+- `sub` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--sub))
+- `updated_at` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--updated_at))
+- `website` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--website))
+- `zoneinfo` (Attributes) (see [below for nested schema](#nestedatt--userinfo_fields--zoneinfo))
+
+<a id="nestedatt--userinfo_fields--address"></a>
+### Nested Schema for `userinfo_fields.address`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--birthdate"></a>
+### Nested Schema for `userinfo_fields.birthdate`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--email"></a>
+### Nested Schema for `userinfo_fields.email`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--email_verified"></a>
+### Nested Schema for `userinfo_fields.email_verified`
+
+Optional:
+
+- `default` (Boolean)
+- `ext_field_key` (String)
+
+
+<a id="nestedatt--userinfo_fields--family_name"></a>
+### Nested Schema for `userinfo_fields.family_name`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--gender"></a>
+### Nested Schema for `userinfo_fields.gender`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--given_name"></a>
+### Nested Schema for `userinfo_fields.given_name`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--locale"></a>
+### Nested Schema for `userinfo_fields.locale`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--middle_name"></a>
+### Nested Schema for `userinfo_fields.middle_name`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--mobile_number"></a>
+### Nested Schema for `userinfo_fields.mobile_number`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--name"></a>
+### Nested Schema for `userinfo_fields.name`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--nickname"></a>
+### Nested Schema for `userinfo_fields.nickname`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--phone_number"></a>
+### Nested Schema for `userinfo_fields.phone_number`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--picture"></a>
+### Nested Schema for `userinfo_fields.picture`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--preferred_username"></a>
+### Nested Schema for `userinfo_fields.preferred_username`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--profile"></a>
+### Nested Schema for `userinfo_fields.profile`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--sub"></a>
+### Nested Schema for `userinfo_fields.sub`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--updated_at"></a>
+### Nested Schema for `userinfo_fields.updated_at`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--website"></a>
+### Nested Schema for `userinfo_fields.website`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
+
+
+<a id="nestedatt--userinfo_fields--zoneinfo"></a>
+### Nested Schema for `userinfo_fields.zoneinfo`
+
+Required:
+
+- `ext_field_key` (String)
+
+Optional:
+
+- `default` (String)
 
 ## Import
 

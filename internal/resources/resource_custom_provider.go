@@ -56,6 +56,8 @@ type ProviderConfig struct {
 	UserinfoFields types.Object `tfsdk:"userinfo_fields"`
 	scopes         []*CpScope
 	userinfoFields *UserInfoField
+	AmrConfig      types.List   `tfsdk:"amr_config"`
+	UserinfoSource types.String `tfsdk:"userinfo_source"`
 }
 
 type CpScope struct {
@@ -64,28 +66,65 @@ type CpScope struct {
 	Recommended types.Bool   `tfsdk:"recommended"`
 }
 
+type UfNestedObject struct {
+	ExtFieldKey types.String `tfsdk:"ext_field_key"`
+	Default     types.String `tfsdk:"default"`
+}
+
+type UfEmailVerifiedNestedObject struct {
+	ExtFieldKey types.String `tfsdk:"ext_field_key"`
+	Default     types.Bool   `tfsdk:"default"`
+}
+
 type UserInfoField struct {
-	Name              types.String `tfsdk:"name"`
-	FamilyName        types.String `tfsdk:"family_name"`
-	GivenName         types.String `tfsdk:"given_name"`
-	MiddleName        types.String `tfsdk:"middle_name"`
-	Nickname          types.String `tfsdk:"nickname"`
-	PreferredUsername types.String `tfsdk:"preferred_username"`
-	Profile           types.String `tfsdk:"profile"`
-	Picture           types.String `tfsdk:"picture"`
-	Website           types.String `tfsdk:"website"`
-	Gender            types.String `tfsdk:"gender"`
-	Birthdate         types.String `tfsdk:"birthdate"`
-	Zoneinfo          types.String `tfsdk:"zoneinfo"`
-	Locale            types.String `tfsdk:"locale"`
-	UpdatedAt         types.String `tfsdk:"updated_at"`
-	Email             types.String `tfsdk:"email"`
-	EmailVerified     types.String `tfsdk:"email_verified"`
-	PhoneNumber       types.String `tfsdk:"phone_number"`
-	MobileNumber      types.String `tfsdk:"mobile_number"`
-	Address           types.String `tfsdk:"address"`
-	Sub               types.String `tfsdk:"sub"`
-	CustomFields      types.Map    `tfsdk:"custom_fields"`
+	Name              types.Object `tfsdk:"name"`
+	FamilyName        types.Object `tfsdk:"family_name"`
+	GivenName         types.Object `tfsdk:"given_name"`
+	MiddleName        types.Object `tfsdk:"middle_name"`
+	Nickname          types.Object `tfsdk:"nickname"`
+	PreferredUsername types.Object `tfsdk:"preferred_username"`
+	Profile           types.Object `tfsdk:"profile"`
+	Picture           types.Object `tfsdk:"picture"`
+	Website           types.Object `tfsdk:"website"`
+	Gender            types.Object `tfsdk:"gender"`
+	Birthdate         types.Object `tfsdk:"birthdate"`
+	Zoneinfo          types.Object `tfsdk:"zoneinfo"`
+	Locale            types.Object `tfsdk:"locale"`
+	UpdatedAt         types.Object `tfsdk:"updated_at"`
+	Email             types.Object `tfsdk:"email"`
+	EmailVerified     types.Object `tfsdk:"email_verified"`
+	PhoneNumber       types.Object `tfsdk:"phone_number"`
+	MobileNumber      types.Object `tfsdk:"mobile_number"`
+	Address           types.Object `tfsdk:"address"`
+	Sub               types.Object `tfsdk:"sub"`
+
+	name              *UfNestedObject
+	familyName        *UfNestedObject
+	givenName         *UfNestedObject
+	middleName        *UfNestedObject
+	nickname          *UfNestedObject
+	preferredUsername *UfNestedObject
+	profile           *UfNestedObject
+	picture           *UfNestedObject
+	website           *UfNestedObject
+	gender            *UfNestedObject
+	birthdate         *UfNestedObject
+	zoneinfo          *UfNestedObject
+	locale            *UfNestedObject
+	updatedAt         *UfNestedObject
+	email             *UfNestedObject
+	emailVerified     *UfEmailVerifiedNestedObject
+	phoneNumber       *UfNestedObject
+	mobileNumber      *UfNestedObject
+	address           *UfNestedObject
+	sub               *UfNestedObject
+
+	CustomFields types.Map `tfsdk:"custom_fields"`
+}
+
+type AmrConfig struct {
+	AmrValue    types.String `tfsdk:"amr_value"`
+	ExtAmrValue types.String `tfsdk:"ext_amr_value"`
 }
 
 func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
@@ -93,10 +132,43 @@ func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 	if !pc.UserinfoFields.IsNull() {
 		pc.userinfoFields = &UserInfoField{}
 		diags = pc.UserinfoFields.As(ctx, pc.userinfoFields, basetypes.ObjectAsOptions{})
+
+		extractField := func(field types.Object, target **UfNestedObject) {
+			if !field.IsNull() && !field.IsUnknown() {
+				*target = &UfNestedObject{}
+				diags.Append(field.As(ctx, *target, basetypes.ObjectAsOptions{})...)
+			}
+		}
+
+		extractField(pc.userinfoFields.Name, &pc.userinfoFields.name)
+		extractField(pc.userinfoFields.FamilyName, &pc.userinfoFields.familyName)
+		extractField(pc.userinfoFields.GivenName, &pc.userinfoFields.givenName)
+		extractField(pc.userinfoFields.MiddleName, &pc.userinfoFields.middleName)
+		extractField(pc.userinfoFields.Nickname, &pc.userinfoFields.nickname)
+		extractField(pc.userinfoFields.PreferredUsername, &pc.userinfoFields.preferredUsername)
+		extractField(pc.userinfoFields.Profile, &pc.userinfoFields.profile)
+		extractField(pc.userinfoFields.Picture, &pc.userinfoFields.picture)
+		extractField(pc.userinfoFields.Website, &pc.userinfoFields.website)
+		extractField(pc.userinfoFields.Gender, &pc.userinfoFields.gender)
+		extractField(pc.userinfoFields.Birthdate, &pc.userinfoFields.birthdate)
+		extractField(pc.userinfoFields.Zoneinfo, &pc.userinfoFields.zoneinfo)
+		extractField(pc.userinfoFields.Locale, &pc.userinfoFields.locale)
+		extractField(pc.userinfoFields.UpdatedAt, &pc.userinfoFields.updatedAt)
+		extractField(pc.userinfoFields.Email, &pc.userinfoFields.email)
+		extractField(pc.userinfoFields.PhoneNumber, &pc.userinfoFields.phoneNumber)
+		extractField(pc.userinfoFields.MobileNumber, &pc.userinfoFields.mobileNumber)
+		extractField(pc.userinfoFields.Address, &pc.userinfoFields.address)
+		extractField(pc.userinfoFields.Sub, &pc.userinfoFields.sub)
+
+		if !pc.userinfoFields.EmailVerified.IsNull() && !pc.userinfoFields.EmailVerified.IsUnknown() {
+			pc.userinfoFields.emailVerified = &UfEmailVerifiedNestedObject{}
+			diags.Append(pc.userinfoFields.EmailVerified.As(ctx, &pc.userinfoFields.emailVerified, basetypes.ObjectAsOptions{})...)
+		}
 	}
+
 	if !pc.Scopes.IsNull() {
 		pc.scopes = make([]*CpScope, 0, len(pc.Scopes.Elements()))
-		diags = pc.Scopes.ElementsAs(ctx, &pc.scopes, false)
+		diags.Append(pc.Scopes.ElementsAs(ctx, &pc.scopes, false)...)
 	}
 	return diags
 }
@@ -193,66 +265,40 @@ var customProviderSchema = schema.Schema{
 			MarkdownDescription: "Object containing various user information fields with their values." +
 				" The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization",
 			Attributes: map[string]schema.Attribute{
-				"name": schema.StringAttribute{
+				"name":               createStandardNestedAttribute(),
+				"family_name":        createStandardNestedAttribute(),
+				"given_name":         createStandardNestedAttribute(),
+				"middle_name":        createStandardNestedAttribute(),
+				"nickname":           createStandardNestedAttribute(),
+				"preferred_username": createStandardNestedAttribute(),
+				"profile":            createStandardNestedAttribute(),
+				"picture":            createStandardNestedAttribute(),
+				"website":            createStandardNestedAttribute(),
+				"gender":             createStandardNestedAttribute(),
+				"birthdate":          createStandardNestedAttribute(),
+				"zoneinfo":           createStandardNestedAttribute(),
+				"locale":             createStandardNestedAttribute(),
+				"updated_at":         createStandardNestedAttribute(),
+				"email":              createStandardNestedAttribute(),
+				"phone_number":       createStandardNestedAttribute(),
+				"mobile_number":      createStandardNestedAttribute(),
+				"address":            createStandardNestedAttribute(),
+				"sub":                createStandardNestedAttribute(),
+
+				"email_verified": schema.SingleNestedAttribute{
 					Optional: true,
+					Attributes: map[string]schema.Attribute{
+						"ext_field_key": schema.StringAttribute{
+							Optional: true,
+						},
+						"default": schema.BoolAttribute{
+							Optional: true,
+							Computed: true,
+							Default:  booldefault.StaticBool(true),
+						},
+					},
 				},
-				"family_name": schema.StringAttribute{
-					Optional: true,
-				},
-				"given_name": schema.StringAttribute{
-					Optional: true,
-				},
-				"middle_name": schema.StringAttribute{
-					Optional: true,
-				},
-				"nickname": schema.StringAttribute{
-					Optional: true,
-				},
-				"preferred_username": schema.StringAttribute{
-					Optional: true,
-				},
-				"profile": schema.StringAttribute{
-					Optional: true,
-				},
-				"picture": schema.StringAttribute{
-					Optional: true,
-				},
-				"website": schema.StringAttribute{
-					Optional: true,
-				},
-				"gender": schema.StringAttribute{
-					Optional: true,
-				},
-				"birthdate": schema.StringAttribute{
-					Optional: true,
-				},
-				"zoneinfo": schema.StringAttribute{
-					Optional: true,
-				},
-				"locale": schema.StringAttribute{
-					Optional: true,
-				},
-				"updated_at": schema.StringAttribute{
-					Optional: true,
-				},
-				"email": schema.StringAttribute{
-					Optional: true,
-				},
-				"email_verified": schema.StringAttribute{
-					Optional: true,
-				},
-				"phone_number": schema.StringAttribute{
-					Optional: true,
-				},
-				"mobile_number": schema.StringAttribute{
-					Optional: true,
-				},
-				"address": schema.StringAttribute{
-					Optional: true,
-				},
-				"sub": schema.StringAttribute{
-					Optional: true,
-				},
+
 				"custom_fields": schema.MapAttribute{
 					ElementType: types.StringType,
 					Optional:    true,
@@ -264,6 +310,27 @@ var customProviderSchema = schema.Schema{
 			ElementType:         types.StringType,
 			MarkdownDescription: "The domains of the provider.",
 			Optional:            true,
+		},
+		"amr_config": schema.ListNestedAttribute{
+			Optional:            true,
+			MarkdownDescription: "AMR configuration mapping.",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"amr_value": schema.StringAttribute{
+						Required: true,
+					},
+					"ext_amr_value": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
+		},
+		"userinfo_source": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Source of userinfo. Allowed values are `IDTOKEN` and `USERINFOENDPOINT`.",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"IDTOKEN", "USERINFOENDPOINT"}...),
+			},
 		},
 	},
 }
@@ -336,62 +403,87 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	metadataAttributeTypes := map[string]attr.Type{
-		"name":               types.StringType,
-		"family_name":        types.StringType,
-		"given_name":         types.StringType,
-		"middle_name":        types.StringType,
-		"nickname":           types.StringType,
-		"preferred_username": types.StringType,
-		"profile":            types.StringType,
-		"picture":            types.StringType,
-		"website":            types.StringType,
-		"gender":             types.StringType,
-		"birthdate":          types.StringType,
-		"zoneinfo":           types.StringType,
-		"locale":             types.StringType,
-		"updated_at":         types.StringType,
-		"email":              types.StringType,
-		"email_verified":     types.StringType,
-		"phone_number":       types.StringType,
-		"mobile_number":      types.StringType,
-		"address":            types.StringType,
-		"sub":                types.StringType,
+	standardFields := []string{
+		"name", "family_name", "given_name", "middle_name", "nickname",
+		"preferred_username", "profile", "picture", "website", "gender",
+		"birthdate", "zoneinfo", "locale", "updated_at", "email",
+		"phone_number", "mobile_number", "address", "sub",
 	}
 
-	metadataAttributes := map[string]attr.Value{
-		"name":               types.StringNull(),
-		"family_name":        types.StringNull(),
-		"given_name":         types.StringNull(),
-		"middle_name":        types.StringNull(),
-		"nickname":           types.StringNull(),
-		"preferred_username": types.StringNull(),
-		"profile":            types.StringNull(),
-		"picture":            types.StringNull(),
-		"website":            types.StringNull(),
-		"gender":             types.StringNull(),
-		"birthdate":          types.StringNull(),
-		"zoneinfo":           types.StringNull(),
-		"locale":             types.StringNull(),
-		"updated_at":         types.StringNull(),
-		"email":              types.StringNull(),
-		"email_verified":     types.StringNull(),
-		"phone_number":       types.StringNull(),
-		"mobile_number":      types.StringNull(),
-		"address":            types.StringNull(),
-		"sub":                types.StringNull(),
+	metadataAttributeTypes := make(map[string]attr.Type)
+	metadataAttributes := make(map[string]attr.Value)
+
+	standardNestedType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"ext_field_key": types.StringType,
+			"default":       types.StringType,
+		},
 	}
+
+	emailVerifiedType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"ext_field_key": types.StringType,
+			"default":       types.BoolType,
+		},
+	}
+
+	for _, field := range standardFields {
+		metadataAttributeTypes[field] = standardNestedType
+		metadataAttributes[field] = types.ObjectNull(standardNestedType.AttrTypes)
+	}
+
+	metadataAttributeTypes["email_verified"] = emailVerifiedType
+	metadataAttributes["email_verified"] = types.ObjectNull(emailVerifiedType.AttrTypes)
 
 	customFields := map[string]attr.Value{}
 	hasCustomfield := false
 
-	for key, field := range res.Data.UserinfoFields {
+	for key, fieldInterface := range res.Data.UserinfoFields {
 		if strings.HasPrefix(key, "customFields.") {
-			customFieldKey := strings.TrimPrefix(key, "customFields.")
-			customFields[customFieldKey] = types.StringValue(field.ExtFieldKey)
-			hasCustomfield = true
-		} else if _, exists := metadataAttributes[key]; exists {
-			metadataAttributes[key] = types.StringValue(field.ExtFieldKey)
+			if fieldMap, ok := fieldInterface.(map[string]interface{}); ok {
+				customFieldKey := strings.TrimPrefix(key, "customFields.")
+				if extFieldKey, exists := fieldMap["extFieldKey"].(string); exists {
+					customFields[customFieldKey] = types.StringValue(extFieldKey)
+					hasCustomfield = true
+				}
+			}
+			continue
+		}
+
+		if _, exists := metadataAttributeTypes[key]; exists {
+			if key == "email_verified" {
+				if fieldMap, ok := fieldInterface.(map[string]interface{}); ok {
+					extFieldKey, _ := fieldMap["extFieldKey"].(string)
+					defaultValue, _ := fieldMap["default"].(bool)
+					metadataAttributes[key] = types.ObjectValueMust(
+						metadataAttributeTypes[key].(types.ObjectType).AttrTypes,
+						map[string]attr.Value{
+							"ext_field_key": types.StringValue(extFieldKey),
+							"default":       types.BoolValue(defaultValue),
+						},
+					)
+				}
+			} else {
+				if fieldMap, ok := fieldInterface.(map[string]interface{}); ok {
+					extFieldKey, _ := fieldMap["extFieldKey"].(string)
+					defaultValue, hasDefault := fieldMap["default"].(string)
+
+					var defaultAttrValue attr.Value
+					if hasDefault && defaultValue != "" {
+						defaultAttrValue = types.StringValue(defaultValue)
+					} else {
+						defaultAttrValue = types.StringNull()
+					}
+
+					metadataAttributes[key] = types.ObjectValueMust(
+						metadataAttributeTypes[key].(types.ObjectType).AttrTypes,
+						map[string]attr.Value{
+							"ext_field_key": types.StringValue(extFieldKey),
+							"default":       defaultAttrValue,
+						},
+					)
+				}
+			}
 		}
 	}
 
@@ -407,6 +499,42 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	if len(res.Data.AmrConfig) > 0 {
+		amrObjectType := types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"amr_value":     types.StringType,
+				"ext_amr_value": types.StringType,
+			},
+		}
+
+		amrValues := make([]attr.Value, 0, len(res.Data.AmrConfig))
+		for _, amrConfig := range res.Data.AmrConfig {
+			amrValues = append(amrValues, types.ObjectValueMust(
+				amrObjectType.AttrTypes,
+				map[string]attr.Value{
+					"amr_value":     types.StringValue(amrConfig.AmrValue),
+					"ext_amr_value": types.StringValue(amrConfig.ExtAmrValue),
+				},
+			))
+		}
+
+		state.AmrConfig, diag = types.ListValueFrom(ctx, amrObjectType, amrValues)
+		resp.Diagnostics.Append(diag...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	} else {
+		state.AmrConfig = types.ListNull(types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"amr_value":     types.StringType,
+				"ext_amr_value": types.StringType,
+			},
+		})
+	}
+
+	state.UserinfoSource = util.StringValueOrNull(&res.Data.UserInfoSource)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -450,6 +578,7 @@ func (r *CustomProvider) ImportState(ctx context.Context, req resource.ImportSta
 
 func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.CustomProviderModel, diag.Diagnostics) {
 	var cp cidaas.CustomProviderModel
+	var diags diag.Diagnostics
 
 	cp.StandardType = plan.StandardType.ValueString()
 	cp.AuthorizationEndpoint = plan.AuthorizationEndpoint.ValueString()
@@ -461,9 +590,9 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 	cp.ClientID = plan.ClientID.ValueString()
 	cp.ClientSecret = plan.ClientSecret.ValueString()
 
-	diag := plan.Domains.ElementsAs(ctx, &cp.Domains, false)
-	if diag.HasError() {
-		return nil, diag
+	diags = plan.Domains.ElementsAs(ctx, &cp.Domains, false)
+	if diags.HasError() {
+		return nil, diags
 	}
 	var childScopes []cidaas.ScopeChild
 	for _, v := range plan.scopes {
@@ -477,135 +606,177 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 	cp.Scopes.DisplayLabel = plan.ScopeDisplayLabel.ValueString()
 
 	if !plan.UserinfoFields.IsNull() {
-		// Initialize the map
-		cp.UserinfoFields = make(map[string]*cidaas.UserInfoField)
+		cp.UserinfoFields = make(map[string]interface{})
 
-		// Add standard fields
-		if !plan.userinfoFields.Name.IsNull() {
-			cp.UserinfoFields["name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Name.ValueString()}
-		}
-		if !plan.userinfoFields.FamilyName.IsNull() {
-			cp.UserinfoFields["family_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.FamilyName.ValueString()}
-		}
-		if !plan.userinfoFields.GivenName.IsNull() {
-			cp.UserinfoFields["given_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.GivenName.ValueString()}
-		}
-		if !plan.userinfoFields.MiddleName.IsNull() {
-			cp.UserinfoFields["middle_name"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.MiddleName.ValueString()}
-		}
-		if !plan.userinfoFields.Nickname.IsNull() {
-			cp.UserinfoFields["nickname"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Nickname.ValueString()}
-		}
-		if !plan.userinfoFields.PreferredUsername.IsNull() {
-			cp.UserinfoFields["preferred_username"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.PreferredUsername.ValueString()}
-		}
-		if !plan.userinfoFields.Profile.IsNull() {
-			cp.UserinfoFields["profile"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Profile.ValueString()}
-		}
-		if !plan.userinfoFields.Picture.IsNull() {
-			cp.UserinfoFields["picture"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Picture.ValueString()}
-		}
-		if !plan.userinfoFields.Website.IsNull() {
-			cp.UserinfoFields["website"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Website.ValueString()}
-		}
-		if !plan.userinfoFields.Gender.IsNull() {
-			cp.UserinfoFields["gender"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Gender.ValueString()}
-		}
-		if !plan.userinfoFields.Birthdate.IsNull() {
-			cp.UserinfoFields["birthdate"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Birthdate.ValueString()}
-		}
-		if !plan.userinfoFields.Zoneinfo.IsNull() {
-			cp.UserinfoFields["zoneinfo"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Zoneinfo.ValueString()}
-		}
-		if !plan.userinfoFields.Locale.IsNull() {
-			cp.UserinfoFields["locale"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Locale.ValueString()}
-		}
-		if !plan.userinfoFields.UpdatedAt.IsNull() {
-			cp.UserinfoFields["updated_at"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.UpdatedAt.ValueString()}
-		}
-		if !plan.userinfoFields.Email.IsNull() {
-			cp.UserinfoFields["email"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Email.ValueString()}
-		}
-		if !plan.userinfoFields.EmailVerified.IsNull() {
-			cp.UserinfoFields["email_verified"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.EmailVerified.ValueString()}
-		}
-		if !plan.userinfoFields.PhoneNumber.IsNull() {
-			cp.UserinfoFields["phone_number"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.PhoneNumber.ValueString()}
-		}
-		if !plan.userinfoFields.MobileNumber.IsNull() {
-			cp.UserinfoFields["mobile_number"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.MobileNumber.ValueString()}
-		}
-		if !plan.userinfoFields.Address.IsNull() {
-			cp.UserinfoFields["address"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Address.ValueString()}
-		}
-		if !plan.userinfoFields.Sub.IsNull() {
-			cp.UserinfoFields["sub"] = &cidaas.UserInfoField{ExtFieldKey: plan.userinfoFields.Sub.ValueString()}
+		addUserInfoField := func(fieldName string, obj types.Object, nestedObj *UfNestedObject) {
+			if !obj.IsNull() && nestedObj != nil && !nestedObj.ExtFieldKey.IsNull() {
+				cp.UserinfoFields[fieldName] = &cidaas.UserInfoField{
+					ExtFieldKey: nestedObj.ExtFieldKey.ValueString(),
+					Default:     nestedObj.Default.ValueString(),
+				}
+			}
 		}
 
-		// Handle custom fields
+		addUserInfoField("name", plan.userinfoFields.Name, plan.userinfoFields.name)
+		addUserInfoField("family_name", plan.userinfoFields.FamilyName, plan.userinfoFields.familyName)
+		addUserInfoField("given_name", plan.userinfoFields.GivenName, plan.userinfoFields.givenName)
+		addUserInfoField("middle_name", plan.userinfoFields.MiddleName, plan.userinfoFields.middleName)
+		addUserInfoField("nickname", plan.userinfoFields.Nickname, plan.userinfoFields.nickname)
+		addUserInfoField("preferred_username", plan.userinfoFields.PreferredUsername, plan.userinfoFields.preferredUsername)
+		addUserInfoField("profile", plan.userinfoFields.Profile, plan.userinfoFields.profile)
+		addUserInfoField("picture", plan.userinfoFields.Picture, plan.userinfoFields.picture)
+		addUserInfoField("website", plan.userinfoFields.Website, plan.userinfoFields.website)
+		addUserInfoField("gender", plan.userinfoFields.Gender, plan.userinfoFields.gender)
+		addUserInfoField("birthdate", plan.userinfoFields.Birthdate, plan.userinfoFields.birthdate)
+		addUserInfoField("zoneinfo", plan.userinfoFields.Zoneinfo, plan.userinfoFields.zoneinfo)
+		addUserInfoField("locale", plan.userinfoFields.Locale, plan.userinfoFields.locale)
+		addUserInfoField("updated_at", plan.userinfoFields.UpdatedAt, plan.userinfoFields.updatedAt)
+		addUserInfoField("email", plan.userinfoFields.Email, plan.userinfoFields.email)
+		addUserInfoField("phone_number", plan.userinfoFields.PhoneNumber, plan.userinfoFields.phoneNumber)
+		addUserInfoField("mobile_number", plan.userinfoFields.MobileNumber, plan.userinfoFields.mobileNumber)
+		addUserInfoField("address", plan.userinfoFields.Address, plan.userinfoFields.address)
+		addUserInfoField("sub", plan.userinfoFields.Sub, plan.userinfoFields.sub)
+
+		if !plan.userinfoFields.EmailVerified.IsNull() &&
+			plan.userinfoFields.emailVerified != nil &&
+			!plan.userinfoFields.emailVerified.ExtFieldKey.IsNull() {
+			cp.UserinfoFields["email_verified"] = &cidaas.UserInfoFieldBoolean{
+				ExtFieldKey: plan.userinfoFields.emailVerified.ExtFieldKey.ValueString(),
+				Default:     plan.userinfoFields.emailVerified.Default.ValueBool(),
+			}
+		}
+
 		if !plan.userinfoFields.CustomFields.IsNull() {
 			var cfMap map[string]string
-			diag = plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)
-			if diag.HasError() {
-				return nil, diag
+			diags.Append(plan.userinfoFields.CustomFields.ElementsAs(ctx, &cfMap, false)...)
+			if diags.HasError() {
+				return nil, diags
 			}
 
-			// Add custom fields with "customFields." prefix
 			for key, value := range cfMap {
-				cp.UserinfoFields["customFields."+key] = &cidaas.UserInfoField{ExtFieldKey: value}
+				cp.UserinfoFields["customFields."+key] = &cidaas.UserInfoField{
+					ExtFieldKey: value,
+				}
 			}
 		}
 	}
 
-	return &cp, nil
+	if !plan.AmrConfig.IsNull() {
+		var amrConfigs []AmrConfig
+		diags.Append(plan.AmrConfig.ElementsAs(ctx, &amrConfigs, false)...)
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		cp.AmrConfig = make([]cidaas.AmrConfig, len(amrConfigs))
+		for i, config := range amrConfigs {
+			cp.AmrConfig[i] = cidaas.AmrConfig{
+				AmrValue:    config.AmrValue.ValueString(),
+				ExtAmrValue: config.ExtAmrValue.ValueString(),
+			}
+		}
+	}
+
+	if !plan.UserinfoSource.IsNull() {
+		cp.UserInfoSource = plan.UserinfoSource.ValueString()
+	}
+
+	return &cp, diags
 }
 
 func userInfoDefaultValue() basetypes.ObjectValue {
-	return types.ObjectValueMust(
-		map[string]attr.Type{
-			"name":               types.StringType,
-			"family_name":        types.StringType,
-			"given_name":         types.StringType,
-			"middle_name":        types.StringType,
-			"nickname":           types.StringType,
-			"preferred_username": types.StringType,
-			"profile":            types.StringType,
-			"picture":            types.StringType,
-			"website":            types.StringType,
-			"gender":             types.StringType,
-			"birthdate":          types.StringType,
-			"zoneinfo":           types.StringType,
-			"locale":             types.StringType,
-			"updated_at":         types.StringType,
-			"email":              types.StringType,
-			"email_verified":     types.StringType,
-			"phone_number":       types.StringType,
-			"mobile_number":      types.StringType,
-			"address":            types.StringType,
-			"sub":                types.StringType,
-			"custom_fields":      types.MapType{ElemType: types.StringType},
+	standardFieldType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"ext_field_key": types.StringType,
+			"default":       types.StringType,
 		},
-		map[string]attr.Value{
-			"name":               types.StringValue("name"),
-			"family_name":        types.StringValue("family_name"),
-			"given_name":         types.StringValue("given_name"),
-			"middle_name":        types.StringValue("middle_name"),
-			"nickname":           types.StringValue("nickname"),
-			"preferred_username": types.StringValue("preferred_username"),
-			"profile":            types.StringValue("profile"),
-			"picture":            types.StringValue("picture"),
-			"website":            types.StringValue("website"),
-			"gender":             types.StringValue("gender"),
-			"birthdate":          types.StringValue("birthdate"),
-			"zoneinfo":           types.StringValue("zoneinfo"),
-			"locale":             types.StringValue("locale"),
-			"updated_at":         types.StringValue("updated_at"),
-			"email":              types.StringValue("email"),
-			"email_verified":     types.StringValue("email_verified"),
-			"phone_number":       types.StringValue("phone_number"),
-			"mobile_number":      types.StringValue("mobile_number"),
-			"address":            types.StringValue("address"),
-			"sub":                types.StringValue("sub"),
-			"custom_fields":      types.MapNull(types.StringType),
-		})
+	}
+
+	emailVerifiedType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"ext_field_key": types.StringType,
+			"default":       types.BoolType,
+		},
+	}
+
+	attrTypes := map[string]attr.Type{
+		"name":               standardFieldType,
+		"family_name":        standardFieldType,
+		"given_name":         standardFieldType,
+		"middle_name":        standardFieldType,
+		"nickname":           standardFieldType,
+		"preferred_username": standardFieldType,
+		"profile":            standardFieldType,
+		"picture":            standardFieldType,
+		"website":            standardFieldType,
+		"gender":             standardFieldType,
+		"birthdate":          standardFieldType,
+		"zoneinfo":           standardFieldType,
+		"locale":             standardFieldType,
+		"updated_at":         standardFieldType,
+		"email":              standardFieldType,
+		"email_verified":     emailVerifiedType,
+		"phone_number":       standardFieldType,
+		"mobile_number":      standardFieldType,
+		"address":            standardFieldType,
+		"sub":                standardFieldType,
+		"custom_fields":      types.MapType{ElemType: types.StringType},
+	}
+
+	assignedValue := func(value string) basetypes.ObjectValue {
+		standardFieldValue := types.ObjectValueMust(
+			standardFieldType.AttrTypes,
+			map[string]attr.Value{
+				"ext_field_key": types.StringValue(value),
+				"default":       types.StringNull(),
+			},
+		)
+		return standardFieldValue
+	}
+
+	attrValues := map[string]attr.Value{
+		"name":               assignedValue("name"),
+		"family_name":        assignedValue("family_name"),
+		"given_name":         assignedValue("given_name"),
+		"middle_name":        assignedValue("middle_name"),
+		"nickname":           assignedValue("nickname"),
+		"preferred_username": assignedValue("preferred_username"),
+		"profile":            assignedValue("profile"),
+		"picture":            assignedValue("picture"),
+		"website":            assignedValue("website"),
+		"gender":             assignedValue("gender"),
+		"birthdate":          assignedValue("birthdate"),
+		"zoneinfo":           assignedValue("zoneinfo"),
+		"locale":             assignedValue("locale"),
+		"updated_at":         assignedValue("updated_at"),
+		"email":              assignedValue("email"),
+		"email_verified": types.ObjectValueMust(
+			emailVerifiedType.AttrTypes,
+			map[string]attr.Value{
+				"ext_field_key": types.StringValue("email_verified"),
+				"default":       types.BoolValue(true),
+			},
+		),
+		"phone_number":  assignedValue("phone_number"),
+		"mobile_number": assignedValue("mobile_number"),
+		"address":       assignedValue("address"),
+		"sub":           assignedValue("sub"),
+		"custom_fields": types.MapNull(types.StringType),
+	}
+
+	return types.ObjectValueMust(attrTypes, attrValues)
+}
+
+func createStandardNestedAttribute() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Optional: true,
+		Attributes: map[string]schema.Attribute{
+			"ext_field_key": schema.StringAttribute{
+				Required: true,
+			},
+			"default": schema.StringAttribute{
+				Optional: true,
+			},
+		},
+	}
 }
