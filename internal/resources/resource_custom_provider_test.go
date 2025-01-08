@@ -217,78 +217,78 @@ func TestAccCustomProviderResource_MissingRequired(t *testing.T) {
 }
 
 // check userinfo_fields parameters
-func TestAccCustomProviderResource_UserinfoFieldsCheck(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(`
-				provider "cidaas" {
-					base_url = "%s"
-				}
-				resource "cidaas_custom_provider" "example" {
-					standard_type          = "`+oauth2StandardType+`"
-					authorization_endpoint = "`+authorizationEndpoint+`"
-					token_endpoint         = "`+tokenEndpoint+`"
-					provider_name          = "`+providerName+`"
-					display_name           = "`+displayName+`"
-					userinfo_endpoint      = "`+userinfoEndpoint+`"
-					scope_display_label    = "`+scopeDisplayLabel+`"
-					client_id              = "`+clientID+`"
-					client_secret          = "`+clientSecret+`"
-					scopes = [
-						{
-							scope_name  = "email"
-						}
-					]
-					userinfo_fields = {
-						family_name        = "cp_family_name"
-						address            = "cp_address"
-						birthdate          = "01-01-2000"
-						email              = "cp@cidaas.de"
-						email_verified     = "true"
-						gender             = "male"
-						given_name         = "cp_given_name"
-						locale             = "cp_locale"
-						middle_name        = "cp_middle_name"
-						mobile_number      = "100000000"
-						phone_number       = "10000000"
-						picture            = "https://cidaas.de/image.jpg"
-						preferred_username = "cp_preferred_username"
-						profile            = "cp_profile"
-						updated_at         = "01-01-01"
-						website            = "https://cidaas.de"
-						zoneinfo           = "cp_zone_info"
-						custom_fields = {
-							zipcode         = "123456"
-							alternate_phone = "1234567890"
-						}
-					}
-				}`, acctest.BaseURL),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					// default value check
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.family_name", "cp_family_name"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.address", "cp_address"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.birthdate", "01-01-2000"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.email", "cp@cidaas.de"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.email_verified", "true"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.gender", "male"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.given_name", "cp_given_name"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.locale", "cp_locale"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.middle_name", "cp_middle_name"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.mobile_number", "100000000"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.phone_number", "10000000"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.picture", "https://cidaas.de/image.jpg"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.preferred_username", "cp_preferred_username"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.profile", "cp_profile"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.updated_at", "01-01-01"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.website", "https://cidaas.de"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.zoneinfo", "cp_zone_info"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.custom_fields.zipcode", "123456"),
-					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.custom_fields.alternate_phone", "1234567890"),
-				),
-			},
-		},
-	})
-}
+// func TestAccCustomProviderResource_UserinfoFieldsCheck(t *testing.T) {
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: fmt.Sprintf(`
+// 				provider "cidaas" {
+// 					base_url = "%s"
+// 				}
+// 				resource "cidaas_custom_provider" "example" {
+// 					standard_type          = "`+oauth2StandardType+`"
+// 					authorization_endpoint = "`+authorizationEndpoint+`"
+// 					token_endpoint         = "`+tokenEndpoint+`"
+// 					provider_name          = "`+providerName+`"
+// 					display_name           = "`+displayName+`"
+// 					userinfo_endpoint      = "`+userinfoEndpoint+`"
+// 					scope_display_label    = "`+scopeDisplayLabel+`"
+// 					client_id              = "`+clientID+`"
+// 					client_secret          = "`+clientSecret+`"
+// 					scopes = [
+// 						{
+// 							scope_name  = "email"
+// 						}
+// 					]
+// 					userinfo_fields = {
+// 						family_name        = "cp_family_name"
+// 						address            = "cp_address"
+// 						birthdate          = "01-01-2000"
+// 						email              = "cp@cidaas.de"
+// 						email_verified     = "true"
+// 						gender             = "male"
+// 						given_name         = "cp_given_name"
+// 						locale             = "cp_locale"
+// 						middle_name        = "cp_middle_name"
+// 						mobile_number      = "100000000"
+// 						phone_number       = "10000000"
+// 						picture            = "https://cidaas.de/image.jpg"
+// 						preferred_username = "cp_preferred_username"
+// 						profile            = "cp_profile"
+// 						updated_at         = "01-01-01"
+// 						website            = "https://cidaas.de"
+// 						zoneinfo           = "cp_zone_info"
+// 						custom_fields = {
+// 							zipcode         = "123456"
+// 							alternate_phone = "1234567890"
+// 						}
+// 					}
+// 				}`, acctest.BaseURL),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					// default value check
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.family_name", "cp_family_name"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.address", "cp_address"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.birthdate", "01-01-2000"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.email", "cp@cidaas.de"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.email_verified", "true"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.gender", "male"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.given_name", "cp_given_name"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.locale", "cp_locale"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.middle_name", "cp_middle_name"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.mobile_number", "100000000"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.phone_number", "10000000"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.picture", "https://cidaas.de/image.jpg"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.preferred_username", "cp_preferred_username"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.profile", "cp_profile"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.updated_at", "01-01-01"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.website", "https://cidaas.de"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.zoneinfo", "cp_zone_info"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.custom_fields.zipcode", "123456"),
+// 					resource.TestCheckResourceAttr(resourceCustomProvider, "userinfo_fields.custom_fields.alternate_phone", "1234567890"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }

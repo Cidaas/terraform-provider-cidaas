@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.3.9
+
+#### Enhancement
+
+- Schema of the attribute `userinfo_fields` in resource **cidaas_custom_provider** changed to match cidaas api to suppoort external field key and default value.
+- Attributses `amr_config` and `userinfo_source` are supported now in resource **cidaas_custom_provider**.
+
 ### 3.3.8
 
 #### Bugfix
