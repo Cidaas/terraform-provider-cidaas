@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -180,75 +181,71 @@ var socialProviderSchema = schema.Schema{
 			Attributes: map[string]schema.Attribute{
 				"required_claims": schema.SingleNestedAttribute{
 					Optional:            true,
+					Computed:            true,
 					MarkdownDescription: "Defines the claims that are required from the social provider.",
 					Attributes: map[string]schema.Attribute{
 						"user_info": schema.SetAttribute{
 							ElementType:         types.StringType,
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "A list of user information claims that are required.",
 						},
 						"id_token": schema.SetAttribute{
 							ElementType:         types.StringType,
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "A list of ID token claims that are required.",
 						},
 					},
+					Default: objectdefault.StaticValue(
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"user_info": types.SetType{ElemType: types.StringType},
+								"id_token":  types.SetType{ElemType: types.StringType},
+							},
+							map[string]attr.Value{
+								"user_info": types.SetValueMust(types.StringType, []attr.Value{}),
+								"id_token":  types.SetValueMust(types.StringType, []attr.Value{}),
+							},
+						),
+					),
 				},
 				"optional_claims": schema.SingleNestedAttribute{
 					Optional:            true,
+					Computed:            true,
 					MarkdownDescription: "Defines the claims that are optional from the social provider.",
 					Attributes: map[string]schema.Attribute{
 						"user_info": schema.SetAttribute{
 							ElementType:         types.StringType,
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "A list of user information claims that are optional.",
 						},
 						"id_token": schema.SetAttribute{
 							ElementType:         types.StringType,
 							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "A list of ID token claims that are optional.",
 						},
 					},
+					Default: objectdefault.StaticValue(
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"user_info": types.SetType{ElemType: types.StringType},
+								"id_token":  types.SetType{ElemType: types.StringType},
+							},
+							map[string]attr.Value{
+								"user_info": types.SetValueMust(types.StringType, []attr.Value{}),
+								"id_token":  types.SetValueMust(types.StringType, []attr.Value{}),
+							},
+						),
+					),
 				},
 			},
-			Default: objectdefault.StaticValue(
-				types.ObjectValueMust(
-					map[string]attr.Type{
-						"required_claims": types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"user_info": types.SetType{ElemType: types.StringType},
-								"id_token":  types.SetType{ElemType: types.StringType},
-							},
-						},
-						"optional_claims": types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"user_info": types.SetType{ElemType: types.StringType},
-								"id_token":  types.SetType{ElemType: types.StringType},
-							},
-						},
-					},
-					map[string]attr.Value{
-						"required_claims": types.ObjectValueMust(map[string]attr.Type{
-							"user_info": types.SetType{ElemType: types.StringType},
-							"id_token":  types.SetType{ElemType: types.StringType},
-						},
-							map[string]attr.Value{
-								"user_info": types.SetNull(types.StringType),
-								"id_token":  types.SetNull(types.StringType),
-							}),
-						"optional_claims": types.ObjectValueMust(map[string]attr.Type{
-							"user_info": types.SetType{ElemType: types.StringType},
-							"id_token":  types.SetType{ElemType: types.StringType},
-						},
-							map[string]attr.Value{
-								"user_info": types.SetNull(types.StringType),
-								"id_token":  types.SetNull(types.StringType),
-							}),
-					}),
-			),
 		},
 		"userinfo_fields": schema.ListNestedAttribute{
 			Optional:            true,
+			Computed:            true,
 			MarkdownDescription: "A list of user info fields to be mapped between the social provider and Cidaas.",
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
@@ -262,14 +259,20 @@ var socialProviderSchema = schema.Schema{
 					},
 					"is_custom_field": schema.BoolAttribute{
 						Required:            true,
-						MarkdownDescription: "A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.",
+						MarkdownDescription: "A flag indicating whether the field is a custom field.",
 					},
 					"is_system_field": schema.BoolAttribute{
 						Required:            true,
-						MarkdownDescription: "A flag indicating whether the field is a system field. Set to `true` if it is a system field.",
+						MarkdownDescription: "A flag indicating whether the field is a system field.",
 					},
 				},
 			},
+			Default: listdefault.StaticValue(
+				types.ListValueMust(
+					userInfoFieldsType,
+					[]attr.Value{},
+				),
+			),
 		},
 		"enabled_for_admin_portal": schema.BoolAttribute{
 			Optional:            true,
@@ -322,7 +325,20 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.Scopes = util.SetValueOrNull(res.Data.Scopes)
 
 	resp.Diagnostics.Append(setClaimsInfo(&state, res.Data.Claims)...)
-	resp.Diagnostics.Append(setUserInfoFields(&state, res.Data.UserInfoFields)...)
+	if len(res.Data.UserInfoFields) > 0 {
+		userInfoFields, diags := types.ListValueFrom(ctx, userInfoFieldsType, res.Data.UserInfoFields)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.UserInfoFields = userInfoFields
+	} else {
+		state.UserInfoFields = types.ListValueMust(
+			userInfoFieldsType,
+			[]attr.Value{},
+		)
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -337,11 +353,16 @@ func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 	model.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.SocialProvider.Upsert(model)
+	res, err := r.cidaasClient.SocialProvider.Upsert(model)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+
+	// Update plan with response data
+	plan.ID = util.StringValueOrNull(&res.Data.ID)
+	resp.Diagnostics.Append(setClaimsInfo(&plan, res.Data.Claims)...)
+	resp.Diagnostics.Append(setUserInfoFields(&plan, res.Data.UserInfoFields)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -404,6 +425,7 @@ func (sp *SocialProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 
 func prepareSocialProviderModel(ctx context.Context, plan SocialProviderConfig) (*cidaas.SocialProviderModel, diag.Diagnostics) {
 	var sp cidaas.SocialProviderModel
+	var diags diag.Diagnostics
 
 	sp.Name = plan.Name.ValueString()
 	sp.ProviderName = plan.ProviderName.ValueString()
@@ -412,65 +434,112 @@ func prepareSocialProviderModel(ctx context.Context, plan SocialProviderConfig) 
 	sp.Enabled = plan.Enabled.ValueBool()
 	sp.EnabledForAdminPortal = plan.EnabledForAdminPortal.ValueBool()
 
-	sp.Claims = &cidaas.ClaimsModel{}
-	sp.Claims.RequiredClaims = cidaas.RequiredClaimsModel{}
-	sp.Claims.OptionalClaims = cidaas.OptionalClaimsModel{}
+	sp.Claims = &cidaas.ClaimsModel{
+		RequiredClaims: cidaas.RequiredClaimsModel{
+			UserInfo: []string{},
+			IDToken:  []string{},
+		},
+		OptionalClaims: cidaas.OptionalClaimsModel{
+			UserInfo: []string{},
+			IDToken:  []string{},
+		},
+	}
 
-	var diags diag.Diagnostics
-	if !plan.Claims.IsNull() && !plan.claims.RequiredClaims.IsNull() {
-		if !plan.claims.requiredClaims.UserInfo.IsNull() {
-			diags = plan.claims.requiredClaims.UserInfo.ElementsAs(ctx, &sp.Claims.RequiredClaims.UserInfo, false)
-			if diags.HasError() {
-				return nil, diags
-			}
+	if !plan.Scopes.IsNull() && !plan.Scopes.IsUnknown() {
+		var scopes []string
+		if diags := plan.Scopes.ElementsAs(ctx, &scopes, false); diags.HasError() {
+			return nil, diags
 		}
-		if !plan.claims.requiredClaims.IDToken.IsNull() {
-			diags = plan.claims.requiredClaims.IDToken.ElementsAs(ctx, &sp.Claims.RequiredClaims.IDToken, false)
-			if diags.HasError() {
+		sp.Scopes = scopes
+	} else {
+		sp.Scopes = []string{}
+	}
+
+	if !plan.Claims.IsNull() && !plan.Claims.IsUnknown() {
+		var claims struct {
+			RequiredClaims struct {
+				UserInfo types.Set `tfsdk:"user_info"`
+				IDToken  types.Set `tfsdk:"id_token"`
+			} `tfsdk:"required_claims"`
+			OptionalClaims struct {
+				UserInfo types.Set `tfsdk:"user_info"`
+				IDToken  types.Set `tfsdk:"id_token"`
+			} `tfsdk:"optional_claims"`
+		}
+
+		diags = plan.Claims.As(ctx, &claims, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		if !claims.RequiredClaims.UserInfo.IsNull() && !claims.RequiredClaims.UserInfo.IsUnknown() {
+			var userInfo []string
+			if diags := claims.RequiredClaims.UserInfo.ElementsAs(ctx, &userInfo, false); diags.HasError() {
 				return nil, diags
 			}
+			sp.Claims.RequiredClaims.UserInfo = userInfo
+		}
+
+		if !claims.RequiredClaims.IDToken.IsNull() && !claims.RequiredClaims.IDToken.IsUnknown() {
+			var idToken []string
+			if diags := claims.RequiredClaims.IDToken.ElementsAs(ctx, &idToken, false); diags.HasError() {
+				return nil, diags
+			}
+			sp.Claims.RequiredClaims.IDToken = idToken
+		}
+
+		if !claims.OptionalClaims.UserInfo.IsNull() && !claims.OptionalClaims.UserInfo.IsUnknown() {
+			var userInfo []string
+			if diags := claims.OptionalClaims.UserInfo.ElementsAs(ctx, &userInfo, false); diags.HasError() {
+				return nil, diags
+			}
+			sp.Claims.OptionalClaims.UserInfo = userInfo
+		}
+
+		if !claims.OptionalClaims.IDToken.IsNull() && !claims.OptionalClaims.IDToken.IsUnknown() {
+			var idToken []string
+			if diags := claims.OptionalClaims.IDToken.ElementsAs(ctx, &idToken, false); diags.HasError() {
+				return nil, diags
+			}
+			sp.Claims.OptionalClaims.IDToken = idToken
 		}
 	}
 
-	if !plan.Claims.IsNull() && !plan.claims.OptionalClaims.IsNull() {
-		if !plan.claims.optionalClaims.UserInfo.IsNull() {
-			diags = plan.claims.optionalClaims.UserInfo.ElementsAs(ctx, &sp.Claims.OptionalClaims.UserInfo, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-		if !plan.claims.optionalClaims.IDToken.IsNull() {
-			diags = plan.claims.optionalClaims.IDToken.ElementsAs(ctx, &sp.Claims.OptionalClaims.IDToken, false)
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-	}
+	sp.UserInfoFields = make([]cidaas.UserInfoFieldsModel, 0)
 
-	diags = plan.Scopes.ElementsAs(ctx, &sp.Scopes, false)
-	if diags.HasError() {
-		return nil, diags
-	}
+	if !plan.UserInfoFields.IsNull() && !plan.UserInfoFields.IsUnknown() {
+		var userInfoFields []struct {
+			InnerKey      types.String `tfsdk:"inner_key"`
+			ExternalKey   types.String `tfsdk:"external_key"`
+			IsCustomField types.Bool   `tfsdk:"is_custom_field"`
+			IsSystemField types.Bool   `tfsdk:"is_system_field"`
+		}
 
-	if !plan.UserInfoFields.IsNull() {
-		var userInfoModels []cidaas.UserInfoFieldsModel
-		for _, v := range plan.userInfoFields {
-			userInfoModels = append(userInfoModels, cidaas.UserInfoFieldsModel{
-				IsCustomField: v.IsCustomField.ValueBool(),
-				IsSystemField: v.IsSystemField.ValueBool(),
-				InnerKey:      v.InnerKey.ValueString(),
-				ExternalKey:   v.ExternalKey.ValueString(),
+		diags = plan.UserInfoFields.ElementsAs(ctx, &userInfoFields, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+
+		for _, field := range userInfoFields {
+			sp.UserInfoFields = append(sp.UserInfoFields, cidaas.UserInfoFieldsModel{
+				InnerKey:      field.InnerKey.ValueString(),
+				ExternalKey:   field.ExternalKey.ValueString(),
+				IsCustomField: field.IsCustomField.ValueBool(),
+				IsSystemField: field.IsSystemField.ValueBool(),
 			})
 		}
-		sp.UserInfoFields = userInfoModels
 	}
+
 	return &sp, diags
 }
 
 func setClaimsInfo(state *SocialProviderConfig, claims *cidaas.ClaimsModel) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if claims != nil {
-		state.Claims, diags = types.ObjectValue(
+
+	emptySet := types.SetValueMust(types.StringType, []attr.Value{})
+
+	if claims == nil {
+		state.Claims = types.ObjectValueMust(
 			map[string]attr.Type{
 				"required_claims": types.ObjectType{
 					AttrTypes: map[string]attr.Type{
@@ -486,24 +555,74 @@ func setClaimsInfo(state *SocialProviderConfig, claims *cidaas.ClaimsModel) diag
 				},
 			},
 			map[string]attr.Value{
-				"required_claims": types.ObjectValueMust(map[string]attr.Type{
-					"user_info": types.SetType{ElemType: types.StringType},
-					"id_token":  types.SetType{ElemType: types.StringType},
-				},
+				"required_claims": types.ObjectValueMust(
+					map[string]attr.Type{
+						"user_info": types.SetType{ElemType: types.StringType},
+						"id_token":  types.SetType{ElemType: types.StringType},
+					},
 					map[string]attr.Value{
-						"user_info": util.SetValueOrNull(claims.RequiredClaims.UserInfo),
-						"id_token":  util.SetValueOrNull(claims.RequiredClaims.IDToken),
-					}),
-				"optional_claims": types.ObjectValueMust(map[string]attr.Type{
-					"user_info": types.SetType{ElemType: types.StringType},
-					"id_token":  types.SetType{ElemType: types.StringType},
-				},
+						"user_info": emptySet,
+						"id_token":  emptySet,
+					},
+				),
+				"optional_claims": types.ObjectValueMust(
+					map[string]attr.Type{
+						"user_info": types.SetType{ElemType: types.StringType},
+						"id_token":  types.SetType{ElemType: types.StringType},
+					},
 					map[string]attr.Value{
-						"user_info": util.SetValueOrNull(claims.OptionalClaims.UserInfo),
-						"id_token":  util.SetValueOrNull(claims.OptionalClaims.IDToken),
-					}),
-			})
+						"user_info": emptySet,
+						"id_token":  emptySet,
+					},
+				),
+			},
+		)
+		return diags
 	}
+
+	requiredUserInfo := util.SetValueOrEmpty(claims.RequiredClaims.UserInfo)
+	requiredIDToken := util.SetValueOrEmpty(claims.RequiredClaims.IDToken)
+	optionalUserInfo := util.SetValueOrEmpty(claims.OptionalClaims.UserInfo)
+	optionalIDToken := util.SetValueOrEmpty(claims.OptionalClaims.IDToken)
+
+	state.Claims = types.ObjectValueMust(
+		map[string]attr.Type{
+			"required_claims": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_info": types.SetType{ElemType: types.StringType},
+					"id_token":  types.SetType{ElemType: types.StringType},
+				},
+			},
+			"optional_claims": types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"user_info": types.SetType{ElemType: types.StringType},
+					"id_token":  types.SetType{ElemType: types.StringType},
+				},
+			},
+		},
+		map[string]attr.Value{
+			"required_claims": types.ObjectValueMust(
+				map[string]attr.Type{
+					"user_info": types.SetType{ElemType: types.StringType},
+					"id_token":  types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"user_info": requiredUserInfo,
+					"id_token":  requiredIDToken,
+				},
+			),
+			"optional_claims": types.ObjectValueMust(
+				map[string]attr.Type{
+					"user_info": types.SetType{ElemType: types.StringType},
+					"id_token":  types.SetType{ElemType: types.StringType},
+				},
+				map[string]attr.Value{
+					"user_info": optionalUserInfo,
+					"id_token":  optionalIDToken,
+				},
+			),
+		},
+	)
 	return diags
 }
 
@@ -518,7 +637,10 @@ func setUserInfoFields(state *SocialProviderConfig, ufs []cidaas.UserInfoFieldsM
 		},
 	}
 	if len(ufs) < 1 {
-		state.UserInfoFields = types.ListNull(ufObjectType)
+		state.UserInfoFields = types.ListValueMust(
+			ufObjectType,
+			[]attr.Value{},
+		)
 	} else {
 		var ufObjectValues []attr.Value
 		for _, uf := range ufs {
@@ -539,4 +661,13 @@ func setUserInfoFields(state *SocialProviderConfig, ufs []cidaas.UserInfoFieldsM
 		state.UserInfoFields, diags = types.ListValue(ufObjectType, ufObjectValues)
 	}
 	return diags
+}
+
+var userInfoFieldsType = types.ObjectType{
+	AttrTypes: map[string]attr.Type{
+		"inner_key":       types.StringType,
+		"external_key":    types.StringType,
+		"is_custom_field": types.BoolType,
+		"is_system_field": types.BoolType,
+	},
 }

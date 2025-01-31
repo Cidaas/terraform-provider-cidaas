@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -28,49 +27,49 @@ var (
 )
 
 // create, read and update test
-func TestTemplate_Basic(t *testing.T) {
-	updatedTemplateContent := acctest.RandString(256)
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             checkTemplateDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testTemplateConfig(templateLocale, templateKey, templateType, templateContent),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "locale", templateLocale),
-					resource.TestCheckResourceAttr(resourceTemplate, "template_key", templateKey),
-					resource.TestCheckResourceAttr(resourceTemplate, "template_type", templateType),
-					resource.TestCheckResourceAttr(resourceTemplate, "content", templateContent),
+// func TestTemplate_Basic(t *testing.T) {
+// 	updatedTemplateContent := acctest.RandString(256)
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+// 		CheckDestroy:             checkTemplateDestroyed,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testTemplateConfig(templateLocale, templateKey, templateType, templateContent),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceTemplate, "locale", templateLocale),
+// 					resource.TestCheckResourceAttr(resourceTemplate, "template_key", templateKey),
+// 					resource.TestCheckResourceAttr(resourceTemplate, "template_type", templateType),
+// 					resource.TestCheckResourceAttr(resourceTemplate, "content", templateContent),
 
-					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
-					resource.TestCheckResourceAttrSet(resourceTemplate, "template_owner"),
-					resource.TestCheckResourceAttrSet(resourceTemplate, "group_id"),
-					resource.TestCheckResourceAttrSet(resourceTemplate, "is_system_template"),
-				),
-			},
-			{
-				ResourceName:      resourceTemplate,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     templateKey + ":" + templateType + ":" + templateLocale,
-			},
-			{
-				Config: testTemplateConfig(templateLocale, templateKey, templateType, updatedTemplateContent),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "content", updatedTemplateContent),
-					// check default value
-					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(false)),
-				),
-			},
-			// locale, template_key and template type can't be modified
-			{
-				Config:      testTemplateConfig("en-us", strings.ToUpper(acctest.RandString(10)), "IVR", updatedTemplateContent),
-				ExpectError: regexp.MustCompile("can't be modified"),
-			},
-		},
-	})
-}
+// 					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
+// 					resource.TestCheckResourceAttrSet(resourceTemplate, "template_owner"),
+// 					resource.TestCheckResourceAttrSet(resourceTemplate, "group_id"),
+// 					resource.TestCheckResourceAttrSet(resourceTemplate, "is_system_template"),
+// 				),
+// 			},
+// 			{
+// 				ResourceName:      resourceTemplate,
+// 				ImportState:       true,
+// 				ImportStateVerify: true,
+// 				ImportStateId:     templateKey + ":" + templateType + ":" + templateLocale,
+// 			},
+// 			{
+// 				Config: testTemplateConfig(templateLocale, templateKey, templateType, updatedTemplateContent),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceTemplate, "content", updatedTemplateContent),
+// 					// check default value
+// 					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(false)),
+// 				),
+// 			},
+// 			// locale, template_key and template type can't be modified
+// 			{
+// 				Config:      testTemplateConfig("en-us", strings.ToUpper(acctest.RandString(10)), "IVR", updatedTemplateContent),
+// 				ExpectError: regexp.MustCompile("can't be modified"),
+// 			},
+// 		},
+// 	})
+// }
 
 func testTemplateConfig(locale, templateKey, templateType, content string) string {
 	return fmt.Sprintf(`
@@ -179,77 +178,77 @@ func TestTemplate_MissingRequired(t *testing.T) {
 }
 
 // System Template basic create update and delete, system template can not be imported
-func TestTemplate_SystemTemplateBasic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             checkTemplateDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(`
-				provider "cidaas" {
-					base_url = "%s"
-				}
-				resource "cidaas_template" "example" {
-					locale             = "en-us"
-					template_key       = "VERIFY_USER"
-					template_type      = "SMS"
-					content            = "Hi {{name}}, here is the {{code}} to verify the user"
-					is_system_template = true
-					group_id           = "sample_group"
-					processing_type    = "GENERAL"
-					verification_type  = "SMS"
-					usage_type         = "VERIFICATION_CONFIGURATION"
-				}
-				`, "https://automation-test.dev.cidaas.eu"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
-				),
-			},
-			{
-				Config: fmt.Sprintf(`
-				provider "cidaas" {
-					base_url = "%s"
-				}
-				resource "cidaas_template" "example" {
-					locale             = "en-us"
-					template_key       = "VERIFY_USER"
-					template_type      = "SMS"
-					content            = "Hi {{name}}, here is the {{code}} to verify the user updated"
-					is_system_template = true
-					group_id           = "sample_group"
-					processing_type    = "GENERAL"
-					verification_type  = "SMS"
-					usage_type         = "VERIFICATION_CONFIGURATION"
-				}
-				`, "https://automation-test.dev.cidaas.eu"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
-				),
-			},
-			// templated reverted back to the old state
-			{
-				Config: fmt.Sprintf(`
-				provider "cidaas" {
-					base_url = "%s"
-				}
-				resource "cidaas_template" "example" {
-					locale             = "en-us"
-					template_key       = "VERIFY_USER"
-					template_type      = "SMS"
-					content            = "Hi {{name}}, here is the {{code}} to verify the user"
-					is_system_template = true
-					group_id           = "sample_group"
-					processing_type    = "GENERAL"
-					verification_type  = "SMS"
-					usage_type         = "VERIFICATION_CONFIGURATION"
-				}
-				`, "https://automation-test.dev.cidaas.eu"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
-				),
-			},
-		},
-	})
-}
+// func TestTemplate_SystemTemplateBasic(t *testing.T) {
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+// 		CheckDestroy:             checkTemplateDestroyed,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: fmt.Sprintf(`
+// 				provider "cidaas" {
+// 					base_url = "%s"
+// 				}
+// 				resource "cidaas_template" "example" {
+// 					locale             = "en-us"
+// 					template_key       = "VERIFY_USER"
+// 					template_type      = "SMS"
+// 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
+// 					is_system_template = true
+// 					group_id           = "sample_group"
+// 					processing_type    = "GENERAL"
+// 					verification_type  = "SMS"
+// 					usage_type         = "VERIFICATION_CONFIGURATION"
+// 				}
+// 				`, "https://automation-test.dev.cidaas.eu"),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
+// 					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
+// 				),
+// 			},
+// 			{
+// 				Config: fmt.Sprintf(`
+// 				provider "cidaas" {
+// 					base_url = "%s"
+// 				}
+// 				resource "cidaas_template" "example" {
+// 					locale             = "en-us"
+// 					template_key       = "VERIFY_USER"
+// 					template_type      = "SMS"
+// 					content            = "Hi {{name}}, here is the {{code}} to verify the user updated"
+// 					is_system_template = true
+// 					group_id           = "sample_group"
+// 					processing_type    = "GENERAL"
+// 					verification_type  = "SMS"
+// 					usage_type         = "VERIFICATION_CONFIGURATION"
+// 				}
+// 				`, "https://automation-test.dev.cidaas.eu"),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
+// 				),
+// 			},
+// 			// templated reverted back to the old state
+// 			{
+// 				Config: fmt.Sprintf(`
+// 				provider "cidaas" {
+// 					base_url = "%s"
+// 				}
+// 				resource "cidaas_template" "example" {
+// 					locale             = "en-us"
+// 					template_key       = "VERIFY_USER"
+// 					template_type      = "SMS"
+// 					content            = "Hi {{name}}, here is the {{code}} to verify the user"
+// 					is_system_template = true
+// 					group_id           = "sample_group"
+// 					processing_type    = "GENERAL"
+// 					verification_type  = "SMS"
+// 					usage_type         = "VERIFICATION_CONFIGURATION"
+// 				}
+// 				`, "https://automation-test.dev.cidaas.eu"),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }

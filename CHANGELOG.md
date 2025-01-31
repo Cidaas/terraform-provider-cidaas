@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.4.0
+
+#### Bugfix
+
+- Resource **cidaas_social_provide** bug fix where empty `required_claims` and `optional_claims` provider plan error.
+- Fixed the issue in **cidaas_app** resource  where the custom provider was not updated to an empty state after being removed from the config.
+
+
 ### 3.3.9
 
 #### Enhancement
