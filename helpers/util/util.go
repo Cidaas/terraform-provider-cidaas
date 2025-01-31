@@ -109,3 +109,14 @@ func FormatErrorMessage(err error) string {
 	}
 	return ""
 }
+
+func SetValueOrEmpty(values []string) types.Set {
+	if len(values) == 0 {
+		return types.SetValueMust(types.StringType, []attr.Value{})
+	}
+	elements := make([]attr.Value, 0, len(values))
+	for _, v := range values {
+		elements = append(elements, types.StringValue(v))
+	}
+	return types.SetValueMust(types.StringType, elements)
+}

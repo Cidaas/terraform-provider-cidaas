@@ -13,7 +13,7 @@ type SocialProviderModel struct {
 	ClientSecret          string                `json:"client_secret,omitempty"`
 	Name                  string                `json:"name,omitempty"`
 	ProviderName          string                `json:"provider_name,omitempty"`
-	Claims                *ClaimsModel          `json:"claims,omitempty"`
+	Claims                *ClaimsModel          `json:"claims"`
 	EnabledForAdminPortal bool                  `json:"enabled_for_admin_portal"`
 	Enabled               bool                  `json:"enabled"`
 	Scopes                []string              `json:"scopes"`
@@ -36,10 +36,10 @@ type OptionalClaimsModel struct {
 }
 
 type UserInfoFieldsModel struct {
-	InnerKey      string `json:"inner_key,omitempty"`
-	ExternalKey   string `json:"external_key,omitempty"`
-	IsCustomField bool   `json:"is_custom_field,omitempty"`
-	IsSystemField bool   `json:"is_system_field,omitempty"`
+	InnerKey      string `json:"inner_key,omitempty" tfsdk:"inner_key"`
+	ExternalKey   string `json:"external_key,omitempty" tfsdk:"external_key"`
+	IsCustomField bool   `json:"is_custom_field,omitempty" tfsdk:"is_custom_field"`
+	IsSystemField bool   `json:"is_system_field,omitempty" tfsdk:"is_system_field"`
 }
 
 type SocialProviderResponse struct {
