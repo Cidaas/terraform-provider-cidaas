@@ -65,7 +65,7 @@ type AppModel struct {
 	Editable                         *bool                       `json:"editable,omitempty"`
 	WebMessageUris                   []string                    `json:"web_message_uris,omitempty"`
 	SocialProviders                  []ISocialProviderData       `json:"social_providers,omitempty"`
-	CustomProviders                  []IProviderMetadData        `json:"custom_providers,omitempty"`
+	CustomProviders                  []IProviderMetadData        `json:"custom_providers"`
 	SamlProviders                    []IProviderMetadData        `json:"saml_providers,omitempty"`
 	AdProviders                      []IProviderMetadData        `json:"ad_providers,omitempty"`
 	JweEnabled                       *bool                       `json:"jwe_enabled"`
