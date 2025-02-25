@@ -256,7 +256,7 @@ var customProviderSchema = schema.Schema{
 			Optional: true,
 		},
 		"scope_display_label": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
 			MarkdownDescription: "Display label for the scope of the provider.",
 		},
 		"userinfo_fields": schema.SingleNestedAttribute{
