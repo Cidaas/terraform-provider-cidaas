@@ -1036,7 +1036,6 @@ resource "cidaas_custom_provider" "sample" {
 * `client_secret` (String, Sensitive) The client secret of the provider.
 * `display_name` (String) The display name of the provider.
 * `provider_name` (String) The unique identifier of the custom provider. This cannot be updated for an existing state.
-* `scope_display_label` (String) Display label for the scope of the provider.
 * `token_endpoint` (String) The URL to generate token with this provider.
 * `userinfo_endpoint` (String) The URL to fetch user details using this provider.
 
@@ -1045,6 +1044,7 @@ resource "cidaas_custom_provider" "sample" {
 * `amr_config` (Attributes List) AMR configuration mapping. (see [below for nested schema](#nestedatt--amr_config))
 * `domains` (Set of String) The domains of the provider.
 * `logo_url` (String) The URL for the provider's logo.
+* `scope_display_label` (String) Display label for the scope of the provider.
 * `scopes` (Attributes List) List of scopes of the provider with details (see [below for nested schema](#nestedatt--scopes))
 * `standard_type` (String) Type of standard. Allowed values `OAUTH2` and `OPENID_CONNECT`.
 * `userinfo_fields` (Attributes) Object containing various user information fields with their values. The userinfo_fields section includes specific fields such as name, family_name, address, etc., along with custom_fields allowing additional user information customization (see [below for nested schema](#nestedatt--userinfo_fields))
