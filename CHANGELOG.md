@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.4.1
+
+#### Bugfix
+
+- Attribute `scope_display_label` in resource **cidaas_custom_provider** marked optional. This fixes the state inconsistency issue when `scope_display_label` set to empty string.
+
 ### 3.4.0
 
 #### Bugfix
