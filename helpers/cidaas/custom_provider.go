@@ -9,7 +9,7 @@ import (
 )
 
 type Scopes struct {
-	DisplayLabel string       `json:"display_label,omitempty"`
+	DisplayLabel string       `json:"display_label"`
 	Scopes       []ScopeChild `json:"scopes,omitempty"`
 }
 
@@ -28,7 +28,7 @@ type CustomProviderModel struct {
 	AuthorizationEndpoint string                 `json:"authorization_endpoint,omitempty"`
 	TokenEndpoint         string                 `json:"token_endpoint,omitempty"`
 	ProviderName          string                 `json:"provider_name,omitempty"`
-	LogoURL               string                 `json:"logo_url,omitempty"`
+	LogoURL               string                 `json:"logo_url"`
 	UserinfoEndpoint      string                 `json:"userinfo_endpoint,omitempty"`
 	UserinfoFields        map[string]interface{} `json:"userInfoFields,omitempty"`
 	Scopes                Scopes                 `json:"scopes,omitempty"`

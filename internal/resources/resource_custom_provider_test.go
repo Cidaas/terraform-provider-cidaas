@@ -195,7 +195,7 @@ func TestAccCustomProviderResource_InvalidStandardType(t *testing.T) {
 func TestAccCustomProviderResource_MissingRequired(t *testing.T) {
 	requiredParams := []string{
 		"provider_name", "display_name", "client_id", "client_secret",
-		"authorization_endpoint", "token_endpoint", "userinfo_endpoint", "scope_display_label",
+		"authorization_endpoint", "token_endpoint", "userinfo_endpoint",
 	}
 	for _, param := range requiredParams {
 		resource.Test(t, resource.TestCase{
