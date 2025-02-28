@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.4.2
+
+#### Bugfix
+
+- The`cidaas_password_policy` resource has been updated to support the enhanced password policy introduced in Cidaas version 3.100.x
+
 ### 3.4.1
 
 #### Bugfix

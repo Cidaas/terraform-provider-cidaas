@@ -5,14 +5,21 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type PasswordPolicy struct {
@@ -31,13 +38,38 @@ func NewPasswordPolicy() resource.Resource {
 }
 
 type PasswordPolicyConfig struct {
-	ID                types.String `tfsdk:"id"`
-	PolicyName        types.String `tfsdk:"policy_name"`
-	MaximumLength     types.Int64  `tfsdk:"maximum_length"`
-	MinimumLength     types.Int64  `tfsdk:"minimum_length"`
-	NoOfSpecialChars  types.Int64  `tfsdk:"no_of_special_chars"`
-	NoOfDigits        types.Int64  `tfsdk:"no_of_digits"`
-	LowerAndUppercase types.Bool   `tfsdk:"lower_and_uppercase"`
+	ID             types.String `tfsdk:"id"`
+	PolicyName     types.String `tfsdk:"policy_name"`
+	PasswordPolicy types.Object `tfsdk:"password_policy"`
+
+	passwordPolicy *PasswordPolicyMap
+}
+
+type PasswordPolicyMap struct {
+	BlockCompromised  types.Bool   `tfsdk:"block_compromised"`
+	DenyUsageCount    types.Int64  `tfsdk:"deny_usage_count"`
+	StrengthRegexes   types.Set    `tfsdk:"strength_regexes"`
+	ChangeEnforcement types.Object `tfsdk:"change_enforcement"`
+
+	changeEnforcement *ChangeEnforcement
+}
+
+type ChangeEnforcement struct {
+	ExpirationInDays       types.Int64 `tfsdk:"expiration_in_days"`
+	NotifyUserBeforeInDays types.Int64 `tfsdk:"notify_user_before_in_days"`
+}
+
+func (r *PasswordPolicyConfig) extract(ctx context.Context) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if !r.PasswordPolicy.IsNull() && !r.PasswordPolicy.IsUnknown() {
+		r.passwordPolicy = &PasswordPolicyMap{}
+		diags = r.PasswordPolicy.As(ctx, r.passwordPolicy, basetypes.ObjectAsOptions{})
+		if !r.passwordPolicy.ChangeEnforcement.IsNull() && !r.passwordPolicy.ChangeEnforcement.IsUnknown() {
+			r.passwordPolicy.changeEnforcement = &ChangeEnforcement{}
+			diags = r.passwordPolicy.ChangeEnforcement.As(ctx, &r.passwordPolicy.changeEnforcement, basetypes.ObjectAsOptions{})
+		}
+	}
+	return diags
 }
 
 var passwordPolicySchema = schema.Schema{
@@ -58,35 +90,57 @@ var passwordPolicySchema = schema.Schema{
 			Required:            true,
 			MarkdownDescription: "The name of the password policy.",
 		},
-		"maximum_length": schema.Int64Attribute{
+		"password_policy": schema.SingleNestedAttribute{
 			Required:            true,
-			MarkdownDescription: "The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)` ",
-			Validators: []validator.Int64{
-				int64validator.AtLeastSumOf(
-					path.MatchRoot("minimum_length"),
-					path.MatchRoot("no_of_special_chars"),
-					path.MatchRoot("no_of_digits"),
-				),
+			MarkdownDescription: "The password policy configuration. All attributes are optional except strength_regexes. If not provided, default values will be applied.",
+			Attributes: map[string]schema.Attribute{
+				"block_compromised": schema.BoolAttribute{
+					Optional:            true,
+					Computed:            true,
+					Default:             booldefault.StaticBool(false),
+					MarkdownDescription: "Flag to block passwords that have been compromised.",
+				},
+				"deny_usage_count": schema.Int64Attribute{
+					Optional:            true,
+					Computed:            true,
+					Default:             int64default.StaticInt64(0),
+					MarkdownDescription: "The reuse limit specifies the maximum number of times a user can reuse a previous password.",
+				},
+				"strength_regexes": schema.SetAttribute{
+					Required:            true,
+					ElementType:         types.StringType,
+					MarkdownDescription: "The regular expression to enforce the minimum and maximum character count, minimum number of numeric and special characters and whether to include lowercase or uppercase letters in a password.",
+					Validators: []validator.Set{
+						setvalidator.SizeAtLeast(1),
+					},
+				},
+				"change_enforcement": schema.SingleNestedAttribute{
+					Optional: true,
+					Computed: true,
+					Attributes: map[string]schema.Attribute{
+						"expiration_in_days": schema.Int64Attribute{
+							MarkdownDescription: "The number of days allowed before a password must be changed.",
+							Optional:            true,
+						},
+						"notify_user_before_in_days": schema.Int64Attribute{
+							MarkdownDescription: "Number of days before password expiry to notify the user.",
+							Optional:            true,
+						},
+					},
+					Default: objectdefault.StaticValue(
+						types.ObjectValueMust(
+							map[string]attr.Type{
+								"expiration_in_days":         types.Int64Type,
+								"notify_user_before_in_days": types.Int64Type,
+							},
+							map[string]attr.Value{
+								"expiration_in_days":         types.Int64Value(0),
+								"notify_user_before_in_days": types.Int64Value(0),
+							},
+						),
+					),
+				},
 			},
-		},
-		"minimum_length": schema.Int64Attribute{
-			Required:            true,
-			MarkdownDescription: "The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.",
-			Validators: []validator.Int64{
-				int64validator.AtLeast(5),
-			},
-		},
-		"no_of_special_chars": schema.Int64Attribute{
-			Required:            true,
-			MarkdownDescription: "The required number of special characters in the password.",
-		},
-		"no_of_digits": schema.Int64Attribute{
-			Required:            true,
-			MarkdownDescription: "The required number of digits in the password.",
-		},
-		"lower_and_uppercase": schema.BoolAttribute{
-			Required:            true,
-			MarkdownDescription: "Specifies whether the password must contain both lowercase and uppercase letters.",
 		},
 	},
 }
@@ -94,20 +148,33 @@ var passwordPolicySchema = schema.Schema{
 func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan PasswordPolicyConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	payload := cidaas.PasswordPolicyModel{
-		PolicyName:        plan.PolicyName.ValueString(),
-		MaximumLength:     plan.MaximumLength.ValueInt64(),
-		MinimumLength:     plan.MinimumLength.ValueInt64(),
-		NoOfSpecialChars:  plan.NoOfSpecialChars.ValueInt64(),
-		NoOfDigits:        plan.NoOfDigits.ValueInt64(),
-		LowerAndUppercase: plan.LowerAndUppercase.ValueBool(),
+		PolicyName: plan.PolicyName.ValueString(),
+		PasswordPolicy: &cidaas.Policy{
+			BlockCompromised: plan.passwordPolicy.BlockCompromised.ValueBool(),
+			DenyUsageCount:   plan.passwordPolicy.DenyUsageCount.ValueInt64(),
+		},
 	}
 
-	res, err := r.cidaasClient.PasswordPolicy.Upsert(payload)
+	diags := plan.passwordPolicy.StrengthRegexes.ElementsAs(ctx, &payload.PasswordPolicy.StrengthRegexes, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.passwordPolicy.ChangeEnforcement.IsNull() {
+		payload.PasswordPolicy.ChangeEnforcement = cidaas.ChangeEnforcement{
+			ExpirationInDays:       plan.passwordPolicy.changeEnforcement.ExpirationInDays.ValueInt64(),
+			NotifyUserBeforeInDays: plan.passwordPolicy.changeEnforcement.NotifyUserBeforeInDays.ValueInt64(),
+		}
+	}
+
+	res, err := r.cidaasClient.PasswordPolicy.Create(payload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -126,11 +193,34 @@ func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	state.PolicyName = types.StringValue(res.Data.PolicyName)
-	state.MaximumLength = types.Int64Value(res.Data.MaximumLength)
-	state.MinimumLength = types.Int64Value(res.Data.MinimumLength)
-	state.NoOfSpecialChars = types.Int64Value(res.Data.NoOfSpecialChars)
-	state.NoOfDigits = types.Int64Value(res.Data.NoOfDigits)
-	state.LowerAndUppercase = types.BoolValue(res.Data.LowerAndUppercase)
+
+	changeEnforcementConfig := map[string]attr.Type{
+		"expiration_in_days":         types.Int64Type,
+		"notify_user_before_in_days": types.Int64Type,
+	}
+	passwordPolicyType := map[string]attr.Type{
+		"block_compromised":  types.BoolType,
+		"deny_usage_count":   types.Int64Type,
+		"strength_regexes":   types.SetType{ElemType: types.StringType},
+		"change_enforcement": types.ObjectType{AttrTypes: changeEnforcementConfig},
+	}
+
+	if res.Data.PasswordPolicy != nil {
+		passwordPolicy, diags := types.ObjectValue(passwordPolicyType, map[string]attr.Value{
+			"block_compromised": util.BoolValueOrNull(&res.Data.PasswordPolicy.BlockCompromised),
+			"deny_usage_count":  util.Int64ValueOrNull(&res.Data.PasswordPolicy.DenyUsageCount),
+			"strength_regexes":  util.SetValueOrNull(res.Data.PasswordPolicy.StrengthRegexes),
+			"change_enforcement": types.ObjectValueMust(changeEnforcementConfig, map[string]attr.Value{
+				"expiration_in_days":         util.Int64ValueOrNull(&res.Data.PasswordPolicy.ChangeEnforcement.ExpirationInDays),
+				"notify_user_before_in_days": util.Int64ValueOrNull(&res.Data.PasswordPolicy.ChangeEnforcement.NotifyUserBeforeInDays),
+			}),
+		})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.PasswordPolicy = passwordPolicy
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -139,23 +229,40 @@ func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest,
 	var plan, state PasswordPolicyConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	payload := cidaas.PasswordPolicyModel{
-		ID:                state.ID.ValueString(),
-		PolicyName:        plan.PolicyName.ValueString(),
-		MaximumLength:     plan.MaximumLength.ValueInt64(),
-		MinimumLength:     plan.MinimumLength.ValueInt64(),
-		NoOfSpecialChars:  plan.NoOfSpecialChars.ValueInt64(),
-		NoOfDigits:        plan.NoOfDigits.ValueInt64(),
-		LowerAndUppercase: plan.LowerAndUppercase.ValueBool(),
+		ID:         state.ID.ValueString(),
+		PolicyName: plan.PolicyName.ValueString(),
+		PasswordPolicy: &cidaas.Policy{
+			BlockCompromised: plan.passwordPolicy.BlockCompromised.ValueBool(),
+			DenyUsageCount:   plan.passwordPolicy.DenyUsageCount.ValueInt64(),
+		},
 	}
 
-	_, err := r.cidaasClient.PasswordPolicy.Upsert(payload)
+	diags := plan.passwordPolicy.StrengthRegexes.ElementsAs(ctx, &payload.PasswordPolicy.StrengthRegexes, false)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if !plan.passwordPolicy.ChangeEnforcement.IsNull() {
+		payload.PasswordPolicy.ChangeEnforcement = cidaas.ChangeEnforcement{
+			ExpirationInDays:       plan.passwordPolicy.changeEnforcement.ExpirationInDays.ValueInt64(),
+			NotifyUserBeforeInDays: plan.passwordPolicy.changeEnforcement.NotifyUserBeforeInDays.ValueInt64(),
+		}
+	}
+
+	res, err := r.cidaasClient.PasswordPolicy.Update(payload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update password policy", fmt.Sprintf("Error: %s", err.Error()))
+		return
+	}
+	if !res.Data {
+		resp.Diagnostics.AddError("failed to update password policy", fmt.Sprintf("Response: %+v", res))
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
