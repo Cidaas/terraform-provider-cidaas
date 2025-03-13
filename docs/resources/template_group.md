@@ -87,10 +87,6 @@ Optional:
 - `reply_to` (String) The `reply_to` attribute is the email address where replies should be directed.
 - `sender_names` (Set of String) The `sender_names` attribute defines the names associated with email senders.
 
-Read-Only:
-
-- `id` (String) The `ID` of the configured email sender.
-
 
 <a id="nestedatt--ivr_sender_config"></a>
 ### Nested Schema for `ivr_sender_config`
@@ -98,10 +94,6 @@ Read-Only:
 Optional:
 
 - `sender_names` (Set of String)
-
-Read-Only:
-
-- `id` (String)
 
 
 <a id="nestedatt--push_sender_config"></a>
@@ -111,10 +103,6 @@ Optional:
 
 - `sender_names` (Set of String)
 
-Read-Only:
-
-- `id` (String)
-
 
 <a id="nestedatt--sms_sender_config"></a>
 ### Nested Schema for `sms_sender_config`
@@ -123,10 +111,6 @@ Optional:
 
 - `from_name` (String)
 - `sender_names` (Set of String)
-
-Read-Only:
-
-- `id` (String)
 
 ## Import
 

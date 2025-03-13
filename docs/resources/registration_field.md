@@ -2,14 +2,14 @@
 page_title: "cidaas_registration_field Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_registration_page_field in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+  The cidaas_registration_field in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:field_setup_readcidaas:field_setup_writecidaas:field_setup_delete
 ---
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:field_setup_read
@@ -161,8 +161,7 @@ resource "cidaas_registration_field" "text" {
     }
   ]
   field_definition = {
-    max_length = 100
-    min_length = 10
+    regex = "^.{10,100}$"
   }
 }
 ```
@@ -246,6 +245,7 @@ Optional:
 - `max_length` (Number) The maximum length of a string type attribute.
 - `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 - `min_length` (Number) The minimum length of a string type attribute
+- `regex` (String) The regex for max_length and min_length for the data types TEXT and URL.
 
 ## Import
 

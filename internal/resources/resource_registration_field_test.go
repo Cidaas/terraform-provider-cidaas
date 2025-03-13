@@ -115,8 +115,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 						}
 					]
 					field_definition = {
-						max_length = 100
-						min_length = 10
+						regex = "^.{10,100}$"
 					}
 				}							
 			`, acctest.BaseURL, fiedKey),

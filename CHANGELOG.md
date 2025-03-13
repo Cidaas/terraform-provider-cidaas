@@ -1,5 +1,22 @@
 ## Changelog
 
+### 3.4.3
+
+#### Enhancements
+- The `regex` field has been introduced in `field_definition` for the `cidaas_registration_field` resource (starting from Cidaas version 3.101.5).
+- This change **replaces** the `max_length` and `min_length` attributes **for `TEXT` and `URL` data types**.
+- Instead of relying on fixed length constraints, validation for these field types will now be handled using **regular expressions (`regex`)**, providing more flexibility.
+
+#### **Example of new regex-based validation**
+```python
+field_definition = {
+    regex = "^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$"
+}
+```
+#### Bug Fixes
+
+- Fixed state consistency issues in resource `cidaas_template` and `cidaas_template_group`.
+
 ### 3.4.2
 
 #### Bugfix

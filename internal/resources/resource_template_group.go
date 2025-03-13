@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -49,7 +49,6 @@ type TemplateGroupConfig struct {
 }
 
 type EmailSenderConfig struct {
-	ID          types.String `tfsdk:"id"`
 	FromEmail   types.String `tfsdk:"from_email"`
 	FromName    types.String `tfsdk:"from_name"`
 	ReplyTo     types.String `tfsdk:"reply_to"`
@@ -57,14 +56,12 @@ type EmailSenderConfig struct {
 }
 
 type SMSSenderConfig struct {
-	ID          types.String `tfsdk:"id"`
 	FromName    types.String `tfsdk:"from_name"`
 	SenderNames types.Set    `tfsdk:"sender_names"`
 }
 
 type IVRSenderConfig struct {
-	ID          types.String `tfsdk:"id"`
-	SenderNames types.Set    `tfsdk:"sender_names"`
+	SenderNames types.Set `tfsdk:"sender_names"`
 }
 
 var templateGroupSchema = schema.Schema{
@@ -91,17 +88,13 @@ var templateGroupSchema = schema.Schema{
 				" The maximum allowed length of a group_id is **15** characters.",
 		},
 		"email_sender_config": schema.SingleNestedAttribute{
-			Optional:            true,
-			Computed:            true,
+			Optional: true,
+			Computed: true,
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			MarkdownDescription: "The `email_sender_config` is used to configure your email sender.",
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: "The `ID` of the configured email sender.",
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
 				"from_email": schema.StringAttribute{
 					Optional:            true,
 					Computed:            true,
@@ -132,33 +125,15 @@ var templateGroupSchema = schema.Schema{
 					MarkdownDescription: "The `sender_names` attribute defines the names associated with email senders.",
 				},
 			},
-			Default: objectdefault.StaticValue(types.ObjectValueMust(
-				map[string]attr.Type{
-					"id":           types.StringType,
-					"from_email":   types.StringType,
-					"from_name":    types.StringType,
-					"reply_to":     types.StringType,
-					"sender_names": types.SetType{ElemType: types.StringType},
-				},
-				map[string]attr.Value{
-					"id":           types.StringNull(),
-					"from_email":   types.StringNull(),
-					"from_name":    types.StringNull(),
-					"reply_to":     types.StringNull(),
-					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-				})),
 		},
 		"sms_sender_config": schema.SingleNestedAttribute{
 			Optional:            true,
 			Computed:            true,
 			MarkdownDescription: "The configuration of the SMS sender.",
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
 				"from_name": schema.StringAttribute{
 					Optional: true,
 				},
@@ -167,88 +142,53 @@ var templateGroupSchema = schema.Schema{
 					Optional:    true,
 				},
 			},
-			Default: objectdefault.StaticValue(types.ObjectValueMust(
-				map[string]attr.Type{
-					"id":           types.StringType,
-					"from_name":    types.StringType,
-					"sender_names": types.SetType{ElemType: types.StringType},
-				},
-				map[string]attr.Value{
-					"id":           types.StringNull(),
-					"from_name":    types.StringNull(),
-					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-				})),
 		},
 		"ivr_sender_config": schema.SingleNestedAttribute{
 			Optional:            true,
 			Computed:            true,
 			MarkdownDescription: "The configuration of the IVR sender.",
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
 				"sender_names": schema.SetAttribute{
 					ElementType: types.StringType,
 					Optional:    true,
 				},
 			},
-			Default: objectdefault.StaticValue(types.ObjectValueMust(
-				map[string]attr.Type{
-					"id":           types.StringType,
-					"sender_names": types.SetType{ElemType: types.StringType},
-				},
-				map[string]attr.Value{
-					"id":           types.StringNull(),
-					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-				})),
 		},
 		"push_sender_config": schema.SingleNestedAttribute{
 			Optional:            true,
 			Computed:            true,
 			MarkdownDescription: "The configuration of the PUSH notification sender.",
+			PlanModifiers: []planmodifier.Object{
+				objectplanmodifier.UseStateForUnknown(),
+			},
 			Attributes: map[string]schema.Attribute{
-				"id": schema.StringAttribute{
-					Computed: true,
-					PlanModifiers: []planmodifier.String{
-						stringplanmodifier.UseStateForUnknown(),
-					},
-				},
 				"sender_names": schema.SetAttribute{
 					ElementType: types.StringType,
 					Optional:    true,
 				},
 			},
-			Default: objectdefault.StaticValue(types.ObjectValueMust(
-				map[string]attr.Type{
-					"id":           types.StringType,
-					"sender_names": types.SetType{ElemType: types.StringType},
-				},
-				map[string]attr.Value{
-					"id":           types.StringNull(),
-					"sender_names": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("SYSTEM")}),
-				})),
 		},
 	},
 }
 
 func (tg *TemplateGroupConfig) ExtractConfigs(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if !tg.EmailSenderConfig.IsNull() {
+	if !tg.EmailSenderConfig.IsNull() && !tg.EmailSenderConfig.IsUnknown() {
 		tg.emailSenderConfig = &EmailSenderConfig{}
 		diags = tg.EmailSenderConfig.As(ctx, tg.emailSenderConfig, basetypes.ObjectAsOptions{})
 	}
-	if !tg.SMSSenderConfig.IsNull() {
+	if !tg.SMSSenderConfig.IsNull() && !tg.SMSSenderConfig.IsUnknown() {
 		tg.smsSenderConfig = &SMSSenderConfig{}
 		diags = tg.SMSSenderConfig.As(ctx, tg.smsSenderConfig, basetypes.ObjectAsOptions{})
 	}
-	if !tg.IVRSenderConfig.IsNull() {
+	if !tg.IVRSenderConfig.IsNull() && !tg.IVRSenderConfig.IsUnknown() {
 		tg.ivrSenderConfig = &IVRSenderConfig{}
 		diags = tg.IVRSenderConfig.As(ctx, tg.ivrSenderConfig, basetypes.ObjectAsOptions{})
 	}
-	if !tg.PushSenderConfig.IsNull() {
+	if !tg.PushSenderConfig.IsNull() && !tg.PushSenderConfig.IsUnknown() {
 		tg.pushSenderConfig = &IVRSenderConfig{}
 		diags = tg.PushSenderConfig.As(ctx, tg.pushSenderConfig, basetypes.ObjectAsOptions{})
 	}
@@ -330,9 +270,8 @@ func (r *TemplateGroupResource) ImportState(ctx context.Context, req resource.Im
 func prepareTemplateGroupModel(ctx context.Context, plan TemplateGroupConfig) (*cidaas.TemplateGroupModel, diag.Diagnostics) {
 	var tgModel cidaas.TemplateGroupModel
 	tgModel.GroupID = plan.GroupID.ValueString()
-	if !plan.EmailSenderConfig.IsNull() {
+	if !plan.EmailSenderConfig.IsNull() && !plan.EmailSenderConfig.IsUnknown() {
 		tgModel.EmailSenderConfig = &cidaas.EmailSenderConfig{
-			ID:        plan.emailSenderConfig.ID.ValueString(),
 			FromEmail: plan.emailSenderConfig.FromEmail.ValueString(),
 			FromName:  plan.emailSenderConfig.FromName.ValueString(),
 			ReplyTo:   plan.emailSenderConfig.ReplyTo.ValueString(),
@@ -342,9 +281,8 @@ func prepareTemplateGroupModel(ctx context.Context, plan TemplateGroupConfig) (*
 			return nil, diag
 		}
 	}
-	if !plan.SMSSenderConfig.IsNull() {
+	if !plan.SMSSenderConfig.IsNull() && !plan.SMSSenderConfig.IsUnknown() {
 		tgModel.SMSSenderConfig = &cidaas.SMSSenderConfig{
-			ID:       plan.smsSenderConfig.ID.ValueString(),
 			FromName: plan.smsSenderConfig.FromName.ValueString(),
 		}
 		diag := plan.smsSenderConfig.SenderNames.ElementsAs(ctx, &tgModel.SMSSenderConfig.SenderNames, false)
@@ -352,19 +290,15 @@ func prepareTemplateGroupModel(ctx context.Context, plan TemplateGroupConfig) (*
 			return nil, diag
 		}
 	}
-	if !plan.IVRSenderConfig.IsNull() {
-		tgModel.IVRSenderConfig = &cidaas.IVRSenderConfig{
-			ID: plan.ivrSenderConfig.ID.ValueString(),
-		}
+	if !plan.IVRSenderConfig.IsNull() && !plan.IVRSenderConfig.IsUnknown() {
+		tgModel.IVRSenderConfig = &cidaas.IVRSenderConfig{}
 		diag := plan.ivrSenderConfig.SenderNames.ElementsAs(ctx, &tgModel.IVRSenderConfig.SenderNames, false)
 		if diag.HasError() {
 			return nil, diag
 		}
 	}
-	if !plan.PushSenderConfig.IsNull() {
-		tgModel.PushSenderConfig = &cidaas.IVRSenderConfig{
-			ID: plan.pushSenderConfig.ID.ValueString(),
-		}
+	if !plan.PushSenderConfig.IsNull() && !plan.PushSenderConfig.IsUnknown() {
+		tgModel.PushSenderConfig = &cidaas.IVRSenderConfig{}
 		diag := plan.pushSenderConfig.SenderNames.ElementsAs(ctx, &tgModel.PushSenderConfig.SenderNames, false)
 		if diag.HasError() {
 			return nil, diag
@@ -374,21 +308,24 @@ func prepareTemplateGroupModel(ctx context.Context, plan TemplateGroupConfig) (*
 }
 
 func updateState(state *TemplateGroupConfig, res cidaas.TemplateGroupResponse) *TemplateGroupConfig {
-	state.ID = util.StringValueOrNull(&res.Data.ID)
+	state.ID = util.StringValueOrNull(&res.Data.GroupID)
 	if res.Data.EmailSenderConfig != nil {
 		state.EmailSenderConfig = types.ObjectValueMust(
 			map[string]attr.Type{
-				"id":           types.StringType,
 				"from_email":   types.StringType,
 				"from_name":    types.StringType,
 				"reply_to":     types.StringType,
 				"sender_names": types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"id":           util.StringValueOrNull(&res.Data.EmailSenderConfig.ID),
-				"from_email":   util.StringValueOrNull(&res.Data.EmailSenderConfig.FromEmail),
-				"from_name":    util.StringValueOrNull(&res.Data.EmailSenderConfig.FromName),
-				"reply_to":     util.StringValueOrNull(&res.Data.EmailSenderConfig.ReplyTo),
+				"from_email": util.StringValueOrNull(&res.Data.EmailSenderConfig.FromEmail),
+				"from_name":  util.StringValueOrNull(&res.Data.EmailSenderConfig.FromName),
+				"reply_to": func() basetypes.StringValue {
+					if res.Data.EmailSenderConfig.ReplyTo == "" {
+						return util.StringValueOrNull(nil)
+					}
+					return util.StringValueOrNull(&res.Data.EmailSenderConfig.ReplyTo)
+				}(),
 				"sender_names": util.SetValueOrNull(res.Data.EmailSenderConfig.SenderNames),
 			},
 		)
@@ -396,12 +333,10 @@ func updateState(state *TemplateGroupConfig, res cidaas.TemplateGroupResponse) *
 	if res.Data.SMSSenderConfig != nil {
 		state.SMSSenderConfig = types.ObjectValueMust(
 			map[string]attr.Type{
-				"id":           types.StringType,
 				"from_name":    types.StringType,
 				"sender_names": types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"id":           util.StringValueOrNull(&res.Data.SMSSenderConfig.ID),
 				"from_name":    util.StringValueOrNull(&res.Data.SMSSenderConfig.FromName),
 				"sender_names": util.SetValueOrNull(res.Data.SMSSenderConfig.SenderNames),
 			},
@@ -410,11 +345,9 @@ func updateState(state *TemplateGroupConfig, res cidaas.TemplateGroupResponse) *
 	if res.Data.IVRSenderConfig != nil {
 		state.IVRSenderConfig = types.ObjectValueMust(
 			map[string]attr.Type{
-				"id":           types.StringType,
 				"sender_names": types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"id":           util.StringValueOrNull(&res.Data.IVRSenderConfig.ID),
 				"sender_names": util.SetValueOrNull(res.Data.IVRSenderConfig.SenderNames),
 			},
 		)
@@ -422,11 +355,9 @@ func updateState(state *TemplateGroupConfig, res cidaas.TemplateGroupResponse) *
 	if res.Data.PushSenderConfig != nil {
 		state.PushSenderConfig = types.ObjectValueMust(
 			map[string]attr.Type{
-				"id":           types.StringType,
 				"sender_names": types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"id":           util.StringValueOrNull(&res.Data.PushSenderConfig.ID),
 				"sender_names": util.SetValueOrNull(res.Data.PushSenderConfig.SenderNames),
 			},
 		)

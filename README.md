@@ -1543,7 +1543,7 @@ terraform import cidaas_password_policy.resource_name id
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1697,8 +1697,7 @@ resource "cidaas_registration_field" "text" {
     }
   ]
   field_definition = {
-    max_length = 100
-    min_length = 10
+    regex = "^.{10,100}$"
   }
 }
 ```
@@ -1783,6 +1782,7 @@ Optional:
 * `max_length` (Number) The maximum length of a string type attribute.
 * `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 * `min_length` (Number) The minimum length of a string type attribute
+* `regex` (String) The regex for max_length and min_length for the data types TEXT and URL.
 
 ## Import
 
@@ -2201,10 +2201,6 @@ Optional:
 * `reply_to` (String) The `reply_to` attribute is the email address where replies should be directed.
 * `sender_names` (Set of String) The `sender_names` attribute defines the names associated with email senders.
 
-Read-Only:
-
-* `id` (String) The `ID` of the configured email sender.
-
 <a id="nestedatt--ivr_sender_config"></a>
 
 ### Nested Schema for `ivr_sender_config`
@@ -2212,10 +2208,6 @@ Read-Only:
 Optional:
 
 * `sender_names` (Set of String)
-
-Read-Only:
-
-* `id` (String)
 
 <a id="nestedatt--push_sender_config"></a>
 
@@ -2225,10 +2217,6 @@ Optional:
 
 * `sender_names` (Set of String)
 
-Read-Only:
-
-* `id` (String)
-
 <a id="nestedatt--sms_sender_config"></a>
 
 ### Nested Schema for `sms_sender_config`
@@ -2237,10 +2225,6 @@ Optional:
 
 * `from_name` (String)
 * `sender_names` (Set of String)
-
-Read-Only:
-
-* `id` (String)
 
 ## Import
 

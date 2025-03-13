@@ -34,7 +34,6 @@ resource "cidaas_registration_field" "text" {
     }
   ]
   field_definition = {
-    max_length = 100
-    min_length = 10
+    regex = "^.{10,100}$"
   }
 }
