@@ -52,6 +52,7 @@ type FieldDefinition struct {
 	MaxDate         *time.Time `json:"maxDate,omitempty"`
 	InitialDate     *time.Time `json:"initialDate,omitempty"`
 	InitialDateView string     `json:"initialDateView,omitempty"`
+	Regex           string     `json:"regex,omitempty"`
 	AttributesKeys  []string   `json:"attributesKeys,omitempty"`
 }
 

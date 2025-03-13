@@ -105,10 +105,11 @@ type FieldDefinition struct {
 	MaxDate         types.String `tfsdk:"max_date"`
 	InitialDateView types.String `tfsdk:"initial_date_view"`
 	InitialDate     types.String `tfsdk:"initial_date"`
+	Regex           types.String `tfsdk:"regex"`
 }
 
 var regFieldSchema = schema.Schema{
-	MarkdownDescription: "The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system." +
+	MarkdownDescription: "The `cidaas_registration_field` in the provider allows management of registration fields in the Cidaas system." +
 		" This resource enables you to configure and customize the fields displayed during user registration." +
 		"\n\n Ensure that the below scopes are assigned to the client with the specified `client_id`:" +
 		"\n- cidaas:field_setup_read" +
@@ -382,6 +383,13 @@ var regFieldSchema = schema.Schema{
 						&dateValidator{},
 					},
 				},
+				"regex": schema.StringAttribute{
+					Optional:            true,
+					MarkdownDescription: "The regex for max_length and min_length for the data types TEXT and URL.",
+					Validators: []validator.String{
+						&validateIsMaxMinMsgAvailableForRegex{},
+					},
+				},
 			},
 			Default: objectdefault.StaticValue(types.ObjectValueMust(
 				map[string]attr.Type{
@@ -391,6 +399,7 @@ var regFieldSchema = schema.Schema{
 					"max_date":          types.StringType,
 					"initial_date_view": types.StringType,
 					"initial_date":      types.StringType,
+					"regex":             types.StringType,
 				},
 				map[string]attr.Value{
 					"max_length":        types.Int64Null(),
@@ -399,6 +408,7 @@ var regFieldSchema = schema.Schema{
 					"max_date":          types.StringNull(),
 					"initial_date_view": types.StringNull(),
 					"initial_date":      types.StringNull(),
+					"regex":             types.StringNull(),
 				})),
 		},
 	},
@@ -559,14 +569,26 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 				"max_date":          types.StringType,
 				"initial_date_view": types.StringType,
 				"initial_date":      types.StringType,
+				"regex":             types.StringType,
 			},
 			map[string]attr.Value{
-				"max_length":        util.Int64ValueOrNull(res.Data.FieldDefinition.MaxLength),
-				"min_length":        util.Int64ValueOrNull(res.Data.FieldDefinition.MinLength),
+				"max_length": func() basetypes.Int64Value {
+					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+						return types.Int64Null()
+					}
+					return util.Int64ValueOrNull(res.Data.FieldDefinition.MaxLength)
+				}(),
+				"min_length": func() basetypes.Int64Value {
+					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+						return types.Int64Null()
+					}
+					return util.Int64ValueOrNull(res.Data.FieldDefinition.MinLength)
+				}(),
 				"min_date":          util.TimeValueOrNull(res.Data.FieldDefinition.MinDate),
 				"max_date":          util.TimeValueOrNull(res.Data.FieldDefinition.MaxDate),
 				"initial_date_view": util.StringValueOrNull(&res.Data.FieldDefinition.InitialDateView),
 				"initial_date":      util.TimeValueOrNull(res.Data.FieldDefinition.InitialDate),
+				"regex":             util.StringValueOrNull(&res.Data.FieldDefinition.Regex),
 			})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
@@ -691,6 +713,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 			MinLength:       plan.fieldDefinition.MinLength.ValueInt64Pointer(),
 			MaxLength:       plan.fieldDefinition.MaxLength.ValueInt64Pointer(),
 			InitialDateView: plan.fieldDefinition.InitialDateView.ValueString(),
+			Regex:           plan.fieldDefinition.Regex.ValueString(),
 		}
 		if len(attrKeys) > 0 {
 			regConfig.FieldDefinition.AttributesKeys = attrKeys
@@ -729,17 +752,61 @@ var (
 	_ validator.String    = dateValidator{}
 	_ validator.String    = dataTypeValidator{}
 	_ validator.Bool      = isGroupValidator{}
+	_ validator.String    = validateIsMaxMinMsgAvailableForRegex{}
 )
 
 type (
-	validateIsRequiredMsgAvailable struct{}
-	validateIsMaxMinMsgAvailable   struct{}
-	fieldTypeModifier              struct{}
-	dateTypeValidator              struct{}
-	dateValidator                  struct{}
-	dataTypeValidator              struct{}
-	isGroupValidator               struct{}
+	validateIsRequiredMsgAvailable       struct{}
+	validateIsMaxMinMsgAvailable         struct{}
+	fieldTypeModifier                    struct{}
+	dateTypeValidator                    struct{}
+	dateValidator                        struct{}
+	dataTypeValidator                    struct{}
+	isGroupValidator                     struct{}
+	validateIsMaxMinMsgAvailableForRegex struct{}
 )
+
+func (v validateIsMaxMinMsgAvailableForRegex) Description(_ context.Context) string {
+	return "Checks min_date, max_date, initial_date_view and initiate_date"
+}
+
+func (v validateIsMaxMinMsgAvailableForRegex) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if !req.ConfigValue.IsNull() {
+		var config RegFieldConfig
+		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+		resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
+		if !util.StringInSlice(config.DataType.ValueString(), []string{"TEXT", "URL"}) {
+			resp.Diagnostics.AddError(
+				"Validation Error",
+				fmt.Sprintf("The attribute %s is only allowed when data_type is TEXT or URL", req.Path.String()),
+			)
+			return
+		}
+
+		if req.Path.String() == "field_definition.regex" {
+			for _, v := range config.localTexts {
+				if v.MinLengthMsg.IsNull() || v.MinLengthMsg.ValueString() == "" {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						fmt.Sprintf("The attribute local_texts.min_length_msg can not be empty when %s is set", req.Path.String()),
+					)
+					return
+				}
+				if v.MaxLengthMsg.IsNull() || v.MaxLengthMsg.ValueString() == "" {
+					resp.Diagnostics.AddError(
+						"Validation Error",
+						fmt.Sprintf("The attribute local_texts.max_length_msg can not be empty when %s is set", req.Path.String()),
+					)
+					return
+				}
+			}
+		}
+	}
+}
 
 func (v validateIsRequiredMsgAvailable) Description(_ context.Context) string {
 	return "msg is required when enabled is true"
@@ -834,29 +901,6 @@ func (v validateIsMaxMinMsgAvailable) ValidateInt64(ctx context.Context, req val
 					resp.Diagnostics.AddError(
 						"Validation Error",
 						fmt.Sprintf("The attribute local_texts.max_length_msg can not be empty when %s is set", req.Path.String()),
-					)
-					return
-				}
-			}
-		}
-	} else {
-		if req.Path.String() == "field_definition.min_length" {
-			for _, v := range config.localTexts {
-				if !v.MinLengthMsg.IsNull() {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.min_length_msg is not allowed in config when %s is not set", req.Path.String()),
-					)
-					return
-				}
-			}
-		}
-		if req.Path.String() == "field_definition.max_length" {
-			for _, v := range config.localTexts {
-				if !v.MaxLengthMsg.IsNull() {
-					resp.Diagnostics.AddError(
-						"Validation Error",
-						fmt.Sprintf("The attribute local_texts.max_length_msg is not allowed in config when %s is not set", req.Path.String()),
 					)
 					return
 				}
@@ -975,7 +1019,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 		}
 	}
 
-	noMaxMinLengthDataTypes := []string{"CHECKBOX", "CONSENT", "JSON_STRING", "ARRAY", "NUMBER", "SELECT", "RADIO", "MULTISELECT", "MOBILE", "JSON_STRING"}
+	noMaxMinLengthDataTypes := []string{"CHECKBOX", "CONSENT", "JSON_STRING", "ARRAY", "NUMBER", "SELECT", "RADIO", "MULTISELECT", "MOBILE", "JSON_STRING", "TEXT", "URL"}
 	if util.StringInSlice(req.ConfigValue.ValueString(), noMaxMinLengthDataTypes) {
 		if config.FieldDefinition.IsNull() {
 			return
