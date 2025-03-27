@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.4.4
+
+#### Bug Fixes
+
+- Reduced plan time validation from resource `cidaas_template`.
+
 ### 3.4.3
 
 #### Enhancements
