@@ -6,7 +6,7 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -48,7 +48,7 @@ type HostedPageConfig struct {
 	ID                  types.String `tfsdk:"id"`
 	HostedPageGroupName types.String `tfsdk:"hosted_page_group_name"`
 	DefaultLocale       types.String `tfsdk:"default_locale"`
-	HostedPages         types.List   `tfsdk:"hosted_pages"`
+	HostedPages         types.Set    `tfsdk:"hosted_pages"`
 	hostedPages         []*HostedPage
 	CreatedAt           types.String `tfsdk:"created_at"`
 	UpdatedAt           types.String `tfsdk:"updated_at"`
@@ -113,11 +113,11 @@ var hostedPageSchema = schema.Schema{
 			// if hosted_page not found by the local provided in the hosted_pages map, the api throws ambigious data error.
 			// TODO: add a custom plan modifier later to validate the same and throw plan time error
 		},
-		"hosted_pages": schema.ListNestedAttribute{
+		"hosted_pages": schema.SetNestedAttribute{
 			Required:            true,
 			MarkdownDescription: "List of hosted pages with their respective attributes",
-			Validators: []validator.List{
-				listvalidator.SizeAtLeast(1),
+			Validators: []validator.Set{
+				setvalidator.SizeAtLeast(1),
 			},
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
@@ -234,7 +234,7 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 		objectValues = append(objectValues, objValue)
 	}
 
-	hps, diags := types.ListValueFrom(ctx, hostedPages, objectValues)
+	hps, diags := types.SetValueFrom(ctx, hostedPages, objectValues)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
