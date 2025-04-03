@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.4.5
+
+#### Bug Fixes
+
+- The attribute `hosted_pages` in the resource `cidaas_hosted_page` has been updated to use an unordered list. This change resolves the issue where Terraform would incorrectly detect changes in the `hosted_pages` attribute, even when there were no actual modifications to the list, apart from reordering.
+
 ### 3.4.4
 
 #### Bug Fixes
