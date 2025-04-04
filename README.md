@@ -1,8 +1,8 @@
 ![Logo](https://raw.githubusercontent.com/Cidaas/terraform-provider-cidaas/master/logo.jpg)
 
-## About Cidaas
+## About cidaas
 
-[Cidaas](https://www.cidaas.com)
+[cidaas](https://www.cidaas.com)
  is a fast and secure Cloud Identity & Access Management solution that standardises what’s important and simplifies what’s complex.
 
 ## Feature set includes
@@ -21,9 +21,9 @@
   </picture>
 </a>
 
-# Terraform Provider for Cidaas
+# Terraform Provider for cidaas
 
-The Terraform provider for Cidaas enables interaction with Cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities. From managing applications to configuring custom providers, the Terraform provider enhances the user's capacity to define, provision and manipulate their Cidaas resources.
+The Terraform provider for cidaas enables interaction with cidaas instances that allows to perform CRUD operations on applications, custom providers, registration fields and many other functionalities. From managing applications to configuring custom providers, the Terraform provider enhances the user's capacity to define, provision and manipulate their cidaas resources.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ Below is a step-by-step guide to help you set up the provider, configure essenti
 
 ### 1. Terraform Provider Declaration
 
-Begin by specifying the Cidaas provider in your `terraform` block in your Terraform configuration file:
+Begin by specifying the cidaas provider in your `terraform` block in your Terraform configuration file:
 
 ```hcl
 terraform {
@@ -54,11 +54,11 @@ terraform {
 }
 ```
 
-Terraform pulls the version configured of the Cidaas provider for your infrastructure.
+Terraform pulls the version configured of the cidaas provider for your infrastructure.
 
 ### 2. Setup Environment Variables
 
-To authenticate and authorize Terraform operations with Cidaas, set the necessary environment variables. These variables include your Cidaas client credentials, allowing the Terraform provider to complete the client credentials flow and generate an access_token. Execute the following commands in your terminal, replacing placeholders with your actual Cidaas client ID and client secret.
+To authenticate and authorize Terraform operations with cidaas, set the necessary environment variables. These variables include your cidaas client credentials, allowing the Terraform provider to complete the client credentials flow and generate an access_token. Execute the following commands in your terminal, replacing placeholders with your actual cidaas client ID and client secret.
 
 ### For Linux and MacOS
 
@@ -74,11 +74,11 @@ Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID -Value “ENTER CIDAAS CL
 Set-Item -Path env:TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET -Value “ENTER CIDAAS CLIENT SECRET“
 ```
 
-You can get a set of client credentials from the Cidaas Admin UI by creating a new client. Simply go to the `Apps` > `App Settings` > `Create New App`. It's important to note that when creating the client, you must select the app type as **Non-Interactive**.
+You can get a set of client credentials from the cidaas Admin UI by creating a new client. Simply go to the `Apps` > `App Settings` > `Create New App`. It's important to note that when creating the client, you must select the app type as **Non-Interactive**.
 
-### 3. Add Cidaas Provider Configuration
+### 3. Add cidaas Provider Configuration
 
-Next, add the Cidaas provider configuration to your Terraform configuration file. Specify the `base_url` parameter to point to your Cidaas instance. For reference, check the example folder.
+Next, add the cidaas provider configuration to your Terraform configuration file. Specify the `base_url` parameter to point to your cidaas instance. For reference, check the example folder.
 
 ```hcl
 provider "cidaas" {
@@ -88,11 +88,11 @@ provider "cidaas" {
 
 **Note:** Starting from version 2.5.1, the `redirect_url` is no longer supported in the provider configuration. Ensure that you adjust your configuration accordingly.
 
-By following these steps, you integrate the Cidaas Terraform provider enabling you to manage your Cidaas resources with Terraform.
+By following these steps, you integrate the cidaas Terraform provider enabling you to manage your cidaas resources with Terraform.
 
 ## Supported Resources
 
-The Terraform provider for Cidaas supports a variety of resources that enables you to manage and configure different aspects of your Cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your Cidaas resources as code.
+The Terraform provider for cidaas supports a variety of resources that enables you to manage and configure different aspects of your cidaas environment. These resources are designed to integrate with Terraform workflows, allowing you to define, provision and manage your cidaas resources as code.
 
 Explore the following resources to understand their attributes, functionalities and how to use them in your Terraform configurations:
 
@@ -132,7 +132,7 @@ Here is the list of the datasources the provider supports:
 
 # cidaas_app (Resource)
 
-The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+The App resource allows creation and management of clients in cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -241,7 +241,7 @@ After:
 }
 ```
 
-Alternatively, you can resolve the issue by deleting the existing state of the specific resource and importing it from Cidaas.
+Alternatively, you can resolve the issue by deleting the existing state of the specific resource and importing it from cidaas.
 However, this approach can be risky, so please proceed with caution.
 Ensure you only delete the specific resource from the state file that is causing the error, not the entire file or any other resources.
 
@@ -250,7 +250,7 @@ The module provides a variable with the same name `common_configs` which
 supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
 of multiple apps to a common variable and inherit the properties.
 
-Link to the custom module <https://github.com/Cidaas/terraform-cidaas-app>
+Link to the custom module <https://github.com/cidaas/terraform-cidaas-app>
 
 ##### Module usage
 
@@ -734,7 +734,7 @@ terraform import cidaas_app.sample client_id
 
 # cidaas_consent (Resource)
 
-The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
+The Consent resource in the provider allows you to manage different consents within a specific consent group in cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -782,7 +782,7 @@ terraform import cidaas_consent.sample a0508317-cec9-4f3e-afa4:sample_consent
 
 # cidaas_consent_group (Resource)
 
-The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas.
+The Consent Group resource in the provider allows you to define and manage consent groups in cidaas.
  Consent Groups are useful to organize and manage consents by grouping related consent items together.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
@@ -827,7 +827,7 @@ terraform import cidaas_consent_group.sample id
 
 # cidaas_consent_version (Resource)
 
-The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas.
+The Consent Version resource in the provider allows you to manage different versions of a specific consent in cidaas.
  This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
@@ -927,7 +927,7 @@ terraform import cidaas_consent_version.v1 3f453233-92d4-475b-b10e:813fbd47-6c50
 
 # cidaas_custom_provider (Resource)
 
-This example demonstrates the configuration of a custom provider resource for interacting with Cidaas.
+This example demonstrates the configuration of a custom provider resource for interacting with cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 * cidaas:providers_read
@@ -1348,7 +1348,7 @@ terraform import cidaas_custom_provider.resource_name provider_name
 
 # cidaas_group_type (Resource)-Previously cidaas_user_group_category
 
-The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the Cidaas system.
+The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1401,7 +1401,7 @@ terraform import cidaas_group_type.resource_name group_type
 
 # cidaas_hosted_page (Resource)
 
-The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
+The Hosted Page resource in the provider allows you to define and manage hosted pages within the cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1474,7 +1474,7 @@ terraform import cidaas_hosted_page.resource_name hosted_page_id
 
 # cidaas_password_policy (Resource)
 
-The Password Policy resource in the provider allows you to manage the password policy within the Cidaas.
+The Password Policy resource in the provider allows you to manage the password policy within the cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1521,7 +1521,7 @@ terraform import cidaas_password_policy.resource_name id
 
 # cidaas_registration_field (Resource)
 
-The `cidaas_registration_page_field` in the provider allows management of registration fields in the Cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
+The `cidaas_registration_page_field` in the provider allows management of registration fields in the cidaas system. This resource enables you to configure and customize the fields displayed during user registration.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1772,7 +1772,7 @@ terraform import cidaas_registration_page_field.resource_name field_key
 
 # cidaas_role (Resource)
 
-The cidaas_role resource in Terraform facilitates the management of roles in Cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
+The cidaas_role resource in Terraform facilitates the management of roles in cidaas system. This resource allows you to configure and define custom roles to suit your application's specific access control requirements.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1816,7 +1816,7 @@ terraform import cidaas_role.resource_name role
 
 # cidaas_scope_group (Resource)
 
-The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
+The cidaas_scope_group resource in the provider allows to manage Scope Groups in cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1860,7 +1860,7 @@ terraform import cidaas_scope_group.resource_name group_name
 
 # cidaas_scope (Resource)
 
-The Scope resource allows to manage scopes in Cidaas system. Scopes define the level of access and permissions granted to an application (client).
+The Scope resource allows to manage scopes in cidaas system. Scopes define the level of access and permissions granted to an application (client).
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -1904,17 +1904,17 @@ resource "cidaas_scope" "sample" {
   group_name            = []
   localized_descriptions = [
     {
-      title       = "Cidaas Scope Tunisia Title"
+      title       = "cidaas Scope Tunisia Title"
       locale      = "ar-TN"
       description = "This is scope in local ar-TN"
     },
     {
-      title       = "Cidaas Scope German Title"
+      title       = "cidaas Scope German Title"
       locale      = "de-DE"
       description = "This is scope in local de-DE"
     },
     {
-      title       = "Cidaas Scope India Title"
+      title       = "cidaas Scope India Title"
       locale      = "en-IN"
       description = "This is scope in local en-IN"
     }
@@ -1964,7 +1964,7 @@ terraform import cidaas_scope.resource_name scope_key
 
 # cidaas_social_provider (Resource)
 
-The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas.
+The `cidaas_social_provider` resource allows you to configure and manage social login providers within cidaas.
  Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
 
  Ensure that the below scopes are assigned to the client:
@@ -2036,7 +2036,7 @@ resource "cidaas_app" "app_sample" {
 
 * `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
 * `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
-* `name` (String) The name of the social provider configuration. This should be unique within your Cidaas environment.
+* `name` (String) The name of the social provider configuration. This should be unique within your cidaas environment.
 * `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
 
 ### Optional
@@ -2045,7 +2045,7 @@ resource "cidaas_app" "app_sample" {
 * `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
 * `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
 * `scopes` (Set of String) A list of scopes of the social provider.
-* `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and Cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
+* `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
 
 ### Read-Only
 
@@ -2085,7 +2085,7 @@ Optional:
 Required:
 
 * `external_key` (String) The external key used by the social provider.
-* `inner_key` (String) The internal key used by Cidaas.
+* `inner_key` (String) The internal key used by cidaas.
 * `is_custom_field` (Boolean) A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.
 * `is_system_field` (Boolean) A flag indicating whether the field is a system field. Set to `true` if it is a system field.
 
@@ -2100,7 +2100,7 @@ terraform import cidaas_social_provider.sample google:8d789b3d-b312-4251
 
 # cidaas_template_group (Resource)
 
-The cidaas_template_group resource in the provider is used to define and manage templates groups within the Cidaas system. Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively.
+The cidaas_template_group resource in the provider is used to define and manage templates groups within the cidaas system. Template Groups categorize your communication templates allowing you to map preferred templates to specific clients effectively.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -2230,7 +2230,7 @@ terraform import cidaas_template_group.resource_name group_id
 
 # cidaas_template (Resource)
 
-The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
+The Template resource in the provider is used to define and manage templates within the cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -2436,7 +2436,7 @@ terraform import cidaas_user_groups.resource_name group_id
 
 # cidaas_webhook (Resource)
 
-The Webhook resource in the provider facilitates integration of webhooks in the Cidaas system. This resource allows you to configure webhooks with different authentication options.
+The Webhook resource in the provider facilitates integration of webhooks in the cidaas system. This resource allows you to configure webhooks with different authentication options.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 
@@ -2488,7 +2488,7 @@ resource "cidaas_webhook" "sample_webhook" {
 ### Optional
 
 * `apikey_config` (Attributes) Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY. (see [below for nested schema](#nestedatt--apikey_config))
-* `cidaas_auth_config` (Attributes) Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
+* `cidaas_auth_config` (Attributes) Configuration for cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2. (see [below for nested schema](#nestedatt--cidaas_auth_config))
 * `disable` (Boolean) Flag to disable the webhook.
 * `totp_config` (Attributes) Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP. (see [below for nested schema](#nestedatt--totp_config))
 
@@ -2514,7 +2514,7 @@ Required:
 
 Required:
 
-* `client_id` (String) The client ID for Cidaas authentication.
+* `client_id` (String) The client ID for cidaas authentication.
 
 <a id="nestedatt--totp_config"></a>
 
@@ -2538,7 +2538,7 @@ terraform import cidaas_webhook.sample ae90d6ba-9a5a-49b6-9a50-b8db759e9b90
 
 # cidaas_consent (Data Source)
 
-The data source `cidaas_consent` returns a list of consents available in your Cidaas instance.
+The data source `cidaas_consent` returns a list of consents available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2593,7 +2593,7 @@ Read-Only:
 
 # cidaas_custom_provider (Data Source)
 
-The data source `cidaas_custom_provider` returns a list of custom providers available in your Cidaas instance.
+The data source `cidaas_custom_provider` returns a list of custom providers available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2651,7 +2651,7 @@ Read-Only:
 
 # cidaas_group_type (Data Source)
 
-The data source `cidaas_group_type` returns a list of group types available in your Cidaas instance.
+The data source `cidaas_group_type` returns a list of group types available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2714,7 +2714,7 @@ Read-Only:
 
 # cidaas_registration_field (Data Source)
 
-The data source `cidaas_registration_field` returns a list of registration fields available in your Cidaas instance.
+The data source `cidaas_registration_field` returns a list of registration fields available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2788,7 +2788,7 @@ Read-Only:
 
 # cidaas_role (Data Source)
 
-The data source `cidaas_role` returns a list of roles available in your Cidaas instance.
+The data source `cidaas_role` returns a list of roles available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2844,7 +2844,7 @@ Read-Only:
 
 # cidaas_scope_group (Data Source)
 
-The data source `cidaas_scope_group` returns a list of scope groups available in your Cidaas instance.
+The data source `cidaas_scope_group` returns a list of scope groups available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2900,7 +2900,7 @@ Read-Only:
 
 # cidaas_scope (Data Source)
 
-The data source `cidaas_scope` returns a list of scopes available in your Cidaas instance.
+The data source `cidaas_scope` returns a list of scopes available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -2984,7 +2984,7 @@ Read-Only:
 
 # cidaas_social_provider (Data Source)
 
-The data source `cidaas_social_provider` returns a list of social providers available in your Cidaas instance.
+The data source `cidaas_social_provider` returns a list of social providers available in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
@@ -3052,7 +3052,7 @@ Read-Only:
 # cidaas_system_template_option (Data Source)
 
 The data source `cidaas_system_template_option` returns a list of system templates optionsa that can be
-configured to create a system template in your Cidaas instance.
+configured to create a system template in your cidaas instance.
 You can apply filters using the `filter` block in your Terraform configuration.
 
 ## Example Usage
