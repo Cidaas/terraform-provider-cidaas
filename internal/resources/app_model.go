@@ -461,12 +461,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		EnableLoginSpi:                   plan.EnableLoginSpi.ValueBoolPointer(),
 		BackchannelLogoutSessionRequired: plan.BackchannelLogoutSessionRequired.ValueBoolPointer(),
 		AcceptRolesInTheRegistration:     plan.AcceptRolesInTheRegistration.ValueBoolPointer(),
-	}
-
-	if plan.PasswordPolicyRef.IsNull() {
-		app.PasswordPolicyRef = ""
-	} else {
-		app.PasswordPolicyRef = plan.PasswordPolicyRef.ValueString()
+		PasswordPolicyRef:                plan.PasswordPolicyRef.ValueString(),
 	}
 
 	var diags diag.Diagnostics
