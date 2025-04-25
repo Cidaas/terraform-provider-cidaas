@@ -46,7 +46,7 @@ resource "cidaas_hosted_page" "sample" {
 ### Required
 
 - `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
-- `hosted_pages` (Attributes List) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
+- `hosted_pages` (Attributes Set) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
 
 ### Optional
 

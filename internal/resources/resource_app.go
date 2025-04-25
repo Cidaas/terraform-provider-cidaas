@@ -135,7 +135,6 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		resp.Diagnostics.AddError("failed to update app", util.FormatErrorMessage(err))
 		return
 	}
-	// resp.Diagnostics.Append(updateStateModel(res, &plan, &config, UPDATE)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -169,13 +168,13 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	state.AllowedScopes = util.SetValueOrNull(data.AllowedScopes)
 
 	// RedirectURIS, AllowedLogoutUrls, GrantTypes are required to be set when import is done based on the client_type
-	if !state.RedirectURIS.IsNull() {
+	if util.StringInSlice(data.ClientType, []string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}) || !state.RedirectURIS.IsNull() {
 		state.RedirectURIS = util.SetValueOrNull(data.RedirectURIS)
 	}
-	if !state.AllowedLogoutUrls.IsNull() {
+	if util.StringInSlice(data.ClientType, []string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}) || !state.AllowedLogoutUrls.IsNull() {
 		state.AllowedLogoutUrls = util.SetValueOrNull(data.AllowedLogoutUrls)
 	}
-	if !state.GrantTypes.IsNull() {
+	if util.StringInSlice(data.ClientType, []string{"DEVICE"}) || !state.GrantTypes.IsNull() {
 		state.GrantTypes = util.SetValueOrNull(data.GrantTypes)
 	}
 
@@ -487,7 +486,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.RequestUris = util.SetValueOrNull(data.RequestUris)
 	}
 
-	// Map attributes
+	// Map & List attributes
 	if !state.ApplicationMetaData.IsNull() && len(data.ApplicationMetaData) > 0 {
 		metaData := map[string]attr.Value{}
 		for key, value := range data.ApplicationMetaData {
@@ -732,7 +731,6 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.SuggestVerificationMethods = obj
 	}
 
-	// groupSelectionRestriction can not be empty object
 	if !state.GroupRoleRestriction.IsNull() && data.GroupRoleRestriction != nil && len(data.GroupRoleRestriction.Filters) > 0 {
 		roleFilterType := map[string]attr.Type{
 			"match_condition": types.StringType,

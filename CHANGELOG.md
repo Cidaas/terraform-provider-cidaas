@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.4.6
+
+#### Enhancements
+
+- The `cidaas_app` resource has been enhanced to behave more accurately based on the `client_type` attribute. With this update, Terraform configurations must now explicitly define values for all relevant attributes, as they are no longer treated as computed or automatically assigned defaults by the provider during resource creation.
+For example, the `enabled` attribute was previously defaulted to `true` by the provider when creating an application. With this change, if you do not specify `enabled` in your configuration, the provider will omit it from the API request allowing the server to apply its own default behavior instead.
+This ensures a more predictable and transparent configuration experience, aligning the provider behavior more closely with user intent and server-side defaults.
+
 ### 3.4.5
 
 #### Bug Fixes
