@@ -15,14 +15,15 @@ const (
 
 // create, read and update test
 func TestRegistrationField_CheckBoxBasic(t *testing.T) {
+	fieldKey := acctest.RandString(10)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testRegFieldConfig("CHECKBOX", "sample_checkbox_field", true, false),
+				Config: testRegFieldConfig("CHECKBOX", fieldKey, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_checkbox_field"),
+					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
 			},
@@ -30,10 +31,10 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 				ResourceName:      resourceRegField,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "sample_checkbox_field",
+				ImportStateId:     fieldKey,
 			},
 			{
-				Config: testRegFieldConfig("CHECKBOX", "sample_checkbox_field", false, false),
+				Config: testRegFieldConfig("CHECKBOX", fieldKey, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
@@ -115,8 +116,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 						}
 					]
 					field_definition = {
-						max_length = 100
-						min_length = 10
+						regex = "^.{10,100}$"
 					}
 				}							
 			`, acctest.BaseURL, fiedKey),

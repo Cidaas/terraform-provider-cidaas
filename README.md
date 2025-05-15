@@ -416,104 +416,104 @@ resource "cidaas_app" "sample" {
 
 ### Required
 
-* `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
-* `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
-* `client_name` (String) Name of the client.
-* `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
-* `company_address` (String) The company address.
-* `company_name` (String) The name of the company that the client belongs to.
-* `company_website` (String) The URL of the company website.
-* `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
+- `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
+- `client_name` (String) Name of the client.
+- `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
+- `company_address` (String) The company address.
+- `company_name` (String) The name of the company that the client belongs to.
+- `company_website` (String) The URL of the company website.
 
 ### Optional
 
-* `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
-* `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
-* `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
-* `additional_access_token_payload` (Set of String) Access token payload definition.
-* `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
-* `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
-* `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
-* `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
-* `allowed_fields` (Set of String)
-* `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
-* `allowed_mfa` (Set of String)
-* `allowed_origins` (Set of String) List of the origins allowed to access the client.
-* `allowed_roles` (Set of String)
-* `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
-* `always_ask_mfa` (Boolean)
-* `application_meta_data` (Map of String) A map to add metadata of a client.
-* `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
-* `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
-* `backchannel_logout_uri` (String)
-* `background_uri` (String) The URL to the background image of the client.
-* `blocking_mechanism_ref` (String)
-* `bot_captcha_ref` (String)
-* `bot_provider` (String)
-* `captcha_ref` (String)
-* `captcha_refs` (Set of String)
-* `client_display_name` (String) The display name of the client.
-* `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-* `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
-* `client_uri` (String)
-* `communication_medium_verification` (String)
-* `consent_page_group` (String)
-* `consent_refs` (Set of String)
-* `contacts` (Set of String) The contacts of the client.
-* `content_align` (String) The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHTThe default is set to `CENTER`.
-* `custom_providers` (Attributes List) A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider. (see [below for nested schema](#nestedatt--custom_providers))
-* `default_acr_values` (Set of String)
-* `default_max_age` (Number) The default maximum age for the token in seconds. Default is 86400 seconds (24 hours).
-* `default_roles` (Set of String)
-* `default_scopes` (Set of String)
-* `description` (String)
-* `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
-* `email_verification_required` (Boolean)
-* `enable_bot_detection` (Boolean)
-* `enable_classical_provider` (Boolean)
-* `enable_deduplication` (Boolean) Enable deduplication.
-* `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
-* `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
-* `enabled` (Boolean)
-* `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
-* `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
-* `group_ids` (Set of String)
-* `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
-* `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
-* `group_types` (Set of String)
-* `hosted_page_group` (String) Hosted page group.
-* `id_token_encrypted_response_alg` (String)
-* `id_token_encrypted_response_enc` (String)
-* `id_token_lifetime_in_seconds` (Number) The lifetime of the id_token in seconds. Default is 86400 seconds (24 hours).
-* `id_token_signed_response_alg` (String)
-* `imprint_uri` (String) The URL to the imprint page.
-* `initiate_login_uri` (String)
-* `is_group_login_selection_enabled` (Boolean)
-* `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
-* `is_login_success_page_enabled` (Boolean)
-* `is_register_success_page_enabled` (Boolean)
-* `is_remember_me_selected` (Boolean)
-* `jwe_enabled` (Boolean) Flag to specify whether JSON Web Encryption (JWE) should be enabled for encrypting data.
-* `jwks` (String)
-* `jwks_uri` (String)
-* `login_providers` (Set of String) With this attribute one can setup login provider to the client.
-* `login_spi` (Attributes) A map defining the Login SPI configuration. (see [below for nested schema](#nestedatt--login_spi))
-* `logo_align` (String)
-* `logo_uri` (String)
-* `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
-* `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
-* `mfa_configuration` (String)
-* `mobile_number_verification_required` (Boolean)
-* `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
-* `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
-* `password_policy_ref` (String)
-* `pending_scopes` (Set of String)
-* `policy_uri` (String) The URL to the policy of a client.
-* `post_logout_redirect_uris` (Set of String)
-* `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
-* `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
-* `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
-* `registration_access_token` (String)
+- `accent_color` (String) The accent color of the client. e.g., `#f7941d`. The value must be a valid hex colorThe default is set to `#ef4923`.
+- `accept_roles_in_the_registration` (Boolean) A boolean flag that determines whether roles can be accepted during the registration process.
+- `ad_providers` (Attributes List) A list of Active Directory identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--ad_providers))
+- `additional_access_token_payload` (Set of String) Access token payload definition.
+- `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
+- `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
+- `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
+- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
+- `allowed_fields` (Set of String)
+- `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
+- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
+- `allowed_mfa` (Set of String)
+- `allowed_origins` (Set of String) List of the origins allowed to access the client.
+- `allowed_roles` (Set of String)
+- `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
+- `always_ask_mfa` (Boolean)
+- `application_meta_data` (Map of String) A map to add metadata of a client.
+- `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
+- `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
+- `backchannel_logout_uri` (String)
+- `background_uri` (String) The URL to the background image of the client.
+- `blocking_mechanism_ref` (String)
+- `bot_captcha_ref` (String)
+- `bot_provider` (String)
+- `captcha_ref` (String)
+- `captcha_refs` (Set of String)
+- `client_display_name` (String) The display name of the client.
+- `client_id` (String) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
+- `client_secret` (String, Sensitive) The client_id is the unqique identifier of the app. It's an optional attribute. If not provided, cidaas will gererate one for you and the state will be updated with the same
+- `client_uri` (String)
+- `communication_medium_verification` (String)
+- `consent_page_group` (String)
+- `consent_refs` (Set of String)
+- `contacts` (Set of String) The contacts of the client.
+- `content_align` (String) The alignment of the content of the client. e.g., `CENTER`. Allowed values are CENTER, LEFT and RIGHTThe default is set to `CENTER`.
+- `custom_providers` (Attributes List) A list of custom identity providers that users can authenticate with. A custom provider can be created with the help of the resource cidaas_custom_provider. (see [below for nested schema](#nestedatt--custom_providers))
+- `default_acr_values` (Set of String)
+- `default_max_age` (Number) The default maximum age for the token in seconds. Default is 86400 seconds (24 hours).
+- `default_roles` (Set of String)
+- `default_scopes` (Set of String)
+- `description` (String)
+- `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
+- `email_verification_required` (Boolean)
+- `enable_bot_detection` (Boolean)
+- `enable_classical_provider` (Boolean)
+- `enable_deduplication` (Boolean) Enable deduplication.
+- `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
+- `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
+- `enabled` (Boolean)
+- `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
+- `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
+- `group_ids` (Set of String)
+- `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
+- `group_selection` (Attributes) (see [below for nested schema](#nestedatt--group_selection))
+- `group_types` (Set of String)
+- `hosted_page_group` (String) Hosted page group.
+- `id_token_encrypted_response_alg` (String)
+- `id_token_encrypted_response_enc` (String)
+- `id_token_lifetime_in_seconds` (Number) The lifetime of the id_token in seconds. Default is 86400 seconds (24 hours).
+- `id_token_signed_response_alg` (String)
+- `imprint_uri` (String) The URL to the imprint page.
+- `initiate_login_uri` (String)
+- `is_group_login_selection_enabled` (Boolean)
+- `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
+- `is_login_success_page_enabled` (Boolean)
+- `is_register_success_page_enabled` (Boolean)
+- `is_remember_me_selected` (Boolean)
+- `jwe_enabled` (Boolean) Flag to specify whether JSON Web Encryption (JWE) should be enabled for encrypting data.
+- `jwks` (String)
+- `jwks_uri` (String)
+- `login_providers` (Set of String) With this attribute one can setup login provider to the client.
+- `login_spi` (Attributes) A map defining the Login SPI configuration. (see [below for nested schema](#nestedatt--login_spi))
+- `logo_align` (String)
+- `logo_uri` (String)
+- `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
+- `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
+- `mfa_configuration` (String)
+- `mobile_number_verification_required` (Boolean)
+- `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
+- `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
+- `password_policy_ref` (String)
+- `pending_scopes` (Set of String)
+- `policy_uri` (String) The URL to the policy of a client.
+- `post_logout_redirect_uris` (Set of String)
+- `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
+- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
+- `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
+- `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
+- `registration_access_token` (String)
 * `registration_client_uri` (String)
 * `request_object_encryption_alg` (String)
 * `request_object_encryption_enc` (String)
@@ -1438,7 +1438,7 @@ resource "cidaas_hosted_page" "sample" {
 ### Required
 
 * `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
-* `hosted_pages` (Attributes List) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
+* `hosted_pages` (Attributes Set) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
 
 ### Optional
 
@@ -1486,30 +1486,52 @@ The Password Policy resource in the provider allows you to manage the password p
 
 ```terraform
 resource "cidaas_password_policy" "sample" {
-  policy_name         = "sample_terraform_policy"
-  minimum_length      = 8
-  maximum_length      = 20
-  lower_and_uppercase = true
-  no_of_digits        = 1
-  no_of_special_chars = 1
+  policy_name = "sample_terraform_policy"
+  password_policy = {
+    block_compromised = false,
+    deny_usage_count  = 3,
+    strength_regexes = [
+      "^(?=.*[A-Za-z])(?!.*\\s).{6,15}$"
+    ],
+    change_enforcement = {
+      expiration_in_days         = 90
+      notify_user_before_in_days = 7
+    }
+  }
 }
 ```
 
-<!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-* `lower_and_uppercase` (Boolean) Specifies whether the password must contain both lowercase and uppercase letters.
-* `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)`
-* `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.
-* `no_of_digits` (Number) The required number of digits in the password.
-* `no_of_special_chars` (Number) The required number of special characters in the password.
-* `policy_name` (String) The name of the password policy.
+- `password_policy` (Attributes) The password policy configuration. All attributes are optional except strength_regexes. If not provided, default values will be applied. (see [below for nested schema](#nestedatt--password_policy))
+- `policy_name` (String) The name of the password policy.
 
 ### Read-Only
 
-* `id` (String) Unique identifier of the password policy.
+- `id` (String) Unique identifier of the password policy.
+
+<a id="nestedatt--password_policy"></a>
+### Nested Schema for `password_policy`
+
+Required:
+
+- `strength_regexes` (Set of String) The regular expression to enforce the minimum and maximum character count, minimum number of numeric and special characters and whether to include lowercase or uppercase letters in a password.
+
+Optional:
+
+- `block_compromised` (Boolean) Flag to block passwords that have been compromised.
+- `change_enforcement` (Attributes) (see [below for nested schema](#nestedatt--password_policy--change_enforcement))
+- `deny_usage_count` (Number) The reuse limit specifies the maximum number of times a user can reuse a previous password.
+
+<a id="nestedatt--password_policy--change_enforcement"></a>
+### Nested Schema for `password_policy.change_enforcement`
+
+Optional:
+
+- `expiration_in_days` (Number) The number of days allowed before a password must be changed.
+- `notify_user_before_in_days` (Number) Number of days before password expiry to notify the user.
 
 ## Import
 
@@ -1675,8 +1697,7 @@ resource "cidaas_registration_field" "text" {
     }
   ]
   field_definition = {
-    max_length = 100
-    min_length = 10
+    regex = "^.{10,100}$"
   }
 }
 ```
@@ -1761,6 +1782,7 @@ Optional:
 * `max_length` (Number) The maximum length of a string type attribute.
 * `min_date` (String) The earliest date a user can select. Applicable only for DATE attributes. Example format: `2024-06-28T18:30:00Z`.
 * `min_length` (Number) The minimum length of a string type attribute
+* `regex` (String) The regex for max_length and min_length for the data types TEXT and URL.
 
 ## Import
 
@@ -2179,10 +2201,6 @@ Optional:
 * `reply_to` (String) The `reply_to` attribute is the email address where replies should be directed.
 * `sender_names` (Set of String) The `sender_names` attribute defines the names associated with email senders.
 
-Read-Only:
-
-* `id` (String) The `ID` of the configured email sender.
-
 <a id="nestedatt--ivr_sender_config"></a>
 
 ### Nested Schema for `ivr_sender_config`
@@ -2190,10 +2208,6 @@ Read-Only:
 Optional:
 
 * `sender_names` (Set of String)
-
-Read-Only:
-
-* `id` (String)
 
 <a id="nestedatt--push_sender_config"></a>
 
@@ -2203,10 +2217,6 @@ Optional:
 
 * `sender_names` (Set of String)
 
-Read-Only:
-
-* `id` (String)
-
 <a id="nestedatt--sms_sender_config"></a>
 
 ### Nested Schema for `sms_sender_config`
@@ -2215,10 +2225,6 @@ Optional:
 
 * `from_name` (String)
 * `sender_names` (Set of String)
-
-Read-Only:
-
-* `id` (String)
 
 ## Import
 

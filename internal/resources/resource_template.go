@@ -452,7 +452,6 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 		processingTypes := map[string]cidaas.ProcessingType{}
 
 		defaultProcessingType := "GENERAL"
-		defaultUsageType := "GENERAL"
 
 		// must be enabled as well
 		for i, v := range masterListMap[config.TemplateKey.ValueString()].TemplateTypes {
@@ -466,9 +465,6 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 			if v.TemplateType == config.TemplateType.ValueString() {
 				if v.Default.ProcessingType != "" {
 					defaultProcessingType = v.Default.ProcessingType
-				}
-				if v.Default.UsageType != "" {
-					defaultUsageType = v.Default.UsageType
 				}
 			}
 			processingTypesByTemplateType[v.TemplateType] = p
@@ -564,13 +560,6 @@ func validateSystemTemplateConfig(config TemplateConfig) diag.Diagnostics { //no
 				)
 				return diags
 			}
-		} else if config.UsageType.IsNull() || (!config.UsageType.IsNull() && config.UsageType.ValueString() != defaultUsageType) {
-			message := fmt.Sprintf("The attribute \033[1musage_type\033[0m  must be set to \033[1m%s\033[0m for the provided configuration.", defaultUsageType)
-			diags.AddError(
-				"Unexpected Resource Configuration",
-				message,
-			)
-			return diags
 		}
 	}
 	return diags

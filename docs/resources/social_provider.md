@@ -129,8 +129,8 @@ Required:
 
 - `external_key` (String) The external key used by the social provider.
 - `inner_key` (String) The internal key used by Cidaas.
-- `is_custom_field` (Boolean) A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.
-- `is_system_field` (Boolean) A flag indicating whether the field is a system field. Set to `true` if it is a system field.
+- `is_custom_field` (Boolean) A flag indicating whether the field is a custom field.
+- `is_system_field` (Boolean) A flag indicating whether the field is a system field.
 
 ## Import
 

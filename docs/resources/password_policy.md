@@ -21,12 +21,18 @@ The Password Policy resource in the provider allows you to manage the password p
 
 ```terraform
 resource "cidaas_password_policy" "sample" {
-  policy_name         = "sample_terraform_policy"
-  minimum_length      = 8
-  maximum_length      = 20
-  lower_and_uppercase = true
-  no_of_digits        = 1
-  no_of_special_chars = 1
+  policy_name = "sample_terraform_policy"
+  password_policy = {
+    block_compromised = false,
+    deny_usage_count  = 3,
+    strength_regexes = [
+      "^(?=.*[A-Za-z])(?!.*\\s).{6,15}$"
+    ],
+    change_enforcement = {
+      expiration_in_days         = 90
+      notify_user_before_in_days = 7
+    }
+  }
 }
 ```
 
@@ -35,16 +41,33 @@ resource "cidaas_password_policy" "sample" {
 
 ### Required
 
-- `lower_and_uppercase` (Boolean) Specifies whether the password must contain both lowercase and uppercase letters.
-- `maximum_length` (Number) The maximum length allowed for the password. The `maximum_length` must be at least sum of `minimum_length`, `no_of_special_chars`, `no_of_digits` and `lower_and_uppercase(1)`
-- `minimum_length` (Number) The minimum length required for the password. The `minimum_length` must be greater than or equal to 5.
-- `no_of_digits` (Number) The required number of digits in the password.
-- `no_of_special_chars` (Number) The required number of special characters in the password.
+- `password_policy` (Attributes) The password policy configuration. All attributes are optional except strength_regexes. If not provided, default values will be applied. (see [below for nested schema](#nestedatt--password_policy))
 - `policy_name` (String) The name of the password policy.
 
 ### Read-Only
 
 - `id` (String) Unique identifier of the password policy.
+
+<a id="nestedatt--password_policy"></a>
+### Nested Schema for `password_policy`
+
+Required:
+
+- `strength_regexes` (Set of String) The regular expression to enforce the minimum and maximum character count, minimum number of numeric and special characters and whether to include lowercase or uppercase letters in a password.
+
+Optional:
+
+- `block_compromised` (Boolean) Flag to block passwords that have been compromised.
+- `change_enforcement` (Attributes) (see [below for nested schema](#nestedatt--password_policy--change_enforcement))
+- `deny_usage_count` (Number) The reuse limit specifies the maximum number of times a user can reuse a previous password.
+
+<a id="nestedatt--password_policy--change_enforcement"></a>
+### Nested Schema for `password_policy.change_enforcement`
+
+Optional:
+
+- `expiration_in_days` (Number) The number of days allowed before a password must be changed.
+- `notify_user_before_in_days` (Number) Number of days before password expiry to notify the user.
 
 ## Import
 

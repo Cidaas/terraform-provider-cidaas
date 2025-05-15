@@ -284,14 +284,12 @@ resource "cidaas_app" "sample" {
 
 ### Required
 
-- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
 - `allowed_scopes` (Set of String) The URL of the company website. allowed_scopes is a required attribute. It must be provided in the main config or common_config
 - `client_name` (String) Name of the client.
 - `client_type` (String) The type of the client. The allowed values are SINGLE_PAGE, REGULAR_WEB, NON_INTERACTIVEIOS, ANDROID, WINDOWS_MOBILE, DESKTOP, MOBILE, DEVICE and THIRD_PARTY
 - `company_address` (String) The company address.
 - `company_name` (String) The name of the company that the client belongs to.
 - `company_website` (String) The URL of the company website.
-- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
 
 ### Optional
 
@@ -305,6 +303,7 @@ resource "cidaas_app" "sample" {
 - `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
 - `allowed_fields` (Set of String)
 - `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
+- `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
 - `allowed_mfa` (Set of String)
 - `allowed_origins` (Set of String) List of the origins allowed to access the client.
 - `allowed_roles` (Set of String)
@@ -379,6 +378,7 @@ resource "cidaas_app" "sample" {
 - `policy_uri` (String) The URL to the policy of a client.
 - `post_logout_redirect_uris` (Set of String)
 - `primary_color` (String) The primary color of the client. e.g., `#ef4923`. The value must be a valid hex colorThe default is set to `#f7941d`.
+- `redirect_uris` (Set of String) Redirect URIs for OAuth2 client.
 - `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
 - `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
 - `registration_access_token` (String)

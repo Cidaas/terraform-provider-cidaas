@@ -1,5 +1,48 @@
 ## Changelog
 
+### 3.4.6
+
+#### Enhancements
+
+- The `cidaas_app` resource has been enhanced to behave more accurately based on the `client_type` attribute. With this update, Terraform configurations must now explicitly define values for all relevant attributes, as they are no longer treated as computed or automatically assigned defaults by the provider during resource creation.
+For example, the `enabled` attribute was previously defaulted to `true` by the provider when creating an application. With this change, if you do not specify `enabled` in your configuration, the provider will omit it from the API request allowing the server to apply its own default behavior instead.
+This ensures a more predictable and transparent configuration experience, aligning the provider behavior more closely with user intent and server-side defaults.
+
+### 3.4.5
+
+#### Bug Fixes
+
+- The attribute `hosted_pages` in the resource `cidaas_hosted_page` has been updated to use an unordered list. This change resolves the issue where Terraform would incorrectly detect changes in the `hosted_pages` attribute, even when there were no actual modifications to the list, apart from reordering.
+
+### 3.4.4
+
+#### Bug Fixes
+
+- Reduced plan time validation from resource `cidaas_template`.
+
+### 3.4.3
+
+#### Enhancements
+- The `regex` field has been introduced in `field_definition` for the `cidaas_registration_field` resource (starting from Cidaas version 3.101.5).
+- This change **replaces** the `max_length` and `min_length` attributes **for `TEXT` and `URL` data types**.
+- Instead of relying on fixed length constraints, validation for these field types will now be handled using **regular expressions (`regex`)**, providing more flexibility.
+
+#### **Example of new regex-based validation**
+```python
+field_definition = {
+    regex = "^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$"
+}
+```
+#### Bug Fixes
+
+- Fixed state consistency issues in resource `cidaas_template` and `cidaas_template_group`.
+
+### 3.4.2
+
+#### Bugfix
+
+- The`cidaas_password_policy` resource has been updated to support the enhanced password policy introduced in Cidaas version 3.100.x
+
 ### 3.4.1
 
 #### Bugfix
