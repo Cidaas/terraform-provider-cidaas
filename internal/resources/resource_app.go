@@ -331,17 +331,11 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	if !state.RegisterWithLoginInformation.IsNull() {
 		state.RegisterWithLoginInformation = util.BoolValueOrNull(data.RegisterWithLoginInformation)
 	}
-	if !state.FdsEnabled.IsNull() {
-		state.FdsEnabled = util.BoolValueOrNull(data.FdsEnabled)
-	}
 	if !state.IsHybridApp.IsNull() {
 		state.IsHybridApp = util.BoolValueOrNull(data.IsHybridApp)
 	}
 	if !state.Enabled.IsNull() {
 		state.Enabled = util.BoolValueOrNull(data.Enabled)
-	}
-	if !state.EmailVerificationRequired.IsNull() {
-		state.EmailVerificationRequired = util.BoolValueOrNull(data.EmailVerificationRequired)
 	}
 	if !state.IsRememberMeSelected.IsNull() {
 		state.IsRememberMeSelected = util.BoolValueOrNull(data.IsRememberMeSelected)
@@ -355,9 +349,6 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	if !state.SmartMfa.IsNull() {
 		state.SmartMfa = util.BoolValueOrNull(data.SmartMfa)
 	}
-	if !state.MobileNumberVerificationRequired.IsNull() {
-		state.MobileNumberVerificationRequired = util.BoolValueOrNull(data.MobileNumberVerificationRequired)
-	}
 	if !state.EnableBotDetection.IsNull() {
 		state.EnableBotDetection = util.BoolValueOrNull(data.EnableBotDetection)
 	}
@@ -367,26 +358,14 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	if !state.IsRegisterSuccessPageEnabled.IsNull() {
 		state.IsRegisterSuccessPageEnabled = util.BoolValueOrNull(data.IsRegisterSuccessPageEnabled)
 	}
-	if !state.IsGroupLoginSelectionEnabled.IsNull() {
-		state.IsGroupLoginSelectionEnabled = util.BoolValueOrNull(data.IsGroupLoginSelectionEnabled)
-	}
 	if !state.JweEnabled.IsNull() {
 		state.JweEnabled = util.BoolValueOrNull(data.JweEnabled)
-	}
-	if !state.Editable.IsNull() {
-		state.Editable = util.BoolValueOrNull(data.Editable)
 	}
 	if !state.UserConsent.IsNull() {
 		state.UserConsent = util.BoolValueOrNull(data.UserConsent)
 	}
-	if !state.EnableClassicalProvider.IsNull() {
-		state.EnableClassicalProvider = util.BoolValueOrNull(data.EnableClassicalProvider)
-	}
 	if !state.EnablePasswordlessAuth.IsNull() {
 		state.EnablePasswordlessAuth = util.BoolValueOrNull(data.EnablePasswordlessAuth)
-	}
-	if !state.AlwaysAskMfa.IsNull() {
-		state.AlwaysAskMfa = util.BoolValueOrNull(data.AlwaysAskMfa)
 	}
 	if !state.RequireAuthTime.IsNull() {
 		state.RequireAuthTime = util.BoolValueOrNull(data.RequireAuthTime)

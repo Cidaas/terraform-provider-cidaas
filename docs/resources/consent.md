@@ -2,19 +2,20 @@
 page_title: "cidaas_consent Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
+  The Consent resource in the provider allows you to manage different consents within a specific consent group in cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
 ---
 
 # cidaas_consent (Resource)
 
-The Consent resource in the provider allows you to manage different consents within a specific consent group in Cidaas.
+The Consent resource in the provider allows you to manage different consents within a specific consent group in cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -31,18 +32,18 @@ resource "cidaas_consent" "sample" {
 
 ### Required
 
-- `consent_group_id` (String) The `consent_group_id` to which the consent belongs.
-- `name` (String) The name of the consent.
+* `consent_group_id` (String) The `consent_group_id` to which the consent belongs.
+* `name` (String) The name of the consent.
 
 ### Optional
 
-- `enabled` (Boolean) The flag to enable or disable a speicific consent. By default, the value is set to `true`
+* `enabled` (Boolean) The flag to enable or disable a speicific consent. By default, the value is set to `true`
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the consent version was created.
-- `id` (String) The unique identifier of the consent resource.
-- `updated_at` (String) The timestamp when the consent version was last updated.
+* `created_at` (String) The timestamp when the consent version was created.
+* `id` (String) The unique identifier of the consent resource.
+* `updated_at` (String) The timestamp when the consent version was last updated.
 
 ## Import
 

@@ -2,7 +2,7 @@
 page_title: "cidaas_consent_version Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas.
+  The Consent Version resource in the provider allows you to manage different versions of a specific consent in cidaas.
   This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
@@ -10,13 +10,14 @@ description: |-
 
 # cidaas_consent_version (Resource)
 
-The Consent Version resource in the provider allows you to manage different versions of a specific consent in Cidaas.
+The Consent Version resource in the provider allows you to manage different versions of a specific consent in cidaas.
  This resource also supports managing consent versions across multiple locales enabling different configurations such as URLs and content for each locale.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -65,33 +66,34 @@ resource "cidaas_consent_version" "v2" {
 
 ### Required
 
-- `consent_id` (String) The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.
-- `consent_locales` (Attributes Set) (see [below for nested schema](#nestedatt--consent_locales))
-- `version` (Number) The version number of the consent. It can not be updated for a specific consent version.
+* `consent_id` (String) The `consent_id` for which the consent version is created. It can not be updated for a specific consent version.
+* `consent_locales` (Attributes Set) (see [below for nested schema](#nestedatt--consent_locales))
+* `version` (Number) The version number of the consent. It can not be updated for a specific consent version.
 
 ### Optional
 
-- `consent_type` (String) Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.
-- `required_fields` (Set of String) A set of fields that are required for the consent. It can not be updated for a specific consent version.
+* `consent_type` (String) Specifies the type of consent. The allowed values are `SCOPES` or `URL`. It can not be updated for a specific consent version.
+* `required_fields` (Set of String) A set of fields that are required for the consent. It can not be updated for a specific consent version.
 Note that the attribute `required_fields` is required only if the `consent_type` is set to **SCOPES**.
-- `scopes` (Set of String) A set of scopes related to the consent. It can not be updated for a specific consent version.
+* `scopes` (Set of String) A set of scopes related to the consent. It can not be updated for a specific consent version.
 Note that the attribute `scopes` is required only if the `consent_type` is set to **SCOPES**.
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the consent version.
+* `id` (String) The unique identifier of the consent version.
 
 <a id="nestedatt--consent_locales"></a>
+
 ### Nested Schema for `consent_locales`
 
 Required:
 
-- `locale` (String) The locale for which the consent version is created. e.g. `en-us`, `de`.
+* `locale` (String) The locale for which the consent version is created. e.g. `en-us`, `de`.
 
 Optional:
 
-- `content` (String) The content of the consent version associated with a specific locale.
-- `url` (String) The url to the consent page of the created consent version.
+* `content` (String) The content of the consent version associated with a specific locale.
+* `url` (String) The url to the consent page of the created consent version.
 Note that the attribute `url` is required only if the `consent_type` is set to **URL**.
 
 ## Import

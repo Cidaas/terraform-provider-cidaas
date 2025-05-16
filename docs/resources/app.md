@@ -2,126 +2,29 @@
 page_title: "cidaas_app Resource - cidaas"
 subcategory: ""
 description: |-
-  The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
+  The App resource allows creation and management of clients in cidaas system. When creating a client with a custom client_id and client_secret you can include the configuration in the resource. If not provided, cidaas will generate a set for you. client_secret is sensitive data. Refer to the article Terraform Sensitive Variables https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables to properly handle sensitive information.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:apps_readcidaas:apps_writecidaas:apps_delete
 ---
 
 # cidaas_app (Resource)
 
-The App resource allows creation and management of clients in Cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, Cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
+The App resource allows creation and management of clients in cidaas system. When creating a client with a custom `client_id` and `client_secret` you can include the configuration in the resource. If not provided, cidaas will generate a set for you. `client_secret` is sensitive data. Refer to the article [Terraform Sensitive Variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables) to properly handle sensitive information.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:apps_read
-- cidaas:apps_write
-- cidaas:apps_delete
 
-
-## V2 to V3 Migration:
-If you are migrating from v2 to v3, please note the following changes in the v3 version:
-
-### Attributes not supported in app config anymore:
-
-- client_secret_expires_at
-- client_id_issued_at
-- push_config
-- created_at
-- updated_at
-- admin_client
-- deleted
-- app_owner
-- application_type
-
-### Change in data types of some attributes
-
- - social_providers
- - custom_providers
- - saml_providers
- - ad_providers
-
- The above attributes now has to be provided as set of objects.
-
- #### Example:
- ```terraform
- {
-  ...
-  social_providers = [
-    {
-        logo_url      = "https://cidaas.com/logo-url"
-        provider_name = "sample-custom-provider"
-        display_name  = "sample-custom-provider"
-        type          = "CUSTOM_OPENID_CONNECT"
-        is_provider_visible = true
-        domains = ["cidaas.de"]
-    },
-    {
-        logo_url      = "https://cidaas.com/logo-url"
-        provider_name = "sample-custom-provider"
-        display_name  = "sample-custom-provider"
-        type          = "CUSTOM_OPENID_CONNECT"
-        is_provider_visible = true
-        domains = ["cidaas.de"]
-    },
-  ]
- }
- ```
-### Handling schema change error for existing state
-If you encounter the following error message when the below specified attributes are present in the state, please follow the steps to fix the error:
-
-```shell
-Error: Unable to Read Previously Saved State for UpgradeResourceState
-...
-There was an error reading the saved resource state using the current resource schema.
-...
-AttributeName("group_selection"): invalid JSON, expected "{", got "["
-```
-
-#### Affected Attributes:
-- group_selection
-- login_spi
-- mfa
-- mobile_settings
-
-To resolve this issue, manually update the Terraform state file by following these steps:
-
-1. Open the state file (`terraform.tfstate`) and locate the `cidaas_app.<resource_name_in_your_config>` resource.
-2. Search for the affected attributes listed above.
-3. Update their types to JSON objects. Ensure they are set as objects (`{}`) and not arrays (`[]`).
-
-##### Example:
-
-Before:
-```json
-"group_selection": [
-  {
-    "selectable_groups" : ["developer-users"]
-    "selectable_group_types" : ["sample"]
-    "always_show_group_selection" : null
-  }
-]
-```
-
-After:
-```json
-"group_selection": {
-  "selectable_groups" : ["developer-users"]
-  "selectable_group_types" : ["sample"]
-  "always_show_group_selection" : null
-}
-```
-
-Alternatively, you can resolve the issue by deleting the existing state of the specific resource and importing it from Cidaas.
-However, this approach can be risky, so please proceed with caution.
-Ensure you only delete the specific resource from the state file that is causing the error, not the entire file or any other resources.
+* cidaas:apps_read
+* cidaas:apps_write
+* cidaas:apps_delete
 
 From version 3.3.0, the attribute `common_configs` is not supported anymore. Instead, we encourage you to use the custom module **terraform-cidaas-app**.
 The module provides a variable with the same name `common_configs` which
 supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
 of multiple apps to a common variable and inherit the properties.
 
-Link to the custom module https://github.com/Cidaas/terraform-cidaas-app
+Link to the custom module <https://github.com/cidaas/terraform-cidaas-app>
 
-##### Module usage:
+##### Module usage
 
 ```hcl
 // local.tfvars
@@ -167,6 +70,7 @@ module "app2" {
   common_configs = var.common_configs
 }
 ```
+
 You can explore more on the module in the github repo.
 
 ## Example Usage
@@ -185,7 +89,6 @@ resource "cidaas_app" "sample" {
   auto_login_after_register       = true      // Default: false
   enable_passwordless_auth        = false     // Default: true
   register_with_login_information = false     // Default: false
-  fds_enabled                     = false     // Default: true
   hosted_page_group               = "default" // Default: default
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
@@ -222,7 +125,6 @@ resource "cidaas_app" "sample" {
   captcha_refs                        = ["sample"]
   consent_refs                        = ["sample"]
   communication_medium_verification   = "email_verification_required_on_usage"
-  mobile_number_verification_required = false // Default: false
   enable_bot_detection                = false // Default: false
   allow_guest_login_groups = [{
     group_id      = "developer101"
@@ -232,7 +134,6 @@ resource "cidaas_app" "sample" {
   is_login_success_page_enabled    = false // Default: false
   is_register_success_page_enabled = false // Default: false
   group_ids                        = ["sample"]
-  is_group_login_selection_enabled = false // Default: false
   group_selection = {
     selectable_groups      = ["developer-users"]
     selectable_group_types = ["sample"]
@@ -308,7 +209,6 @@ resource "cidaas_app" "sample" {
 - `allowed_origins` (Set of String) List of the origins allowed to access the client.
 - `allowed_roles` (Set of String)
 - `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
-- `always_ask_mfa` (Boolean)
 - `application_meta_data` (Map of String) A map to add metadata of a client.
 - `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
 - `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
@@ -334,15 +234,11 @@ resource "cidaas_app" "sample" {
 - `default_roles` (Set of String)
 - `default_scopes` (Set of String)
 - `description` (String)
-- `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
-- `email_verification_required` (Boolean)
 - `enable_bot_detection` (Boolean)
-- `enable_classical_provider` (Boolean)
 - `enable_deduplication` (Boolean) Enable deduplication.
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
 - `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
@@ -355,7 +251,6 @@ resource "cidaas_app" "sample" {
 - `id_token_signed_response_alg` (String)
 - `imprint_uri` (String) The URL to the imprint page.
 - `initiate_login_uri` (String)
-- `is_group_login_selection_enabled` (Boolean)
 - `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
 - `is_login_success_page_enabled` (Boolean)
 - `is_register_success_page_enabled` (Boolean)
@@ -370,7 +265,6 @@ resource "cidaas_app" "sample" {
 - `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
 - `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
 - `mfa_configuration` (String)
-- `mobile_number_verification_required` (Boolean)
 - `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
 - `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
 - `password_policy_ref` (String)
@@ -382,211 +276,213 @@ resource "cidaas_app" "sample" {
 - `refresh_token_lifetime_in_seconds` (Number) The lifetime of the refresh token in seconds. Default is 15780000 seconds.
 - `register_with_login_information` (Boolean) Register with login information. Default is set to `false` while creating an app.
 - `registration_access_token` (String)
-- `registration_client_uri` (String)
-- `request_object_encryption_alg` (String)
-- `request_object_encryption_enc` (String)
-- `request_object_signing_alg` (String)
-- `request_uris` (Set of String)
-- `require_auth_time` (Boolean) Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.
-- `required_fields` (Set of String) The required fields while registering to the client.
-- `response_types` (Set of String) The response types of the client. The default value is set to `['code','token', 'id_token']`
-- `role` (String)
-- `saml_providers` (Attributes List) A list of SAML identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--saml_providers))
-- `sector_identifier_uri` (String)
-- `smart_mfa` (Boolean)
-- `social_providers` (Attributes List) A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc... (see [below for nested schema](#nestedatt--social_providers))
-- `sub` (String)
-- `subject_type` (String)
-- `suggest_mfa` (Set of String)
-- `suggest_verification_methods` (Attributes) Configuration for verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods))
-- `template_group_id` (String) The id of the template group to be configured for commenication. Default is set to the system default group.
-- `token_endpoint_auth_method` (String)
-- `token_endpoint_auth_signing_alg` (String)
-- `token_lifetime_in_seconds` (Number) The lifetime of the token in seconds. Default is 86400 seconds (24 hours).
-- `tos_uri` (String) The URL to the TOS of a client.
-- `user_consent` (Boolean) Specifies whether user consent is required or not. Default is `false`
-- `userinfo_encrypted_response_alg` (String)
-- `userinfo_encrypted_response_enc` (String)
-- `userinfo_signed_response_alg` (String)
-- `validate_phone_number` (Boolean) if enabled, phone number is validaed. Default is set to `false` while creating an app.
-- `video_url` (String) The URL to the video of the client.
-- `web_message_uris` (Set of String) A list of URLs for web messages used.
-- `webfinger` (String)
+* `registration_client_uri` (String)
+* `request_object_encryption_alg` (String)
+* `request_object_encryption_enc` (String)
+* `request_object_signing_alg` (String)
+* `request_uris` (Set of String)
+* `require_auth_time` (Boolean) Boolean flag to specify whether the auth_time claim is REQUIRED in a id token.
+* `required_fields` (Set of String) The required fields while registering to the client.
+* `response_types` (Set of String) The response types of the client. The default value is set to `['code','token', 'id_token']`
+* `role` (String)
+* `saml_providers` (Attributes List) A list of SAML identity providers that users can authenticate with. (see [below for nested schema](#nestedatt--saml_providers))
+* `sector_identifier_uri` (String)
+* `smart_mfa` (Boolean)
+* `social_providers` (Attributes List) A list of social identity providers that users can authenticate with. Examples: Google, Facebook etc... (see [below for nested schema](#nestedatt--social_providers))
+* `sub` (String)
+* `subject_type` (String)
+* `suggest_mfa` (Set of String)
+* `suggest_verification_methods` (Attributes) Configuration for verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods))
+* `template_group_id` (String) The id of the template group to be configured for commenication. Default is set to the system default group.
+* `token_endpoint_auth_method` (String)
+* `token_endpoint_auth_signing_alg` (String)
+* `token_lifetime_in_seconds` (Number) The lifetime of the token in seconds. Default is 86400 seconds (24 hours).
+* `tos_uri` (String) The URL to the TOS of a client.
+* `user_consent` (Boolean) Specifies whether user consent is required or not. Default is `false`
+* `userinfo_encrypted_response_alg` (String)
+* `userinfo_encrypted_response_enc` (String)
+* `userinfo_signed_response_alg` (String)
+* `validate_phone_number` (Boolean) if enabled, phone number is validaed. Default is set to `false` while creating an app.
+* `video_url` (String) The URL to the video of the client.
+* `web_message_uris` (Set of String) A list of URLs for web messages used.
+* `webfinger` (String)
 
 ### Read-Only
 
-- `id` (String) The ID of the resource.
+* `id` (String) The ID of the resource.
 
 <a id="nestedatt--ad_providers"></a>
+
 ### Nested Schema for `ad_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--allow_guest_login_groups"></a>
+
 ### Nested Schema for `allow_guest_login_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--allowed_groups"></a>
+
 ### Nested Schema for `allowed_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--custom_providers"></a>
+
 ### Nested Schema for `custom_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--group_role_restriction"></a>
+
 ### Nested Schema for `group_role_restriction`
 
 Required:
 
-- `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
-- `match_condition` (String) The match condition for the role restriction
+* `filters` (Attributes List) An array of group role filters. (see [below for nested schema](#nestedatt--group_role_restriction--filters))
+* `match_condition` (String) The match condition for the role restriction
 
 <a id="nestedatt--group_role_restriction--filters"></a>
+
 ### Nested Schema for `group_role_restriction.filters`
 
 Optional:
 
-- `group_id` (String) The unique ID of the user group.
-- `role_filter` (Attributes) A filter for roles within the group. (see [below for nested schema](#nestedatt--group_role_restriction--filters--role_filter))
+* `group_id` (String) The unique ID of the user group.
+* `role_filter` (Attributes) A filter for roles within the group. (see [below for nested schema](#nestedatt--group_role_restriction--filters--role_filter))
 
 <a id="nestedatt--group_role_restriction--filters--role_filter"></a>
+
 ### Nested Schema for `group_role_restriction.filters.role_filter`
 
 Optional:
 
-- `match_condition` (String) The match condition for the roles (AND or OR).
-- `roles` (Set of String) An array of role names.
-
-
-
+* `match_condition` (String) The match condition for the roles (AND or OR).
+* `roles` (Set of String) An array of role names.
 
 <a id="nestedatt--group_selection"></a>
+
 ### Nested Schema for `group_selection`
 
 Optional:
 
-- `always_show_group_selection` (Boolean)
-- `selectable_group_types` (Set of String)
-- `selectable_groups` (Set of String)
-
+* `always_show_group_selection` (Boolean)
+* `selectable_group_types` (Set of String)
+* `selectable_groups` (Set of String)
 
 <a id="nestedatt--login_spi"></a>
+
 ### Nested Schema for `login_spi`
 
 Optional:
 
-- `oauth_client_id` (String)
-- `spi_url` (String)
-
+* `oauth_client_id` (String)
+* `spi_url` (String)
 
 <a id="nestedatt--mfa"></a>
+
 ### Nested Schema for `mfa`
 
 Optional:
 
-- `allowed_methods` (Set of String) Optional set of allowed MFA methods.
-- `setting` (String) Specifies the Multi-Factor Authentication (MFA) setting. Allowed values are 'OFF', 'ALWAYS', 'SMART', 'TIME_BASED' and 'SMART_PLUS_TIME_BASED'.
-- `time_interval_in_seconds` (Number) Optional time interval in seconds for time-based Multi-Factor Authentication.
-
+* `allowed_methods` (Set of String) Optional set of allowed MFA methods.
+* `setting` (String) Specifies the Multi-Factor Authentication (MFA) setting. Allowed values are 'OFF', 'ALWAYS', 'SMART', 'TIME_BASED' and 'SMART_PLUS_TIME_BASED'.
+* `time_interval_in_seconds` (Number) Optional time interval in seconds for time-based Multi-Factor Authentication.
 
 <a id="nestedatt--mobile_settings"></a>
+
 ### Nested Schema for `mobile_settings`
 
 Optional:
 
-- `bundle_id` (String)
-- `key_hash` (String)
-- `package_name` (String)
-- `team_id` (String)
-
+* `bundle_id` (String)
+* `key_hash` (String)
+* `package_name` (String)
+* `team_id` (String)
 
 <a id="nestedatt--operations_allowed_groups"></a>
+
 ### Nested Schema for `operations_allowed_groups`
 
 Optional:
 
-- `default_roles` (Set of String)
-- `group_id` (String)
-- `roles` (Set of String)
-
+* `default_roles` (Set of String)
+* `group_id` (String)
+* `roles` (Set of String)
 
 <a id="nestedatt--saml_providers"></a>
+
 ### Nested Schema for `saml_providers`
 
 Optional:
 
-- `display_name` (String)
-- `domains` (Set of String)
-- `is_provider_visible` (Boolean)
-- `logo_url` (String)
-- `provider_name` (String)
-- `type` (String)
-
+* `display_name` (String)
+* `domains` (Set of String)
+* `is_provider_visible` (Boolean)
+* `logo_url` (String)
+* `provider_name` (String)
+* `type` (String)
 
 <a id="nestedatt--social_providers"></a>
+
 ### Nested Schema for `social_providers`
 
 Optional:
 
-- `provider_name` (String)
-- `social_id` (String)
-
+* `provider_name` (String)
+* `social_id` (String)
 
 <a id="nestedatt--suggest_verification_methods"></a>
+
 ### Nested Schema for `suggest_verification_methods`
 
 Optional:
 
-- `mandatory_config` (Attributes) Configuration for mandatory verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods--mandatory_config))
-- `optional_config` (Attributes) Configuration for optional verification methods (see [below for nested schema](#nestedatt--suggest_verification_methods--optional_config))
-- `skip_duration_in_days` (Number) The number of days for which the verification methods can be skipped (default is 7 days).
+* `mandatory_config` (Attributes) Configuration for mandatory verification methods. (see [below for nested schema](#nestedatt--suggest_verification_methods--mandatory_config))
+* `optional_config` (Attributes) Configuration for optional verification methods (see [below for nested schema](#nestedatt--suggest_verification_methods--optional_config))
+* `skip_duration_in_days` (Number) The number of days for which the verification methods can be skipped (default is 7 days).
 
 <a id="nestedatt--suggest_verification_methods--mandatory_config"></a>
+
 ### Nested Schema for `suggest_verification_methods.mandatory_config`
 
 Optional:
 
-- `methods` (Set of String) List of mandatory verification methods.
-- `range` (String) The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.
-- `skip_until` (String) The date and time until which the mandatory methods can be skipped.
-
+* `methods` (Set of String) List of mandatory verification methods.
+* `range` (String) The range type for mandatory methods. Allowed value is one of ALLOF or ONEOF.
+* `skip_until` (String) The date and time until which the mandatory methods can be skipped.
 
 <a id="nestedatt--suggest_verification_methods--optional_config"></a>
+
 ### Nested Schema for `suggest_verification_methods.optional_config`
 
 Optional:
 
-- `methods` (Set of String) List of optional verification methods.
+* `methods` (Set of String) List of optional verification methods.
 
 ## Import
 

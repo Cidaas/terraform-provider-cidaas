@@ -140,111 +140,6 @@ The App resource allows creation and management of clients in cidaas system. Whe
 * cidaas:apps_write
 * cidaas:apps_delete
 
-## V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note the following changes in the v3 version:
-
-### Attributes not supported in app config anymore
-
-* client_secret_expires_at
-* client_id_issued_at
-* push_config
-* created_at
-* updated_at
-* admin_client
-* deleted
-* app_owner
-* application_type
-
-### Change in data types of some attributes
-
-* social_providers
-* custom_providers
-* saml_providers
-* ad_providers
-
- The above attributes now has to be provided as set of objects.
-
-#### Example
-
- ```terraform
- {
-  ...
-  social_providers = [
-    {
-        logo_url      = "https://cidaas.com/logo-url"
-        provider_name = "sample-custom-provider"
-        display_name  = "sample-custom-provider"
-        type          = "CUSTOM_OPENID_CONNECT"
-        is_provider_visible = true
-        domains = ["cidaas.de"]
-    },
-    {
-        logo_url      = "https://cidaas.com/logo-url"
-        provider_name = "sample-custom-provider"
-        display_name  = "sample-custom-provider"
-        type          = "CUSTOM_OPENID_CONNECT"
-        is_provider_visible = true
-        domains = ["cidaas.de"]
-    },
-  ]
- }
- ```
-
-### Handling schema change error for existing state
-
-If you encounter the following error message when the below specified attributes are present in the state, please follow the steps to fix the error:
-
-```shell
-Error: Unable to Read Previously Saved State for UpgradeResourceState
-...
-There was an error reading the saved resource state using the current resource schema.
-...
-AttributeName("group_selection"): invalid JSON, expected "{", got "["
-```
-
-#### Affected Attributes
-
-* group_selection
-
-* login_spi
-* mfa
-* mobile_settings
-
-To resolve this issue, manually update the Terraform state file by following these steps:
-
-1. Open the state file (`terraform.tfstate`) and locate the `cidaas_app.<resource_name_in_your_config>` resource.
-2. Search for the affected attributes listed above.
-3. Update their types to JSON objects. Ensure they are set as objects (`{}`) and not arrays (`[]`).
-
-##### Example
-
-Before:
-
-```json
-"group_selection": [
-  {
-    "selectable_groups" : ["developer-users"]
-    "selectable_group_types" : ["sample"]
-    "always_show_group_selection" : null
-  }
-]
-```
-
-After:
-
-```json
-"group_selection": {
-  "selectable_groups" : ["developer-users"]
-  "selectable_group_types" : ["sample"]
-  "always_show_group_selection" : null
-}
-```
-
-Alternatively, you can resolve the issue by deleting the existing state of the specific resource and importing it from cidaas.
-However, this approach can be risky, so please proceed with caution.
-Ensure you only delete the specific resource from the state file that is causing the error, not the entire file or any other resources.
-
 From version 3.3.0, the attribute `common_configs` is not supported anymore. Instead, we encourage you to use the custom module **terraform-cidaas-app**.
 The module provides a variable with the same name `common_configs` which
 supports all the attributes in the resource app except `client_name`. With this module you can avoid the repeated configuration and assign the common properties
@@ -317,7 +212,6 @@ resource "cidaas_app" "sample" {
   auto_login_after_register       = true      // Default: false
   enable_passwordless_auth        = false     // Default: true
   register_with_login_information = false     // Default: false
-  fds_enabled                     = false     // Default: true
   hosted_page_group               = "default" // Default: default
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
@@ -354,7 +248,6 @@ resource "cidaas_app" "sample" {
   captcha_refs                        = ["sample"]
   consent_refs                        = ["sample"]
   communication_medium_verification   = "email_verification_required_on_usage"
-  mobile_number_verification_required = false // Default: false
   enable_bot_detection                = false // Default: false
   allow_guest_login_groups = [{
     group_id      = "developer101"
@@ -364,7 +257,6 @@ resource "cidaas_app" "sample" {
   is_login_success_page_enabled    = false // Default: false
   is_register_success_page_enabled = false // Default: false
   group_ids                        = ["sample"]
-  is_group_login_selection_enabled = false // Default: false
   group_selection = {
     selectable_groups      = ["developer-users"]
     selectable_group_types = ["sample"]
@@ -440,7 +332,6 @@ resource "cidaas_app" "sample" {
 - `allowed_origins` (Set of String) List of the origins allowed to access the client.
 - `allowed_roles` (Set of String)
 - `allowed_web_origins` (Set of String) List of the web origins allowed to access the client.
-- `always_ask_mfa` (Boolean)
 - `application_meta_data` (Map of String) A map to add metadata of a client.
 - `auto_login_after_register` (Boolean) Automatically login after registration. Default is set to `false` while creating an app.
 - `backchannel_logout_session_required` (Boolean) If enabled, client applications or RPs must support session management through backchannel logout.
@@ -466,15 +357,11 @@ resource "cidaas_app" "sample" {
 - `default_roles` (Set of String)
 - `default_scopes` (Set of String)
 - `description` (String)
-- `editable` (Boolean) Flag to define if your client is editable or not. Default is `true`.
-- `email_verification_required` (Boolean)
 - `enable_bot_detection` (Boolean)
-- `enable_classical_provider` (Boolean)
 - `enable_deduplication` (Boolean) Enable deduplication.
 - `enable_login_spi` (Boolean) If enabled, the login service verifies whether login spi responsded with success only then it issues a token.
 - `enable_passwordless_auth` (Boolean) Enable passwordless authentication. Default is set to `true` while creating an app.
 - `enabled` (Boolean)
-- `fds_enabled` (Boolean) Flag to enable or disable fraud detection system. By default, it is enabled when a client is created
 - `grant_types` (Set of String) The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`
 - `group_ids` (Set of String)
 - `group_role_restriction` (Attributes) (see [below for nested schema](#nestedatt--group_role_restriction))
@@ -487,7 +374,6 @@ resource "cidaas_app" "sample" {
 - `id_token_signed_response_alg` (String)
 - `imprint_uri` (String) The URL to the imprint page.
 - `initiate_login_uri` (String)
-- `is_group_login_selection_enabled` (Boolean)
 - `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
 - `is_login_success_page_enabled` (Boolean)
 - `is_register_success_page_enabled` (Boolean)
@@ -502,7 +388,6 @@ resource "cidaas_app" "sample" {
 - `media_type` (String) The media type of the client. e.g., `IMAGE`. Allowed values are VIDEO and IMAGEThe default is set to `IMAGE`.
 - `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
 - `mfa_configuration` (String)
-- `mobile_number_verification_required` (Boolean)
 - `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
 - `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
 - `password_policy_ref` (String)
@@ -934,44 +819,7 @@ This example demonstrates the configuration of a custom provider resource for in
 * cidaas:providers_write
 * cidaas:providers_delete
 
-### V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note the following changes in the v3 version:
-
-* The attribute `scopes` now has to be set as an array of objects instead of separate separate object
-* `custom_fields` in userinfo_fields should be passed as object as shown in the Example Usage section
-
-## Old configuration
-
-```terraform
-resource "cidaas_custom_provider" "sample" {
-  ...
-  scopes {
-    recommended = true
-    required    = true
-    scope_name  = "email"
-  }
-  scopes {
-    recommended = true
-    required    = true
-    scope_name  = "openid"
-  }
-  userinfo_fields = {
-    custom_fields = [
-      {
-        key   = "zipcode"
-        value = "123456"
-      },
-      {
-        key   = "alternate_phone"
-        value = "1234567890"
-      }
-    ]
-  }
-}
-```
-
-## Example Usage(V3 configuration)
+## Example Usage
 
 ```terraform
 resource "cidaas_custom_provider" "sample" {
@@ -1000,24 +848,25 @@ resource "cidaas_custom_provider" "sample" {
     },
   ]
 
-  userinfo_fields = {
-    family_name        = "cp_family_name"
-    address            = "cp_address"
-    birthdate          = "01-01-2000"
-    email              = "cp@cidaas.de"
-    email_verified     = "true"
-    gender             = "male"
-    given_name         = "cp_given_name"
-    locale             = "cp_locale"
-    middle_name        = "cp_middle_name"
-    mobile_number      = "100000000"
-    phone_number       = "10000000"
-    picture            = "https://cidaas.de/image.jpg"
-    preferred_username = "cp_preferred_username"
-    profile            = "cp_profile"
-    updated_at         = "01-01-01"
-    website            = "https://cidaas.de"
-    zoneinfo           = "cp_zone_info"
+   userinfo_fields = {
+    family_name        = { "ext_field_key" = "cp_family_name" }
+    address            = { "ext_field_key" = "cp_address" }
+    birthdate          = { "ext_field_key" = "01-01-2000" }
+    email              = { "ext_field_key" = "cp@cidaas.de" }
+    email_verified     = { "ext_field_key" = "email_verified", "default" = false }
+    gender             = { "ext_field_key" = "male" }
+    nickname           = { "ext_field_key" = "nickname" }
+    given_name         = { "ext_field_key" = "cp_given_name" }
+    locale             = { "ext_field_key" = "cp_locale" }
+    middle_name        = { "ext_field_key" = "cp_middle_name" }
+    mobile_number      = { "ext_field_key" = "100000000" }
+    phone_number       = { "ext_field_key" = "10000000" }
+    picture            = { "ext_field_key" = "https://cidaas.de/image.jpg" }
+    preferred_username = { "ext_field_key" = "cp_preferred_username" }
+    profile            = { "ext_field_key" = "cp_profile" }
+    updated_at         = { "ext_field_key" = "01-01-01" }
+    website            = { "ext_field_key" = "https://cidaas.de" }
+    zoneinfo           = { "ext_field_key" = "cp_zone_info" }
     custom_fields = {
       zipcode         = "123456"
       alternate_phone = "1234567890"
@@ -1346,7 +1195,7 @@ Import is supported using the following syntax:
 terraform import cidaas_custom_provider.resource_name provider_name
 ```
 
-# cidaas_group_type (Resource)-Previously cidaas_user_group_category
+# cidaas_group_type (Resource)
 
 The Group Type, managed through the `cidaas_group_type` resource in the provider defines and configures categories for user groups within the cidaas system.
 
@@ -1355,11 +1204,6 @@ The Group Type, managed through the `cidaas_group_type` resource in the provider
 * cidaas:group_type_read
 * cidaas:group_type_write
 * cidaas:group_type_delete
-
-### V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note that `cidaas_user_group_category` has been renamed to `cidaas_group_type`.
-Please update your Terraform configuration files accordingly to ensure compatibility with the latest version(v3).
 
 ## Example Usage
 
@@ -1551,117 +1395,7 @@ The `cidaas_registration_page_field` in the provider allows management of regist
 * cidaas:field_setup_write
 * cidaas:field_setup_delete
 
-### V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note that `cidaas_registration_page_field` has been renamed to `cidaas_registration_field`. Below is the list of changes in `cidaas_registration_field`:
-
-* **Multiple Locales:** Internationalization now supported via `local_texts`.
-* **Field Definition Attributes:** Added to specify maximum and minimum lengths for `TEXT` and `DATE` attributes.
-* **Extended Datatypes:** It now supports the datatypes `TEXT`, `NUMBER`, `SELECT`, `MULTISELECT`, `RADIO`, `CHECKBOX`, `PASSWORD`, `DATE`, `URL`, `EMAIL`,
- `TEXTAREA`, `MOBILE`, `CONSENT`, `JSON_STRING`, `USERNAME`, `ARRAY`, `GROUPING` and `DAYDATE`.
-* **Configuration Updates:** Adjustments required for the below attribute as shown below:
-
-| old config           |      new config                                    |
-|---------------------| ----------------------------------------------|
-| required_msg | local_texts[i].required_msg |
-| locale_text_min_length | field_defination.min_length |
-| locale_text_max_length | field_defination.max_length |
-| min_length_error_msg | local_texts[i].min_length_msg |
-| max_length_error_msg | local_texts[i].max_length_msg |
-| locale_text_language | The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided. |
-| locale_text_locale | local_texts[i].locale |
-| locale_text_name | local_texts[i].name |
-
-#### Attribute `local_text`
-
-| attributes         |      description                             |
-|---------------------| ----------------------------------------------|
-| locale | The locale of the field. example: de-DE |
-| name |The name of the field in the local configured. for example: in **en-US** the name is `Sample Field` in de-DE `Beispielfeld`|
-| max_length_msg | warning/error msg to show to the user when user exceeds the maximum character configured. This is applicable only for the attributes of base_data_type string |
-| min_length_msg | warning/error msg to show to the user when user don't provide the minimum character required. This is applicable only for the attributes of base_data_type string |
-| required_msg | When the flag required is set to true the required_msg must be provided. required_msg is shown if user does not provide a required field |
-| attributes | The field attributes must be provided for the data_type SELECT, MULTISELECT and RADIO. it's an array of key value pairs. example shown below |
-| consent_label | required when data_type is CONSENT. exmaple shown below |
-
-### Example of `attributes`
-
-```terraform
- local_texts = [
-    {
-      locale       = "en-US"
-      name         = "Sample Field"
-      required_msg = "The field is required"
-      attributes = [
-        {
-          key   = "test_key"
-          value = "test_value"
-        }
-      ]
-    }
- ]
-```
-
-### Example of `consent_label`
-
-```terraform
-local_texts = [
-    {
-      locale       = "en-US"
-      name         = "sample_consent_field"
-      required_msg = "The field is required"
-      consent_label = {
-        label      = "test",
-        label_text = "test label text"
-      }
-    }
-  ]
-```
-
-### Attribute `field_definition`
-
-| attributes         |      description                             |
-|---------------------| ----------------------------------------------|
-| max_length | The maximum length of a string type attribute |
-| min_length |The minimum length of a string type attribute|
-| min_date | applicable only for DATE attribute. example: "2024-06-28T18:30:00Z" |
-| max_date | applicable only for DATE attribute. example: "2024-06-28T18:30:00Z" |
-| initial_date_view | applicable only for DATE attribute. Allowed values: month, year and multi-year |
-| initial_date | applicable only for DATE attribute. example: "2024-06-28T18:30:00Z" |
-
-Ensure your Terraform configurations are updated accordingly to maintain compatibility with the latest version.
-
-## Old configuration
-
-```terraform
-resource "cidaas_registration_page_field" "sample" {
-  claimable              = true
-  data_type              = "TEXT"
-  enabled                = false
-  field_key              = "sample_field"
-  field_type             = "CUSTOM"
-  internal               = false
-  is_group               = false
-  locale_text_language   = "en"
-  locale_text_locale     = "en-us"
-  locale_text_name       = "Sample Field"
-  order                  = 2
-  parent_group_id        = "DEFAULT"
-  read_only              = false
-  required               = true
-  required_msg           = "sample_field is required"
-  locale_text_min_length = 10
-  locale_text_max_length = 100
-  min_length_error_msg   = "minimum length should be 10"
-  max_length_error_msg   = "maximum length should be 100"
-  scopes = [
-    "profile",
-  ]
-  overwrite_with_null_value_from_social_provider = false
-}
-```
-
-## Example Usage(V3 configuration)
+## Example Usage
 
 ```terraform
 resource "cidaas_registration_field" "text" {
@@ -1890,33 +1624,7 @@ The Scope resource allows to manage scopes in cidaas system. Scopes define the l
 * cidaas:scopes_write
 * cidaas:scopes_delete
 
-### V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note the following changes in the v3 version:
-
-* The `locale`, `language`, `title` and `description` attributes have been removed and replaced with a `localized_descriptions` block that supports a scope with multiple locale with better internationalization. Earlier only one locale was supported by the terraform plugin.
-* `localized_descriptions` is a list of objects, each containing:
-  * locale
-  * title
-  * description
-* The `language` attribute is no longer required. The provider computes and assigns the language based on the `locale` provided.
-
-## old configuration
-
-```terraform
-resource "scope" "sample" {
-  locale                = "en-US"
-  language              = "en-US"
-  title                 = "terraform title"
-  description           = "terraform description"
-  security_level        = "PUBLIC"
-  scope_key             = "terraform-test-scope"
-  required_user_consent = false
-  group_name            = []
-}
-```
-
-## Example Usage(V3 configuration)
+## Example Usage
 
 ```terraform
 resource "cidaas_scope" "sample" {
@@ -2244,14 +1952,6 @@ The Template resource in the provider is used to define and manage templates wit
 * cidaas:templates_write
 * cidaas:templates_delete
 
-### V2 to V3 Migration
-
-If you are migrating from v2 to v3, please note the changes in the format of the import identifier:
-
-* In **v2**, the import identifier was formed by joining template_key, template_type and locale with the character `-`. For example: `TERRAFORM_TEMPLATE-SMS-en-us`.
-
-* In **v3**, the import identifier format has been updated. The character `-` is replaced by the character `:`. For example: `TERRAFORM_TEMPLATE:SMS:en-us`.
-
 ### Managing System Templates
 
 * To create system templates, set the **is_system_template** flag to `true`.
@@ -2414,12 +2114,12 @@ resource "cidaas_user_groups" "child-user-group" {
 
 * `group_id` (String) Identifier for the user group.
 * `group_name` (String) Name of the user group.
-* `group_type` (String) Type of the user group.
 
 ### Optional
 
 * `custom_fields` (Map of String) Custom fields for the user group.
 * `description` (String) Description of the user group.
+* `group_type` (String) Type of the user group.
 * `logo_url` (String) URL for the user group's logo
 * `make_first_user_admin` (Boolean) Indicates whether the first user should be made an admin.
 * `member_profile_visibility` (String) Visibility of member profiles. Allowed values `public` or `full`.

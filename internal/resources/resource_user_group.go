@@ -66,7 +66,8 @@ var userGroupSchema = schema.Schema{
 			},
 		},
 		"group_type": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
+			Computed:            true,
 			MarkdownDescription: "Type of the user group.",
 			Validators: []validator.String{
 				stringvalidator.LengthAtLeast(1),
@@ -167,6 +168,7 @@ func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 	plan.ID = types.StringValue(res.Data.ID)
+	plan.GroupType = types.StringValue(res.Data.GroupType)
 	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
 	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -217,11 +219,12 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.UserGroup.Update(*userGroup)
+	res, err := r.cidaasClient.UserGroup.Update(*userGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update user group", util.FormatErrorMessage(err))
 		return
 	}
+	plan.GroupType = types.StringValue(res.Data.GroupType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

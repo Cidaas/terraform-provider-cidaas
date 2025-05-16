@@ -3,19 +3,20 @@
 page_title: "cidaas_hosted_page Resource - cidaas"
 subcategory: ""
 description: |-
-  The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
+  The Hosted Page resource in the provider allows you to define and manage hosted pages within the cidaas system.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:hosted_pages_writecidaas:hosted_pages_readcidaas:hosted_pages_delete
 ---
 
 # cidaas_hosted_page (Resource)
 
-The Hosted Page resource in the provider allows you to define and manage hosted pages within the Cidaas system.
+The Hosted Page resource in the provider allows you to define and manage hosted pages within the cidaas system.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:hosted_pages_write
-- cidaas:hosted_pages_read
-- cidaas:hosted_pages_delete
+
+* cidaas:hosted_pages_write
+* cidaas:hosted_pages_read
+* cidaas:hosted_pages_delete
 
 ## Example Usage
 
@@ -45,31 +46,32 @@ resource "cidaas_hosted_page" "sample" {
 
 ### Required
 
-- `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
-- `hosted_pages` (Attributes Set) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
+* `hosted_page_group_name` (String) The name of the hosted page group. This must be unique across the cidaas system and cannot be updated for an existing state.
+* `hosted_pages` (Attributes Set) List of hosted pages with their respective attributes (see [below for nested schema](#nestedatt--hosted_pages))
 
 ### Optional
 
-- `default_locale` (String) The default locale for hosted pages e.g. `en-US`.
+* `default_locale` (String) The default locale for hosted pages e.g. `en-US`.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The ID of the resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The ID of the resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 <a id="nestedatt--hosted_pages"></a>
+
 ### Nested Schema for `hosted_pages`
 
 Required:
 
-- `hosted_page_id` (String) The identifier for the hosted page, e.g., `register_success`.
-- `url` (String) The URL for the hosted page.
+* `hosted_page_id` (String) The identifier for the hosted page, e.g., `register_success`.
+* `url` (String) The URL for the hosted page.
 
 Optional:
 
-- `content` (String) The conent of the hosted page.
-- `locale` (String) The locale for the hosted page, e.g., `en-US`.
+* `content` (String) The conent of the hosted page.
+* `locale` (String) The locale for the hosted page, e.g., `en-US`.
 
 ## Import
 

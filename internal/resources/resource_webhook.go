@@ -131,7 +131,7 @@ var webhookSchema = schema.Schema{
 					Validators: []validator.String{
 						stringvalidator.LengthAtLeast(1),
 						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[a-z]+$`),
+							regexp.MustCompile(`^[a-z-]+$`),
 							"must contain only lowercase alphabets",
 						),
 					},
@@ -164,7 +164,7 @@ var webhookSchema = schema.Schema{
 					Validators: []validator.String{
 						stringvalidator.LengthAtLeast(1),
 						stringvalidator.RegexMatches(
-							regexp.MustCompile(`^[a-z]+$`),
+							regexp.MustCompile(`^[a-z-]+$`),
 							"must contain only lowercase alphabets",
 						),
 					},

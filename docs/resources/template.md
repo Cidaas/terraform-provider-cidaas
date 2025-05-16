@@ -2,35 +2,28 @@
 page_title: "cidaas_template Resource - cidaas"
 subcategory: ""
 description: |-
-  The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
+  The Template resource in the provider is used to define and manage templates within the cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:templates_readcidaas:templates_writecidaas:templates_delete
 ---
 
 # cidaas_template (Resource)
 
-The Template resource in the provider is used to define and manage templates within the Cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
+The Template resource in the provider is used to define and manage templates within the cidaas system. Templates are used for emails, SMS, IVR, and push notifications.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:templates_read
-- cidaas:templates_write
-- cidaas:templates_delete
 
-### V2 to V3 Migration:
-If you are migrating from v2 to v3, please note the changes in the format of the import identifier:
+* cidaas:templates_read
+* cidaas:templates_write
+* cidaas:templates_delete
 
-- In **v2**, the import identifier was formed by joining template_key, template_type and locale with the character `-`. For example: `TERRAFORM_TEMPLATE-SMS-en-us`.
+### Managing System Templates
 
-- In **v3**, the import identifier format has been updated. The character `-` is replaced by the character `:`. For example: `TERRAFORM_TEMPLATE:SMS:en-us`.
-
-
-### Managing System Templates:
-
-- To create system templates, set the **is_system_template** flag to `true`.
+* To create system templates, set the **is_system_template** flag to `true`.
 By default, this value is `false` and creates custom templates when applied.
-- When creating system templates validation checks are applied and suggestions are
+* When creating system templates validation checks are applied and suggestions are
 provided in error messages to assist users in creating system templates.
-- System templates cannot be imported using the standard Terraform import command. Instead, users
+* System templates cannot be imported using the standard Terraform import command. Instead, users
 must create a configuration that matches the existing system template and run terraform apply.
 
 ## Example Usage
@@ -99,25 +92,25 @@ resource "cidaas_template" "system-template-2" {
 
 ### Required
 
-- `content` (String) The content of the template.
-- `locale` (String) The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
-- `template_key` (String) The unique name of the template. It cannot be updated for an existing state.
-- `template_type` (String) The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.
+* `content` (String) The content of the template.
+* `locale` (String) The locale of the template. e.g. `en-us`, `en-uk`. Ensure the locale is set in lowercase. Find the allowed locales in the Allowed Locales section below. It cannot be updated for an existing state.
+* `template_key` (String) The unique name of the template. It cannot be updated for an existing state.
+* `template_type` (String) The type of the template. Allowed template_types are EMAIL, SMS, IVR and PUSH. Template types are case sensitive. It cannot be updated for an existing state.
 
 ### Optional
 
-- `group_id` (String) The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.
-- `is_system_template` (Boolean) A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM
-- `processing_type` (String) The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
-- `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
-- `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
-- `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
+* `group_id` (String) The `group_id` under which the configured template will be categorized. Only applicable for SYSTEM templates.
+* `is_system_template` (Boolean) A boolean flag to decide between SYSTEM and CUSTOM template. When set to true the provider creates a SYSTEM template else CUSTOM
+* `processing_type` (String) The processing_type attribute specifies the method by which the template information is processed and delivered. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
+* `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
+* `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
+* `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the template resource.
-- `language` (String) The language based on the local provided in the configuration.
-- `template_owner` (String) The template owner of the template.
+* `id` (String) The unique identifier of the template resource.
+* `language` (String) The language based on the local provided in the configuration.
+* `template_owner` (String) The template owner of the template.
 
 ## Import
 
