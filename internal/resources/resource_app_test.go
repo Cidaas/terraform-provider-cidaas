@@ -83,7 +83,6 @@ func testAppConfig(clientName, companyWebsite string) string {
       is_login_success_page_enabled    = false
       is_register_success_page_enabled = false
       group_ids                        = ["sample"]
-      is_group_login_selection_enabled = false
       group_selection = {
         selectable_groups      = ["developer-users"]
         selectable_group_types = ["sample"]

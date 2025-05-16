@@ -39,7 +39,7 @@ var templateGroupID = acctest.RandString(10)
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "id"),
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "email_sender_config.from_email"),
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "email_sender_config.from_name"),
-// 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "email_sender_config.reply_to"),
+// 					// resource.TestCheckResourceAttrSet(resourceTemplateGroup, "email_sender_config.reply_to"),
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "email_sender_config.sender_names.#"),
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "ivr_sender_config.sender_names.#"),
 // 					resource.TestCheckResourceAttrSet(resourceTemplateGroup, "push_sender_config.sender_names.#"),
@@ -53,7 +53,7 @@ var templateGroupID = acctest.RandString(10)
 // 				ImportStateId:     templateGroupID,
 // 			},
 // 			// if you update only from_email in cidaas_template_group then the test fails
-// 			// TODO: fix refresh plan not empty issye terraform apply(update)
+// 			// TODO: fix refresh plan not empty issue terraform apply(update)
 // 			{
 // 				Config: fmt.Sprintf(`
 // 					provider "cidaas" {

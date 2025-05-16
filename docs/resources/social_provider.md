@@ -2,7 +2,7 @@
 page_title: "cidaas_social_provider Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_social_provider resource allows you to configure and manage social login providers within Cidaas.
+  The cidaas_social_provider resource allows you to configure and manage social login providers within cidaas.
   Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
   Ensure that the below scopes are assigned to the client:
   cidaas:providers_readcidaas:providers_writecidaas:providers_delete
@@ -10,13 +10,14 @@ description: |-
 
 # cidaas_social_provider (Resource)
 
-The `cidaas_social_provider` resource allows you to configure and manage social login providers within Cidaas.
+The `cidaas_social_provider` resource allows you to configure and manage social login providers within cidaas.
  Social login providers enable users to authenticate using their existing accounts from popular social platforms such as Google, Facebook, LinkedIn and others.
 
  Ensure that the below scopes are assigned to the client:
-- cidaas:providers_read
-- cidaas:providers_write
-- cidaas:providers_delete
+
+* cidaas:providers_read
+* cidaas:providers_write
+* cidaas:providers_delete
 
 ## Example Usage
 
@@ -57,6 +58,7 @@ resource "cidaas_social_provider" "sample" {
 ```
 
 ### Configuring a Social Provider to a Client
+
 To configure a social provider for a client in your Terraform configuration, you need to update the `cidaas_app` resources with the details from the `cidaas_social_provider` resource. Below is an example demonstrating how you can configure a social provider for a client:
 
 ```terraform
@@ -78,59 +80,60 @@ resource "cidaas_app" "app_sample" {
 
 ### Required
 
-- `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
-- `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
-- `name` (String) The name of the social provider configuration. This should be unique within your Cidaas environment.
-- `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
+* `client_id` (String) The client ID provided by the social provider. This is used to authenticate your application with the social provider.
+* `client_secret` (String, Sensitive) The client secret provided by the social provider. This is used alongside the client ID to authenticate your application with the social provider.
+* `name` (String) The name of the social provider configuration. This should be unique within your cidaas environment.
+* `provider_name` (String) The name of the social provider. Supported values include `google`, `facebook`, `linkedin` etc.
 
 ### Optional
 
-- `claims` (Attributes) A map defining required and optional claims to be requested from the social provider. (see [below for nested schema](#nestedatt--claims))
-- `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
-- `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
-- `scopes` (Set of String) A list of scopes of the social provider.
-- `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and Cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
+* `claims` (Attributes) A map defining required and optional claims to be requested from the social provider. (see [below for nested schema](#nestedatt--claims))
+* `enabled` (Boolean) A flag to enable or disable the social provider configuration. Set to `true` to enable and `false` to disable.
+* `enabled_for_admin_portal` (Boolean) A flag to enable or disable the social provider for the admin portal. Set to `true` to enable and `false` to disable.
+* `scopes` (Set of String) A list of scopes of the social provider.
+* `userinfo_fields` (Attributes List) A list of user info fields to be mapped between the social provider and cidaas. (see [below for nested schema](#nestedatt--userinfo_fields))
 
 ### Read-Only
 
-- `id` (String) The unique identifier of the social provider
+* `id` (String) The unique identifier of the social provider
 
 <a id="nestedatt--claims"></a>
+
 ### Nested Schema for `claims`
 
 Optional:
 
-- `optional_claims` (Attributes) Defines the claims that are optional from the social provider. (see [below for nested schema](#nestedatt--claims--optional_claims))
-- `required_claims` (Attributes) Defines the claims that are required from the social provider. (see [below for nested schema](#nestedatt--claims--required_claims))
+* `optional_claims` (Attributes) Defines the claims that are optional from the social provider. (see [below for nested schema](#nestedatt--claims--optional_claims))
+* `required_claims` (Attributes) Defines the claims that are required from the social provider. (see [below for nested schema](#nestedatt--claims--required_claims))
 
 <a id="nestedatt--claims--optional_claims"></a>
+
 ### Nested Schema for `claims.optional_claims`
 
 Optional:
 
-- `id_token` (Set of String) A list of ID token claims that are optional.
-- `user_info` (Set of String) A list of user information claims that are optional.
-
+* `id_token` (Set of String) A list of ID token claims that are optional.
+* `user_info` (Set of String) A list of user information claims that are optional.
 
 <a id="nestedatt--claims--required_claims"></a>
+
 ### Nested Schema for `claims.required_claims`
 
 Optional:
 
-- `id_token` (Set of String) A list of ID token claims that are required.
-- `user_info` (Set of String) A list of user information claims that are required.
-
-
+* `id_token` (Set of String) A list of ID token claims that are required.
+* `user_info` (Set of String) A list of user information claims that are required.
 
 <a id="nestedatt--userinfo_fields"></a>
+
 ### Nested Schema for `userinfo_fields`
 
 Required:
 
-- `external_key` (String) The external key used by the social provider.
-- `inner_key` (String) The internal key used by Cidaas.
-- `is_custom_field` (Boolean) A flag indicating whether the field is a custom field.
-- `is_system_field` (Boolean) A flag indicating whether the field is a system field.
+* `external_key` (String) The external key used by the social provider.
+* `inner_key` (String) The internal key used by cidaas.
+* `is_custom_field` (Boolean) A flag indicating whether the field is a custom field. Set to `true` if it is a custom field.
+* `is_system_field` (Boolean) A flag indicating whether the field is a system field. Set to `true` if it is a system field.
 
 ## Import
 

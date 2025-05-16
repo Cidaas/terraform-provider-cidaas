@@ -13,8 +13,6 @@ type AppResponse struct {
 	Data    AppModel `json:"data,omitempty"`
 }
 
-// to add
-// suggestVerificationMethods
 type AppModel struct {
 	ID                               string                      `json:"_id,omitempty"`
 	ClientType                       string                      `json:"client_type,omitempty"`
@@ -31,7 +29,6 @@ type AppModel struct {
 	RegisterWithLoginInformation     *bool                       `json:"register_with_login_information"`
 	AllowDisposableEmail             *bool                       `json:"allow_disposable_email,omitempty"`
 	ValidatePhoneNumber              *bool                       `json:"validate_phone_number,omitempty"`
-	FdsEnabled                       *bool                       `json:"fds_enabled,omitempty"`
 	HostedPageGroup                  string                      `json:"hosted_page_group,omitempty"`
 	ClientName                       string                      `json:"client_name,omitempty"`
 	ClientDisplayName                string                      `json:"client_display_name,omitempty"`
@@ -62,7 +59,6 @@ type AppModel struct {
 	TokenEndpointAuthMethod          string                      `json:"token_endpoint_auth_method,omitempty"`
 	TokenEndpointAuthSigningAlg      string                      `json:"token_endpoint_auth_signing_alg,omitempty"`
 	DefaultAcrValues                 []string                    `json:"default_acr_values,omitempty"`
-	Editable                         *bool                       `json:"editable,omitempty"`
 	WebMessageUris                   []string                    `json:"web_message_uris,omitempty"`
 	SocialProviders                  []ISocialProviderData       `json:"social_providers,omitempty"`
 	CustomProviders                  []IProviderMetadData        `json:"custom_providers"`
@@ -74,18 +70,14 @@ type AppModel struct {
 	OperationsAllowedGroups          []IAllowedGroups            `json:"operations_allowed_groups,omitempty"`
 	Enabled                          *bool                       `json:"enabled"`
 	AllowedFields                    []string                    `json:"allowed_fields,omitempty"`
-	AlwaysAskMfa                     *bool                       `json:"always_ask_mfa,omitempty"`
 	SmartMfa                         *bool                       `json:"smart_mfa,omitempty"`
 	AllowedMfa                       []string                    `json:"allowed_mfa,omitempty"`
 	CaptchaRef                       string                      `json:"captcha_ref,omitempty"`
 	CaptchaRefs                      []string                    `json:"captcha_refs,omitempty"`
 	ConsentRefs                      []string                    `json:"consent_refs"`
 	CommunicationMediumVerification  string                      `json:"communication_medium_verification,omitempty"`
-	EmailVerificationRequired        *bool                       `json:"email_verification_required,omitempty"`
-	MobileNumberVerificationRequired *bool                       `json:"mobile_number_verification_required,omitempty"`
 	AllowedRoles                     []string                    `json:"allowed_roles,omitempty"`
 	DefaultRoles                     []string                    `json:"default_roles,omitempty"`
-	EnableClassicalProvider          *bool                       `json:"enable_classical_provider,omitempty"`
 	IsRememberMeSelected             *bool                       `json:"is_remember_me_selected"`
 	EnableBotDetection               *bool                       `json:"enable_bot_detection,omitempty"`
 	BotProvider                      string                      `json:"bot_provider,omitempty"`
@@ -93,7 +85,6 @@ type AppModel struct {
 	IsLoginSuccessPageEnabled        *bool                       `json:"is_login_success_page_enabled,omitempty"`
 	IsRegisterSuccessPageEnabled     *bool                       `json:"is_register_success_page_enabled,omitempty"`
 	GroupIDs                         []string                    `json:"groupIds,omitempty"`
-	IsGroupLoginSelectionEnabled     *bool                       `json:"isGroupLoginSelectionEnabled,omitempty"`
 	GroupSelection                   *IGroupSelection            `json:"groupSelection,omitempty"`
 	GroupTypes                       []string                    `json:"groupTypes,omitempty"`
 	BackchannelLogoutURI             string                      `json:"backchannel_logout_uri,omitempty"`
@@ -101,7 +92,6 @@ type AppModel struct {
 	LogoAlign                        string                      `json:"logoAlign,omitempty"`
 	Mfa                              *IMfaOption                 `json:"mfa,omitempty"`
 	Webfinger                        string                      `json:"webfinger,omitempty"`
-	ApplicationType                  string                      `json:"application_type,omitempty"`
 	LogoURI                          string                      `json:"logo_uri,omitempty"`
 	InitiateLoginURI                 string                      `json:"initiate_login_uri,omitempty"`
 	RegistrationClientURI            string                      `json:"registration_client_uri,omitempty"`
@@ -139,32 +129,24 @@ type AppModel struct {
 	ApplicationMetaData              map[string]string           `json:"application_meta_data,omitempty"`
 	SuggestVerificationMethods       *SuggestVerificationMethods `json:"suggestVerificationMethods,omitempty"`
 	GroupRoleRestriction             *GroupRoleRestriction       `json:"groupRoleRestriction,omitempty"`
-	BasicSettings                    *BasicSettings              `json:"basic_settings,omitempty"`
+	RequireAuthTime                  *bool                       `json:"require_auth_time,omitempty"`
+	BackchannelLogoutSessionRequired *bool                       `json:"backchannel_logout_session_required,omitempty"`
+	EnableLoginSpi                   *bool                       `json:"enable_login_spi,omitempty"`
+	AcceptRolesInTheRegistration     *bool                       `json:"accept_roles_in_the_registration,omitempty"`
 
 	// attributes not available in resource app schema
-	RequireAuthTime                  *bool    `json:"require_auth_time,omitempty"`
-	BackchannelLogoutSessionRequired *bool    `json:"backchannel_logout_session_required,omitempty"`
-	TappID                           string   `json:"tapp_id,omitempty"`
-	ClientGroupID                    string   `json:"client_group_id,omitempty"`
-	LegalEntity                      string   `json:"legal_entity,omitempty"`
-	Tenant                           string   `json:"tenant,omitempty"`
-	DeviceCode                       *bool    `json:"device_code,omitempty"`
-	TestEmails                       []string `json:"test_emails,omitempty"`
-	Active                           *bool    `json:"active,omitempty"`
-	EnableLoginSpi                   *bool    `json:"enable_login_spi,omitempty"`
-	AcceptRolesInTheRegistration     *bool    `json:"accept_roles_in_the_registration,omitempty"`
+	TappID          string         `json:"tapp_id,omitempty"`
+	ClientGroupID   string         `json:"client_group_id,omitempty"`
+	LegalEntity     string         `json:"legal_entity,omitempty"`
+	Tenant          string         `json:"tenant,omitempty"`
+	DeviceCode      *bool          `json:"device_code,omitempty"`
+	TestEmails      []string       `json:"test_emails,omitempty"`
+	Active          *bool          `json:"active,omitempty"`
+	ApplicationType string         `json:"application_type,omitempty"`
+	BasicSettings   *BasicSettings `json:"basic_settings,omitempty"`
 
 	// app_owner removed from schema but assigned while preparing the model
 	AppOwner string `json:"app_owner,omitempty"`
-
-	// removed from schema
-	// ClientSecretExpiresAt int64       `json:"client_secret_expires_at,omitempty"`
-	// ClientIDIssuedAt      int64       `json:"client_id_issued_at,omitempty"`
-	// PushConfig            IPushConfig `json:"push_config,omitempty"`
-	// CreatedTime           string      `json:"createdTime,omitempty"`
-	// UpdatedTime           string      `json:"UpdatedTime,omitempty"`
-	// Deleted               bool        `json:"deleted"`
-	// AdminClient           bool        `json:"adminClient,omitempty"`
 }
 
 type IAllowedGroups struct {

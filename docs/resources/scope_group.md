@@ -3,19 +3,20 @@
 page_title: "cidaas_scope_group Resource - cidaas"
 subcategory: ""
 description: |-
-  The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
+  The cidaas_scope_group resource in the provider allows to manage Scope Groups in cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:scopes_readcidaas:scopes_writecidaas:scopes_delete
 ---
 
 # cidaas_scope_group (Resource)
 
-The cidaas_scope_group resource in the provider allows to manage Scope Groups in Cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
+The cidaas_scope_group resource in the provider allows to manage Scope Groups in cidaas system. Scope Groups help organize and group related scopes for better categorization and access control.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:scopes_read
-- cidaas:scopes_write
-- cidaas:scopes_delete
+
+* cidaas:scopes_read
+* cidaas:scopes_write
+* cidaas:scopes_delete
 
 ## Example Usage
 
@@ -31,17 +32,17 @@ resource "cidaas_scope_group" "sample" {
 
 ### Required
 
-- `group_name` (String) The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.
+* `group_name` (String) The name of the group. The group name must be unique across the cidaas system and cannot be updated for an existing state.
 
 ### Optional
 
-- `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
+* `description` (String) The `description` attribute provides details about the scope of the group, explaining its purpose.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The ID of th resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The ID of th resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 

@@ -25,23 +25,24 @@ resource "cidaas_custom_provider" "sample" {
   ]
 
   userinfo_fields = {
-    family_name        = "cp_family_name"
-    address            = "cp_address"
-    birthdate          = "01-01-2000"
-    email              = "cp@cidaas.de"
-    email_verified     = "true"
-    gender             = "male"
-    given_name         = "cp_given_name"
-    locale             = "cp_locale"
-    middle_name        = "cp_middle_name"
-    mobile_number      = "100000000"
-    phone_number       = "10000000"
-    picture            = "https://cidaas.de/image.jpg"
-    preferred_username = "cp_preferred_username"
-    profile            = "cp_profile"
-    updated_at         = "01-01-01"
-    website            = "https://cidaas.de"
-    zoneinfo           = "cp_zone_info"
+    family_name        = { "ext_field_key" = "cp_family_name" }
+    address            = { "ext_field_key" = "cp_address" }
+    birthdate          = { "ext_field_key" = "01-01-2000" }
+    email              = { "ext_field_key" = "cp@cidaas.de" }
+    email_verified     = { "ext_field_key" = "email_verified", "default" = false }
+    gender             = { "ext_field_key" = "male" }
+    nickname           = { "ext_field_key" = "nickname" }
+    given_name         = { "ext_field_key" = "cp_given_name" }
+    locale             = { "ext_field_key" = "cp_locale" }
+    middle_name        = { "ext_field_key" = "cp_middle_name" }
+    mobile_number      = { "ext_field_key" = "100000000" }
+    phone_number       = { "ext_field_key" = "10000000" }
+    picture            = { "ext_field_key" = "https://cidaas.de/image.jpg" }
+    preferred_username = { "ext_field_key" = "cp_preferred_username" }
+    profile            = { "ext_field_key" = "cp_profile" }
+    updated_at         = { "ext_field_key" = "01-01-01" }
+    website            = { "ext_field_key" = "https://cidaas.de" }
+    zoneinfo           = { "ext_field_key" = "cp_zone_info" }
     custom_fields = {
       zipcode         = "123456"
       alternate_phone = "1234567890"
