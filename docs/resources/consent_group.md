@@ -3,7 +3,7 @@
 page_title: "cidaas_consent_group Resource - cidaas"
 subcategory: ""
 description: |-
-  The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas.
+  The Consent Group resource in the provider allows you to define and manage consent groups in cidaas.
   Consent Groups are useful to organize and manage consents by grouping related consent items together.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:tenant_consent_readcidaas:tenant_consent_writecidaas:tenant_consent_delete
@@ -11,13 +11,14 @@ description: |-
 
 # cidaas_consent_group (Resource)
 
-The Consent Group resource in the provider allows you to define and manage consent groups in Cidaas.
+The Consent Group resource in the provider allows you to define and manage consent groups in cidaas.
  Consent Groups are useful to organize and manage consents by grouping related consent items together.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:tenant_consent_read
-- cidaas:tenant_consent_write
-- cidaas:tenant_consent_delete
+
+* cidaas:tenant_consent_read
+* cidaas:tenant_consent_write
+* cidaas:tenant_consent_delete
 
 ## Example Usage
 
@@ -33,17 +34,17 @@ resource "cidaas_consent_group" "sample" {
 
 ### Required
 
-- `group_name` (String) The name of the consent group.
+* `group_name` (String) The name of the consent group.
 
 ### Optional
 
-- `description` (String) Description of the consent group.
+* `description` (String) Description of the consent group.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the consent group was created.
-- `id` (String) The unique identifier of the consent group.
-- `updated_at` (String) The timestamp when the consent group was last updated.
+* `created_at` (String) The timestamp when the consent group was created.
+* `id` (String) The unique identifier of the consent group.
+* `updated_at` (String) The timestamp when the consent group was last updated.
 
 ## Import
 

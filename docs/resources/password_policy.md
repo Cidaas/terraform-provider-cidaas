@@ -3,14 +3,14 @@
 page_title: "cidaas_password_policy Resource - cidaas"
 subcategory: ""
 description: |-
-  The Password Policy resource in the provider allows you to manage the password policy within the Cidaas.
+  The Password Policy resource in the provider allows you to manage the password policy within the cidaas.
   Ensure that the below scopes are assigned to the client with the specified client_id:
   cidaas:password_policy_readcidaas:password_policy_writecidaas:password_policy_delete
 ---
 
 # cidaas_password_policy (Resource)
 
-The Password Policy resource in the provider allows you to manage the password policy within the Cidaas.
+The Password Policy resource in the provider allows you to manage the password policy within the cidaas.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
 - cidaas:password_policy_read

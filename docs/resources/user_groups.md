@@ -13,9 +13,10 @@ description: |-
 The cidaas_user_groups resource enables the creation of user groups in the cidaas system. These groups allow users to be organized and assigned group-specific roles.
 
  Ensure that the below scopes are assigned to the client with the specified `client_id`:
-- cidaas:groups_write
-- cidaas:groups_read
-- cidaas:groups_delete
+
+* cidaas:groups_write
+* cidaas:groups_read
+* cidaas:groups_delete
 
 ## Example Usage
 
@@ -54,25 +55,25 @@ resource "cidaas_user_groups" "child-user-group" {
 
 ### Required
 
-- `group_id` (String) Identifier for the user group.
-- `group_name` (String) Name of the user group.
-- `group_type` (String) Type of the user group.
+* `group_id` (String) Identifier for the user group.
+* `group_name` (String) Name of the user group.
 
 ### Optional
 
-- `custom_fields` (Map of String) Custom fields for the user group.
-- `description` (String) Description of the user group.
-- `logo_url` (String) URL for the user group's logo
-- `make_first_user_admin` (Boolean) Indicates whether the first user should be made an admin.
-- `member_profile_visibility` (String) Visibility of member profiles. Allowed values `public` or `full`.
-- `none_member_profile_visibility` (String) Visibility of non-member profiles. Allowed values `none` or `public`.
-- `parent_id` (String) Identifier of the parent user group.
+* `custom_fields` (Map of String) Custom fields for the user group.
+* `description` (String) Description of the user group.
+* `group_type` (String) Type of the user group.
+* `logo_url` (String) URL for the user group's logo
+* `make_first_user_admin` (Boolean) Indicates whether the first user should be made an admin.
+* `member_profile_visibility` (String) Visibility of member profiles. Allowed values `public` or `full`.
+* `none_member_profile_visibility` (String) Visibility of non-member profiles. Allowed values `none` or `public`.
+* `parent_id` (String) Identifier of the parent user group.
 
 ### Read-Only
 
-- `created_at` (String) The timestamp when the resource was created.
-- `id` (String) The unique identifier of the user group resource.
-- `updated_at` (String) The timestamp when the resource was last updated.
+* `created_at` (String) The timestamp when the resource was created.
+* `id` (String) The unique identifier of the user group resource.
+* `updated_at` (String) The timestamp when the resource was last updated.
 
 ## Import
 

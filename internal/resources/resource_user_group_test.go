@@ -137,7 +137,7 @@ func testCheckUserGroupDestroyed(s *terraform.State) error {
 
 // missing required fields group_type, group_name and group_id
 func TestUserGroup_MissingRequired(t *testing.T) {
-	requiredParams := []string{"group_type", "group_name", "group_id"}
+	requiredParams := []string{"group_name", "group_id"}
 	for _, v := range requiredParams {
 		resource.Test(t, resource.TestCase{
 			PreCheck:                 func() { acctest.TestAccPreCheck(t) },

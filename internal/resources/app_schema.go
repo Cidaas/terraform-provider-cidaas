@@ -127,10 +127,6 @@ var resourceAppSchema = schema.Schema{
 			Optional:            true,
 			MarkdownDescription: "if enabled, phone number is validaed. Default is set to `false` while creating an app.",
 		},
-		"fds_enabled": schema.BoolAttribute{
-			Optional:            true,
-			MarkdownDescription: "Flag to enable or disable fraud detection system. By default, it is enabled when a client is created",
-		},
 		"hosted_page_group": schema.StringAttribute{
 			Optional:            true,
 			MarkdownDescription: "Hosted page group.",
@@ -171,7 +167,6 @@ var resourceAppSchema = schema.Schema{
 			Optional:            true,
 			MarkdownDescription: "The grant types of the client. The default value is set to `['implicit','authorization_code', 'password', 'refresh_token']`",
 		},
-		// common_config attr
 		"login_providers": schema.SetAttribute{
 			ElementType:         types.StringType,
 			MarkdownDescription: "With this attribute one can setup login provider to the client.",
@@ -191,13 +186,11 @@ var resourceAppSchema = schema.Schema{
 			Optional:            true,
 			MarkdownDescription: "Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.",
 		},
-		// common_config attr
 		"allowed_web_origins": schema.SetAttribute{
 			ElementType:         types.StringType,
 			MarkdownDescription: "List of the web origins allowed to access the client.",
 			Optional:            true,
 		},
-		// common_config attr
 		"allowed_origins": schema.SetAttribute{
 			ElementType:         types.StringType,
 			MarkdownDescription: "List of the origins allowed to access the client.",
@@ -241,7 +234,6 @@ var resourceAppSchema = schema.Schema{
 			Optional:            true,
 			MarkdownDescription: "The id of the template group to be configured for commenication. Default is set to the system default group.",
 		},
-		// these are required
 		"client_id": schema.StringAttribute{
 			Optional: true,
 			Computed: true,
@@ -287,10 +279,6 @@ var resourceAppSchema = schema.Schema{
 		"default_acr_values": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
-		},
-		"editable": schema.BoolAttribute{
-			Optional:            true,
-			MarkdownDescription: "Flag to define if your client is editable or not. Default is `true`.",
 		},
 		"web_message_uris": schema.SetAttribute{
 			ElementType:         types.StringType,
@@ -349,13 +337,9 @@ var resourceAppSchema = schema.Schema{
 			ElementType: types.StringType,
 			Optional:    true,
 		},
-		"always_ask_mfa": schema.BoolAttribute{
-			Optional: true,
-		},
 		"smart_mfa": schema.BoolAttribute{
 			Optional: true,
 		},
-		// common_config attr
 		"allowed_mfa": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
@@ -374,26 +358,13 @@ var resourceAppSchema = schema.Schema{
 		"communication_medium_verification": schema.StringAttribute{
 			Optional: true,
 		},
-		"email_verification_required": schema.BoolAttribute{
-			Optional: true,
-		},
-		"mobile_number_verification_required": schema.BoolAttribute{
-			Optional: true,
-		},
-		// common_config attr
 		"allowed_roles": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
 		},
-		// common_config attr
 		"default_roles": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
-		},
-		"enable_classical_provider": schema.BoolAttribute{
-			Optional: true,
-			// Computed: true,
-			// Default:  booldefault.StaticBool(true),
 		},
 		"is_remember_me_selected": schema.BoolAttribute{
 			Optional: true,
@@ -417,9 +388,6 @@ var resourceAppSchema = schema.Schema{
 		"group_ids": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
-		},
-		"is_group_login_selection_enabled": schema.BoolAttribute{
-			Optional: true,
 		},
 		"group_selection": schema.SingleNestedAttribute{
 			Optional: true,
@@ -540,12 +508,10 @@ var resourceAppSchema = schema.Schema{
 		"description": schema.StringAttribute{
 			Optional: true,
 		},
-		// common_config attr
 		"default_scopes": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
 		},
-		// common_config attr
 		"pending_scopes": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,

@@ -144,7 +144,7 @@ func TestAccWebhookResource_InvalidAllowedValue(t *testing.T) {
 
 // apikey_config.placeholder must contain only lowercase alphabets
 func TestAccWebhookResource_PlaceholderLowercase(t *testing.T) {
-	invalidPlaceholders := []string{"apiKey", "APIKEY", "api-key", "api_KEY"}
+	invalidPlaceholders := []string{"apiKey", "APIKEY", "api_KEY"}
 	for _, v := range invalidPlaceholders {
 		apikeyConfig["placeholder"] = v
 		resource.Test(t, resource.TestCase{

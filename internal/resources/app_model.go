@@ -79,22 +79,15 @@ type AppConfig struct {
 	RegisterWithLoginInformation     types.Bool `tfsdk:"register_with_login_information"`
 	AllowDisposableEmail             types.Bool `tfsdk:"allow_disposable_email"`
 	ValidatePhoneNumber              types.Bool `tfsdk:"validate_phone_number"`
-	FdsEnabled                       types.Bool `tfsdk:"fds_enabled"`
 	IsHybridApp                      types.Bool `tfsdk:"is_hybrid_app"`
-	Editable                         types.Bool `tfsdk:"editable"`
 	JweEnabled                       types.Bool `tfsdk:"jwe_enabled"`
 	UserConsent                      types.Bool `tfsdk:"user_consent"`
 	Enabled                          types.Bool `tfsdk:"enabled"`
-	AlwaysAskMfa                     types.Bool `tfsdk:"always_ask_mfa"`
 	SmartMfa                         types.Bool `tfsdk:"smart_mfa"`
-	EmailVerificationRequired        types.Bool `tfsdk:"email_verification_required"`
-	MobileNumberVerificationRequired types.Bool `tfsdk:"mobile_number_verification_required"`
-	EnableClassicalProvider          types.Bool `tfsdk:"enable_classical_provider"`
 	IsRememberMeSelected             types.Bool `tfsdk:"is_remember_me_selected"`
 	EnableBotDetection               types.Bool `tfsdk:"enable_bot_detection"`
 	IsLoginSuccessPageEnabled        types.Bool `tfsdk:"is_login_success_page_enabled"`
 	IsRegisterSuccessPageEnabled     types.Bool `tfsdk:"is_register_success_page_enabled"`
-	IsGroupLoginSelectionEnabled     types.Bool `tfsdk:"is_group_login_selection_enabled"`
 	AllowGuestLogin                  types.Bool `tfsdk:"allow_guest_login"`
 	RequireAuthTime                  types.Bool `tfsdk:"require_auth_time"`
 	EnableLoginSpi                   types.Bool `tfsdk:"enable_login_spi"`
@@ -283,13 +276,8 @@ type CommonConfigs struct {
 	AutoLoginAfterRegister        types.Bool   `tfsdk:"auto_login_after_register"`
 	EnablePasswordlessAuth        types.Bool   `tfsdk:"enable_passwordless_auth"`
 	RegisterWithLoginInformation  types.Bool   `tfsdk:"register_with_login_information"`
-	FdsEnabled                    types.Bool   `tfsdk:"fds_enabled"`
 	IsHybridApp                   types.Bool   `tfsdk:"is_hybrid_app"`
-	Editable                      types.Bool   `tfsdk:"editable"`
 	Enabled                       types.Bool   `tfsdk:"enabled"`
-	AlwaysAskMfa                  types.Bool   `tfsdk:"always_ask_mfa"`
-	EmailVerificationRequired     types.Bool   `tfsdk:"email_verification_required"`
-	EnableClassicalProvider       types.Bool   `tfsdk:"enable_classical_provider"`
 	IsRememberMeSelected          types.Bool   `tfsdk:"is_remember_me_selected"`
 	ResponseTypes                 types.Set    `tfsdk:"response_types"`
 	GrantTypes                    types.Set    `tfsdk:"grant_types"`
@@ -377,55 +365,49 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 	}
 
 	app := cidaas.AppModel{
-		AppOwner:                         "CLIENT",
-		CompanyName:                      plan.CompanyName.ValueString(),
-		CompanyAddress:                   plan.CompanyAddress.ValueString(),
-		CompanyWebsite:                   plan.CompanyWebsite.ValueString(),
-		ClientType:                       plan.ClientType.ValueString(),
-		AccentColor:                      plan.AccentColor.ValueString(),
-		PrimaryColor:                     plan.PrimaryColor.ValueString(),
-		MediaType:                        plan.MediaType.ValueString(),
-		ContentAlign:                     plan.ContentAlign.ValueString(),
-		EnableDeduplication:              plan.EnableDeduplication.ValueBoolPointer(),
-		AutoLoginAfterRegister:           plan.AutoLoginAfterRegister.ValueBoolPointer(),
-		EnablePasswordlessAuth:           plan.EnablePasswordlessAuth.ValueBoolPointer(),
-		RegisterWithLoginInformation:     plan.RegisterWithLoginInformation.ValueBoolPointer(),
-		AllowDisposableEmail:             plan.AllowDisposableEmail.ValueBoolPointer(),
-		ValidatePhoneNumber:              plan.ValidatePhoneNumber.ValueBoolPointer(),
-		FdsEnabled:                       plan.FdsEnabled.ValueBoolPointer(),
-		HostedPageGroup:                  plan.HostedPageGroup.ValueString(),
-		ClientName:                       plan.ClientName.ValueString(),
-		ClientDisplayName:                plan.ClientDisplayName.ValueString(),
-		IsHybridApp:                      plan.IsHybridApp.ValueBoolPointer(),
-		DefaultMaxAge:                    plan.DefaultMaxAge.ValueInt64Pointer(),
-		TokenLifetimeInSeconds:           plan.TokenLifetimeInSeconds.ValueInt64Pointer(),
-		IDTokenLifetimeInSeconds:         plan.IDTokenLifetimeInSeconds.ValueInt64Pointer(),
-		RefreshTokenLifetimeInSeconds:    plan.RefreshTokenLifetimeInSeconds.ValueInt64Pointer(),
-		TemplateGroupID:                  plan.TemplateGroupID.ValueString(),
-		ClientID:                         plan.ClientID.ValueString(),
-		ClientSecret:                     plan.ClientSecret.ValueString(),
-		PolicyURI:                        plan.PolicyURI.ValueString(),
-		TosURI:                           plan.TosURI.ValueString(),
-		ImprintURI:                       plan.ImprintURI.ValueString(),
-		TokenEndpointAuthMethod:          plan.TokenEndpointAuthMethod.ValueString(),
-		TokenEndpointAuthSigningAlg:      plan.TokenEndpointAuthSigningAlg.ValueString(),
-		Editable:                         plan.Editable.ValueBoolPointer(),
-		JweEnabled:                       plan.JweEnabled.ValueBoolPointer(),
-		UserConsent:                      plan.UserConsent.ValueBoolPointer(),
-		Enabled:                          plan.Enabled.ValueBoolPointer(),
-		AlwaysAskMfa:                     plan.AlwaysAskMfa.ValueBoolPointer(),
+		AppOwner:                      "CLIENT",
+		CompanyName:                   plan.CompanyName.ValueString(),
+		CompanyAddress:                plan.CompanyAddress.ValueString(),
+		CompanyWebsite:                plan.CompanyWebsite.ValueString(),
+		ClientType:                    plan.ClientType.ValueString(),
+		AccentColor:                   plan.AccentColor.ValueString(),
+		PrimaryColor:                  plan.PrimaryColor.ValueString(),
+		MediaType:                     plan.MediaType.ValueString(),
+		ContentAlign:                  plan.ContentAlign.ValueString(),
+		EnableDeduplication:           plan.EnableDeduplication.ValueBoolPointer(),
+		AutoLoginAfterRegister:        plan.AutoLoginAfterRegister.ValueBoolPointer(),
+		EnablePasswordlessAuth:        plan.EnablePasswordlessAuth.ValueBoolPointer(),
+		RegisterWithLoginInformation:  plan.RegisterWithLoginInformation.ValueBoolPointer(),
+		AllowDisposableEmail:          plan.AllowDisposableEmail.ValueBoolPointer(),
+		ValidatePhoneNumber:           plan.ValidatePhoneNumber.ValueBoolPointer(),
+		HostedPageGroup:               plan.HostedPageGroup.ValueString(),
+		ClientName:                    plan.ClientName.ValueString(),
+		ClientDisplayName:             plan.ClientDisplayName.ValueString(),
+		IsHybridApp:                   plan.IsHybridApp.ValueBoolPointer(),
+		DefaultMaxAge:                 plan.DefaultMaxAge.ValueInt64Pointer(),
+		TokenLifetimeInSeconds:        plan.TokenLifetimeInSeconds.ValueInt64Pointer(),
+		IDTokenLifetimeInSeconds:      plan.IDTokenLifetimeInSeconds.ValueInt64Pointer(),
+		RefreshTokenLifetimeInSeconds: plan.RefreshTokenLifetimeInSeconds.ValueInt64Pointer(),
+		TemplateGroupID:               plan.TemplateGroupID.ValueString(),
+		ClientID:                      plan.ClientID.ValueString(),
+		ClientSecret:                  plan.ClientSecret.ValueString(),
+		PolicyURI:                     plan.PolicyURI.ValueString(),
+		TosURI:                        plan.TosURI.ValueString(),
+		ImprintURI:                    plan.ImprintURI.ValueString(),
+		TokenEndpointAuthMethod:       plan.TokenEndpointAuthMethod.ValueString(),
+		TokenEndpointAuthSigningAlg:   plan.TokenEndpointAuthSigningAlg.ValueString(),
+		JweEnabled:                    plan.JweEnabled.ValueBoolPointer(),
+		UserConsent:                   plan.UserConsent.ValueBoolPointer(),
+		Enabled:                       plan.Enabled.ValueBoolPointer(),
+		// AlwaysAskMfa:                     plan.AlwaysAskMfa.ValueBoolPointer(),
 		SmartMfa:                         plan.SmartMfa.ValueBoolPointer(),
 		CaptchaRef:                       plan.CaptchaRef.ValueString(),
 		CommunicationMediumVerification:  plan.CommunicationMediumVerification.ValueString(),
-		EmailVerificationRequired:        plan.EmailVerificationRequired.ValueBoolPointer(),
-		MobileNumberVerificationRequired: plan.MobileNumberVerificationRequired.ValueBoolPointer(),
-		EnableClassicalProvider:          plan.EnableClassicalProvider.ValueBoolPointer(),
 		IsRememberMeSelected:             plan.IsRememberMeSelected.ValueBoolPointer(),
 		EnableBotDetection:               plan.EnableBotDetection.ValueBoolPointer(),
 		BotProvider:                      plan.BotProvider.ValueString(),
 		IsLoginSuccessPageEnabled:        plan.IsLoginSuccessPageEnabled.ValueBoolPointer(),
 		IsRegisterSuccessPageEnabled:     plan.IsRegisterSuccessPageEnabled.ValueBoolPointer(),
-		IsGroupLoginSelectionEnabled:     plan.IsGroupLoginSelectionEnabled.ValueBoolPointer(),
 		BackchannelLogoutURI:             plan.BackchannelLogoutURI.ValueString(),
 		LogoAlign:                        plan.LogoAlign.ValueString(),
 		Webfinger:                        plan.Webfinger.ValueString(),

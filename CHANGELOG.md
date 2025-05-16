@@ -1,5 +1,23 @@
 ## Changelog
 
+### 3.4.7
+
+### Enhancements & Bug Fixes
+
+- Unsupported attributes removed from the `cidaas_app` resource schema. The following attributes were removed:
+
+  - always_ask_mfa
+  - editable
+  - email_verification_required
+  - enable_classical_provider
+  - fds_enabled
+  - is_group_login_selection_enabled
+  - mobile_number_verification_required
+
+- Fix provided for the issue in the `cidaas_webhook` resource where `placeholder` attribute was incorrectly rejecting valid values containing dashes (e.g. `test-apikey-placeholder`). It now correctly accepts placeholders using lowercase alphabets and dashes as intended.
+
+- The attribute `group_type` is optional now in the `cidaas_user_groups` resource.
+
 ### 3.4.6
 
 #### Enhancements

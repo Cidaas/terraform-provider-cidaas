@@ -11,7 +11,6 @@ resource "cidaas_app" "sample" {
   auto_login_after_register       = true      // Default: false
   enable_passwordless_auth        = false     // Default: true
   register_with_login_information = false     // Default: false
-  fds_enabled                     = false     // Default: true
   hosted_page_group               = "default" // Default: default
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
@@ -48,7 +47,6 @@ resource "cidaas_app" "sample" {
   captcha_refs                        = ["sample"]
   consent_refs                        = ["sample"]
   communication_medium_verification   = "email_verification_required_on_usage"
-  mobile_number_verification_required = false // Default: false
   enable_bot_detection                = false // Default: false
   allow_guest_login_groups = [{
     group_id      = "developer101"
@@ -58,7 +56,6 @@ resource "cidaas_app" "sample" {
   is_login_success_page_enabled    = false // Default: false
   is_register_success_page_enabled = false // Default: false
   group_ids                        = ["sample"]
-  is_group_login_selection_enabled = false // Default: false
   group_selection = {
     selectable_groups      = ["developer-users"]
     selectable_group_types = ["sample"]

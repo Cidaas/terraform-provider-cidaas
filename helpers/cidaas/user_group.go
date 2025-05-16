@@ -45,7 +45,7 @@ type UserGroup struct {
 type UserGroupService interface {
 	Create(ug UserGroupData) (*UserGroupResponse, error)
 	Get(groupID string) (*UserGroupResponse, error)
-	Update(ug UserGroupData) error
+	Update(ug UserGroupData) (*UserGroupResponse, error)
 	Delete(groupID string) error
 	GetSubGroups(parentID string) ([]UserGroupData, error)
 }
@@ -88,16 +88,20 @@ func (c *UserGroup) Get(groupID string) (*UserGroupResponse, error) {
 	return &response, nil
 }
 
-func (c *UserGroup) Update(ug UserGroupData) error {
+func (c *UserGroup) Update(ug UserGroupData) (*UserGroupResponse, error) {
+	var response UserGroupResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/usergroups")
 	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
 
 	res, err := httpClient.MakeRequest(ug)
 	if err = util.HandleResponseError(res, err); err != nil {
-		return err
+		return nil, err
 	}
 	defer res.Body.Close()
-	return nil
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
 func (c *UserGroup) Delete(groupID string) error {
