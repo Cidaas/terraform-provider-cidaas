@@ -105,6 +105,7 @@ resource "cidaas_template" "system-template-2" {
 * `subject` (String) Applicable only for template_type EMAIL. It represents the subject of an email.
 * `usage_type` (String) The usage_type attribute specifies the specific use case or application for the template. Only applicable for SYSTEM templates. It should be set to `GENERAL` when cidaas does not provide an allowed list of values.
 * `verification_type` (String) The verification_type attribute defines the method used for verification. Only applicable for SYSTEM templates.
+* `enabled` (Boolean) A boolean flag enable or disable a template.
 
 ### Read-Only
 

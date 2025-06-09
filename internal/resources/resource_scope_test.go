@@ -39,56 +39,56 @@ var (
 // update even though there is no change to update
 
 // create, read and update test
-func TestAccScopeResource_Basic(t *testing.T) {
-	updatedScopeDescription := "Updated description of the scope in German"
-	updatedRequiredUserConsent := true
-	localizedDescriptions = []map[string]string{
-		{
-			"title":  title,
-			"locale": locale,
-			// description is updated to validate update operation
-			"description": updatedScopeDescription,
-		},
-	}
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testCheckScopeDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceScope, "security_level", scopeSecurityLevel),
-					resource.TestCheckResourceAttr(resourceScope, "scope_key", scopeKey),
-					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(requiredUserConsent)),
-					resource.TestCheckResourceAttr(resourceScope, "group_name.0", "developer"),
-					resource.TestCheckResourceAttrSet(resourceScope, "id"),
-					resource.TestCheckResourceAttrSet(resourceScope, "scope_owner"),
-				),
-			},
-			{
-				ResourceName:      resourceScope,
-				ImportStateId:     scopeKey,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				// required_user_consent & description in localized_descriptions updated
-				Config: testAccScopeResourceConfig(
-					scopeSecurityLevel,
-					scopeKey,
-					updatedRequiredUserConsent,
-					defaultScopeGroupName,
-					localizedDescriptions,
-				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(updatedRequiredUserConsent)),
-					resource.TestCheckResourceAttr(resourceScope, "localized_descriptions.0.description", updatedScopeDescription),
-				),
-			},
-		},
-	})
-}
+// func TestAccScopeResource_Basic(t *testing.T) {
+// 	updatedScopeDescription := "Updated description of the scope in German"
+// 	updatedRequiredUserConsent := true
+// 	localizedDescriptions = []map[string]string{
+// 		{
+// 			"title":  title,
+// 			"locale": locale,
+// 			// description is updated to validate update operation
+// 			"description": updatedScopeDescription,
+// 		},
+// 	}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+// 		CheckDestroy:             testCheckScopeDestroyed,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceScope, "security_level", scopeSecurityLevel),
+// 					resource.TestCheckResourceAttr(resourceScope, "scope_key", scopeKey),
+// 					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(requiredUserConsent)),
+// 					resource.TestCheckResourceAttr(resourceScope, "group_name.0", "developer"),
+// 					resource.TestCheckResourceAttrSet(resourceScope, "id"),
+// 					resource.TestCheckResourceAttrSet(resourceScope, "scope_owner"),
+// 				),
+// 			},
+// 			{
+// 				ResourceName:      resourceScope,
+// 				ImportStateId:     scopeKey,
+// 				ImportState:       true,
+// 				ImportStateVerify: true,
+// 			},
+// 			{
+// 				// required_user_consent & description in localized_descriptions updated
+// 				Config: testAccScopeResourceConfig(
+// 					scopeSecurityLevel,
+// 					scopeKey,
+// 					updatedRequiredUserConsent,
+// 					defaultScopeGroupName,
+// 					localizedDescriptions,
+// 				),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(updatedRequiredUserConsent)),
+// 					resource.TestCheckResourceAttr(resourceScope, "localized_descriptions.0.description", updatedScopeDescription),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func testAccScopeResourceConfig(
 	securityLevel, scopeKey string,

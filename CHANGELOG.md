@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.4.8
+
+### Enhancements & Bug Fixes
+
+- Added `enabled` flag to the `cidaas_template` resource, allowing to activate or deactivate a template
+- Added support for custom values in `allow_login_with` attribute in `cidaas_app` resource
+- Fixed handling of null set/list attributes in `cidaas_app` resource by sending empty arrays in API requests
+
 ### 3.4.7
 
 ### Enhancements & Bug Fixes

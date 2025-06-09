@@ -40,6 +40,7 @@ type TemplateConfig struct {
 	Language         types.String `tfsdk:"language"`
 	GroupID          types.String `tfsdk:"group_id"`
 	IsSystemTemplate types.Bool   `tfsdk:"is_system_template"`
+	Enabled          types.Bool   `tfsdk:"enabled"`
 }
 
 type TemplateResource struct {
@@ -163,6 +164,15 @@ var templateSchema = schema.Schema{
 				&systemTemplateValidator{},
 			},
 		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "A boolean flag to enable or disable the template.",
+			Default:             booldefault.StaticBool(true),
+			PlanModifiers: []planmodifier.Bool{
+				&systemTemplateValidator{},
+			},
+		},
 	},
 }
 
@@ -252,6 +262,7 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.Language = util.StringValueOrNull(&res.Data.Language)
 	state.GroupID = util.StringValueOrNull(&res.Data.GroupID)
 	state.Content = util.StringValueOrNull(&res.Data.Content)
+	state.Enabled = util.BoolValueOrNull(&res.Data.Enabled)
 	if state.TemplateOwner.ValueString() == "DEVELOPER" {
 		state.IsSystemTemplate = types.BoolValue(false)
 	}
@@ -366,6 +377,7 @@ func prepareTemplateModel(plan TemplateConfig) *cidaas.TemplateModel {
 	template.Subject = plan.Subject.ValueString()
 	template.UsageType = plan.UsageType.ValueString()
 	template.GroupID = plan.GroupID.ValueString()
+	template.Enabled = plan.Enabled.ValueBool()
 
 	template.ProcessingType = plan.ProcessingType.ValueString()
 	template.VerificationType = plan.VerificationType.ValueString()

@@ -3,7 +3,6 @@ package resources
 import (
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -81,15 +80,9 @@ var resourceAppSchema = schema.Schema{
 			},
 		},
 		"allow_login_with": schema.SetAttribute{
-			ElementType: types.StringType,
-			Optional:    true,
-			MarkdownDescription: "allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAME" +
-				"The default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.",
-			Validators: []validator.Set{
-				setvalidator.ValueStringsAre(
-					stringvalidator.OneOf([]string{"EMAIL", "MOBILE", "USER_NAME"}...),
-				),
-			},
+			ElementType:         types.StringType,
+			Optional:            true,
+			MarkdownDescription: "allow_login_with is used to specify the preferred methods of login allowed for a client.",
 		},
 		// optional for NON_INTERACTIVE/IOS/ANDROID/DESKTOP/MOBILE/WINDOWS_MOBILE/DEVICE
 		"redirect_uris": schema.SetAttribute{

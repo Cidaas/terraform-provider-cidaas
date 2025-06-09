@@ -79,27 +79,27 @@ You can explore more on the module in the github repo.
 resource "cidaas_app" "sample" {
   client_name                     = "Test Terraform Application" // unique
   client_type                     = "SINGLE_PAGE"
-  accent_color                    = "#ef4923"                        // Default: #ef4923
-  primary_color                   = "#ef4923"                        // Default: #f7941d
-  media_type                      = "IMAGE"                          // Default: IMAGE
-  allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"] // Default: ["EMAIL", "MOBILE", "USER_NAME"]
+  accent_color                    = "#ef4923"
+  primary_color                   = "#ef4923"
+  media_type                      = "IMAGE"
+  allow_login_with                = ["EMAIL", "MOBILE", "USER_NAME"]
   redirect_uris                   = ["https://cidaas.com"]
   allowed_logout_urls             = ["https://cidaas.com"]
-  enable_deduplication            = true      // Default: false
-  auto_login_after_register       = true      // Default: false
-  enable_passwordless_auth        = false     // Default: true
-  register_with_login_information = false     // Default: false
-  hosted_page_group               = "default" // Default: default
+  enable_deduplication            = true
+  auto_login_after_register       = true
+  enable_passwordless_auth        = false
+  register_with_login_information = false
+  hosted_page_group               = "default"
   company_name                    = "Widas ID GmbH"
   company_address                 = "01"
   company_website                 = "https://cidaas.com"
   allowed_scopes                  = ["openid", "cidaas:register", "profile"]
   client_display_name             = "Display Name of the app" // unique
-  content_align                   = "CENTER"                  // Default: CENTER
+  content_align                   = "CENTER"
   post_logout_redirect_uris       = ["https://cidaas.com"]
-  logo_align                      = "CENTER" // Default: CENTER
-  allow_disposable_email          = false    // Default: false
-  validate_phone_number           = false    // Default: false
+  logo_align                      = "CENTER"
+  allow_disposable_email          = false
+  validate_phone_number           = false
   additional_access_token_payload = ["sample_payload"]
   required_fields                 = ["email"]
   mobile_settings = {
@@ -115,8 +115,8 @@ resource "cidaas_app" "sample" {
   tos_uri                             = "https://cidaas.com"
   imprint_uri                         = "https://cidaas.com"
   contacts                            = ["support@cidas.de"]
-  token_endpoint_auth_method          = "client_secret_post" // Default: client_secret_post
-  token_endpoint_auth_signing_alg     = "RS256"              // Default: RS256
+  token_endpoint_auth_method          = "client_secret_post"
+  token_endpoint_auth_signing_alg     = "RS256"
   default_acr_values                  = ["default"]
   web_message_uris                    = ["https://cidaas.com"]
   allowed_fields                      = ["email"]
@@ -125,14 +125,14 @@ resource "cidaas_app" "sample" {
   captcha_refs                        = ["sample"]
   consent_refs                        = ["sample"]
   communication_medium_verification   = "email_verification_required_on_usage"
-  enable_bot_detection                = false // Default: false
+  enable_bot_detection                = false
   allow_guest_login_groups = [{
     group_id      = "developer101"
     roles         = ["developer", "qa", "admin"]
     default_roles = ["developer"]
   }]
-  is_login_success_page_enabled    = false // Default: false
-  is_register_success_page_enabled = false // Default: false
+  is_login_success_page_enabled    = false
+  is_register_success_page_enabled = false
   group_ids                        = ["sample"]
   group_selection = {
     selectable_groups      = ["developer-users"]
@@ -201,7 +201,7 @@ resource "cidaas_app" "sample" {
 - `allow_disposable_email` (Boolean) Allow disposable email addresses. Default is set to `false` while creating an app.
 - `allow_guest_login` (Boolean) Flag to specify whether guest users are allowed to access functionalities of the client. Default is set to `false`
 - `allow_guest_login_groups` (Attributes List) (see [below for nested schema](#nestedatt--allow_guest_login_groups))
-- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client. Allowed values are EMAIL, MOBILE and USER_NAMEThe default is set to `['EMAIL', 'MOBILE', 'USER_NAME']`.
+- `allow_login_with` (Set of String) allow_login_with is used to specify the preferred methods of login allowed for a client.
 - `allowed_fields` (Set of String)
 - `allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--allowed_groups))
 - `allowed_logout_urls` (Set of String) Allowed logout URLs for OAuth2 client.
