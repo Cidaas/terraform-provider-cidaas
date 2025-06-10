@@ -23,6 +23,7 @@ type TemplateModel struct {
 	VerificationType string `json:"verificationType,omitempty"`
 	Language         string `json:"language,omitempty"`
 	GroupID          string `json:"group_id,omitempty"`
+	Enabled          bool   `json:"enabled"`
 }
 
 type TemplateResponse struct {
