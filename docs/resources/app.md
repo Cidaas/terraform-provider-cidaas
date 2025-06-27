@@ -251,6 +251,7 @@ resource "cidaas_app" "sample" {
 - `id_token_signed_response_alg` (String)
 - `imprint_uri` (String) The URL to the imprint page.
 - `initiate_login_uri` (String)
+- `is_group_login_selection_enabled` (Boolean) Flag to enable or disble group login selection
 - `is_hybrid_app` (Boolean) Flag to set if your app is hybrid or not. Default is set to `false`. Set to `true` to make your app hybrid.
 - `is_login_success_page_enabled` (Boolean)
 - `is_register_success_page_enabled` (Boolean)

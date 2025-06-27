@@ -88,6 +88,7 @@ type AppConfig struct {
 	EnableBotDetection               types.Bool `tfsdk:"enable_bot_detection"`
 	IsLoginSuccessPageEnabled        types.Bool `tfsdk:"is_login_success_page_enabled"`
 	IsRegisterSuccessPageEnabled     types.Bool `tfsdk:"is_register_success_page_enabled"`
+	IsGroupLoginSelectionEnabled     types.Bool `tfsdk:"is_group_login_selection_enabled"`
 	AllowGuestLogin                  types.Bool `tfsdk:"allow_guest_login"`
 	RequireAuthTime                  types.Bool `tfsdk:"require_auth_time"`
 	EnableLoginSpi                   types.Bool `tfsdk:"enable_login_spi"`
@@ -408,6 +409,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		BotProvider:                      plan.BotProvider.ValueString(),
 		IsLoginSuccessPageEnabled:        plan.IsLoginSuccessPageEnabled.ValueBoolPointer(),
 		IsRegisterSuccessPageEnabled:     plan.IsRegisterSuccessPageEnabled.ValueBoolPointer(),
+		IsGroupLoginSelectionEnabled:     plan.IsGroupLoginSelectionEnabled.ValueBoolPointer(),
 		BackchannelLogoutURI:             plan.BackchannelLogoutURI.ValueString(),
 		LogoAlign:                        plan.LogoAlign.ValueString(),
 		Webfinger:                        plan.Webfinger.ValueString(),

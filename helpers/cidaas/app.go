@@ -85,6 +85,7 @@ type AppModel struct {
 	IsLoginSuccessPageEnabled        *bool                       `json:"is_login_success_page_enabled,omitempty"`
 	IsRegisterSuccessPageEnabled     *bool                       `json:"is_register_success_page_enabled,omitempty"`
 	GroupIDs                         []string                    `json:"groupIds"`
+	IsGroupLoginSelectionEnabled     *bool                       `json:"isGroupLoginSelectionEnabled,omitempty"`
 	GroupSelection                   *IGroupSelection            `json:"groupSelection,omitempty"`
 	GroupTypes                       []string                    `json:"groupTypes"`
 	BackchannelLogoutURI             string                      `json:"backchannel_logout_uri,omitempty"`

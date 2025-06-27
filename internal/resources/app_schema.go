@@ -382,6 +382,9 @@ var resourceAppSchema = schema.Schema{
 			ElementType: types.StringType,
 			Optional:    true,
 		},
+		"is_group_login_selection_enabled": schema.BoolAttribute{
+			Optional: true,
+		},
 		"group_selection": schema.SingleNestedAttribute{
 			Optional: true,
 			Attributes: map[string]schema.Attribute{

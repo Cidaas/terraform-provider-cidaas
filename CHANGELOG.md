@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.4.9
+
+### Bug Fixes
+
+- Added `is_group_login_selection_enabled` flag to the `cidaas_app` resource that removed earlier in v3.4.7, allowing to enable or disable group login selection
+
 ### 3.4.8
 
 ### Enhancements & Bug Fixes
