@@ -173,6 +173,8 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 }
 
 func TestRegistrationField_SelectBasic(t *testing.T) {
+	fieldKey := acctest.RandString(10)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -184,7 +186,7 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 				}
 				resource "cidaas_registration_field" "example" {
 					data_type                                      = "RADIO"
-					field_key                                      = "sample_select_field"
+					field_key                                      = "%s"
 					field_type                                     = "CUSTOM"
 					internal                                       = false
 					required                                       = true
@@ -223,9 +225,9 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 						}
 					]
 				}
-			`, acctest.BaseURL),
+			`, acctest.BaseURL, fieldKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", "sample_select_field"),
+					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
 					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
 				),
 			},
@@ -233,7 +235,7 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 				ResourceName:      resourceRegField,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "sample_select_field",
+				ImportStateId:     fieldKey,
 			},
 		},
 	})

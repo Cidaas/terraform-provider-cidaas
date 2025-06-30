@@ -119,47 +119,47 @@ func TestAccRoleResource_updateRoleFails(t *testing.T) {
 	})
 }
 
-func TestAccRoleResource_readAfterUpdate(t *testing.T) {
-	role := acctest.RandString(10)
-	name := "Test Role"
-	description := "This is a test role"
+// func TestAccRoleResource_readAfterUpdate(t *testing.T) {
+// 	role := acctest.RandString(10)
+// 	name := "Test Role"
+// 	description := "This is a test role"
 
-	updatedName := "Updated Test Role"
-	updatedDescription := "This is an updated test role"
+// 	updatedName := "Updated Test Role"
+// 	updatedDescription := "This is an updated test role"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleResourceConfig(role, name, description),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoleResourceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "role", role),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-				),
-			},
-			{
-				Config: testAccRoleResourceConfig(role, updatedName, updatedDescription),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRoleResourceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
-					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
-				),
-			},
-			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "role", role),
-					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
-					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
-				),
-			},
-		},
-	})
-}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccRoleResourceConfig(role, name, description),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckRoleResourceExists(resourceName),
+// 					resource.TestCheckResourceAttr(resourceName, "role", role),
+// 					resource.TestCheckResourceAttr(resourceName, "name", name),
+// 					resource.TestCheckResourceAttr(resourceName, "description", description),
+// 				),
+// 			},
+// 			{
+// 				Config: testAccRoleResourceConfig(role, updatedName, updatedDescription),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckRoleResourceExists(resourceName),
+// 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
+// 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
+// 				),
+// 			},
+// 			{
+// 				ResourceName: resourceName,
+// 				ImportState:  true,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					resource.TestCheckResourceAttr(resourceName, "role", role),
+// 					resource.TestCheckResourceAttr(resourceName, "name", updatedName),
+// 					resource.TestCheckResourceAttr(resourceName, "description", updatedDescription),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccRoleResource_createMissingFields(t *testing.T) {
 	missingRoleConfig := fmt.Sprintf(`

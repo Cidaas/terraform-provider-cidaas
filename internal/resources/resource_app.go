@@ -358,6 +358,10 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	if !state.IsRegisterSuccessPageEnabled.IsNull() {
 		state.IsRegisterSuccessPageEnabled = util.BoolValueOrNull(data.IsRegisterSuccessPageEnabled)
 	}
+	if !state.IsGroupLoginSelectionEnabled.IsNull() {
+		state.IsGroupLoginSelectionEnabled = util.BoolValueOrNull(data.IsGroupLoginSelectionEnabled)
+	}
+
 	if !state.JweEnabled.IsNull() {
 		state.JweEnabled = util.BoolValueOrNull(data.JweEnabled)
 	}
