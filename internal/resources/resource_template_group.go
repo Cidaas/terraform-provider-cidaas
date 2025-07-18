@@ -204,12 +204,12 @@ func (r *TemplateGroupResource) Create(ctx context.Context, req resource.CreateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.TemplateGroup.Create(*tgModel)
+	res, err := r.cidaasClient.TemplateGroup.Create(ctx, *tgModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create template group", util.FormatErrorMessage(err))
 		return
 	}
-	res, err = r.cidaasClient.TemplateGroup.Get(res.Data.GroupID)
+	res, err = r.cidaasClient.TemplateGroup.Get(ctx, res.Data.GroupID)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to get template group", util.FormatErrorMessage(err))
 		return
@@ -221,7 +221,7 @@ func (r *TemplateGroupResource) Create(ctx context.Context, req resource.CreateR
 func (r *TemplateGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TemplateGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.TemplateGroup.Get(state.GroupID.ValueString())
+	res, err := r.cidaasClient.TemplateGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read template group", util.FormatErrorMessage(err))
 		return
@@ -242,7 +242,7 @@ func (r *TemplateGroupResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 	templateGroupModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.TemplateGroup.Update(*templateGroupModel)
+	_, err := r.cidaasClient.TemplateGroup.Update(ctx, *templateGroupModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update template group", util.FormatErrorMessage(err))
 		return
@@ -256,7 +256,7 @@ func (r *TemplateGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.TemplateGroup.Delete(state.GroupID.ValueString())
+	err := r.cidaasClient.TemplateGroup.Delete(ctx, state.GroupID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete template group", util.FormatErrorMessage(err))
 		return

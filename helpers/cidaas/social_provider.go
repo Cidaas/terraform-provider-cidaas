@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -58,23 +59,18 @@ type SocialProvider struct {
 	ClientConfig
 }
 
-type SocialProviderService interface {
-	Upsert(cp *SocialProviderModel) (*SocialProviderResponse, error)
-	Get(providerName, providerID string) (*SocialProviderResponse, error)
-	Delete(providerName, providerID string) error
-	GetAll() ([]SocialProviderModel, error)
-}
-
-func NewSocialProvider(clientConfig ClientConfig) SocialProviderService {
+func NewSocialProvider(clientConfig ClientConfig) *SocialProvider {
 	return &SocialProvider{clientConfig}
 }
 
-func (s *SocialProvider) Upsert(sp *SocialProviderModel) (*SocialProviderResponse, error) {
+func (s *SocialProvider) Upsert(ctx context.Context, sp *SocialProviderModel) (*SocialProviderResponse, error) {
 	var response SocialProviderResponse
 	url := fmt.Sprintf("%s/%s", s.BaseURL, "providers-srv/multi/providers")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, s.AccessToken)
-
-	res, err := httpClient.MakeRequest(sp)
+	client, err := util.NewHTTPClient(url, http.MethodPost, s.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, sp)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -86,12 +82,14 @@ func (s *SocialProvider) Upsert(sp *SocialProviderModel) (*SocialProviderRespons
 	return &response, nil
 }
 
-func (s *SocialProvider) Get(providerName, providerID string) (*SocialProviderResponse, error) {
+func (s *SocialProvider) Get(ctx context.Context, providerName, providerID string) (*SocialProviderResponse, error) {
 	var response SocialProviderResponse
 	url := fmt.Sprintf("%s/%s?provider_name=%s&provider_id=%s", s.BaseURL, "providers-srv/multi/providers", providerName, providerID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -103,11 +101,13 @@ func (s *SocialProvider) Get(providerName, providerID string) (*SocialProviderRe
 	return &response, nil
 }
 
-func (s *SocialProvider) Delete(providerName, providerID string) error {
+func (s *SocialProvider) Delete(ctx context.Context, providerName, providerID string) error {
 	url := fmt.Sprintf("%s/%s/%s/%s", s.BaseURL, "providers-srv/multi/providers", providerName, providerID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, s.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, s.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -115,12 +115,14 @@ func (s *SocialProvider) Delete(providerName, providerID string) error {
 	return nil
 }
 
-func (s *SocialProvider) GetAll() ([]SocialProviderModel, error) {
+func (s *SocialProvider) GetAll(ctx context.Context) ([]SocialProviderModel, error) {
 	var response AllSocialProviderResponse
 	url := fmt.Sprintf("%s/%s", s.BaseURL, "providers-srv/providers/enabled/list")
-	httpClient := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, s.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

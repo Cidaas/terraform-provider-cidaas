@@ -1,6 +1,7 @@
 package acctest
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -47,13 +48,16 @@ func TestAccPreCheck(t *testing.T) {
 	}
 
 	tokenURL := fmt.Sprintf("%s/%s", os.Getenv("BASE_URL"), "token-srv/token")
-	httpClient := util.NewHTTPClient(tokenURL, http.MethodPost)
+	client, err := util.NewHTTPClient(tokenURL, http.MethodPost)
+	if err != nil {
+		t.Error(err)
+	}
 	payload := map[string]string{
 		"client_id":     os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID"),
 		"client_secret": os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET"),
 		"grant_type":    "client_credentials",
 	}
-	res, err := httpClient.MakeRequest(payload)
+	res, err := client.MakeRequest(context.Background(), payload)
 	if err = util.HandleResponseError(res, err); err != nil {
 		t.Fatalf("failed to generate access token %s", err.Error())
 	}
@@ -69,11 +73,18 @@ func TestAccPreCheck(t *testing.T) {
 // RandString generates a random string with the given length.
 func RandString(length int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec
-	charset := "abcdefghijklmnopqrstuvwxyz0123456789"
+	charset := "abcdefghijklmnopqrstuvwxyz"
 
 	b := make([]byte, length)
 	for i := range b {
 		b[i] = charset[r.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func GetBaseURL() string {
+	if BaseURL != "" {
+		return BaseURL
+	}
+	return os.Getenv("BASE_URL")
 }

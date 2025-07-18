@@ -2,30 +2,36 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
+// HTTPClient provides a configurable HTTP client with authentication and error handling.
+// It supports common HTTP methods and automatic JSON marshaling.
 type HTTPClient struct {
 	Token      string
 	HTTPMethod string
 	URL        string
 	Headers    map[string]string
-	Host       string
 }
 
 type HTTPClientInterface interface {
 	MakeRequest(body interface{}) (*http.Response, error)
-	SetToken(token string)
-	SetMethod(method string)
-	SetURL(url string)
-	SetHeaders(headers map[string]string)
-	GetHost() string
 }
 
-func NewHTTPClient(url, method string, token ...string) *HTTPClient {
+// NewHTTPClient creates a new HTTP client with the specified URL and method.
+// Optional token parameter enables Bearer authentication.
+func NewHTTPClient(url, method string, token ...string) (*HTTPClient, error) {
+	if url == "" {
+		return nil, fmt.Errorf("URL cannot be empty")
+	}
+	if method == "" {
+		return nil, fmt.Errorf("HTTP method cannot be empty")
+	}
+
 	var tokenValue string
 	if len(token) > 0 {
 		tokenValue = token[0]
@@ -34,25 +40,28 @@ func NewHTTPClient(url, method string, token ...string) *HTTPClient {
 		URL:        url,
 		HTTPMethod: method,
 		Token:      tokenValue,
-	}
+		Headers:    make(map[string]string),
+	}, nil
 }
 
-func (h *HTTPClient) MakeRequest(requestBody interface{}) (*http.Response, error) {
+// MakeRequest executes an HTTP request with the configured method, URL, and headers.
+// It automatically marshals the request body to JSON and handles authentication if a token is set.
+func (h *HTTPClient) MakeRequest(ctx context.Context, requestBody interface{}) (*http.Response, error) {
 	var reqBodyByte io.Reader
 	if requestBody == nil {
 		reqBodyByte = nil
 	} else {
 		bodyByte, err := json.Marshal(requestBody)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal json body, %w", err)
+			return nil, fmt.Errorf("failed to marshal JSON body, %w", err)
 		}
 		reqBodyByte = bytes.NewBuffer(bodyByte)
 	}
 
 	client := http.DefaultClient
-	req, err := http.NewRequest(h.HTTPMethod, h.URL, reqBodyByte)
+	req, err := http.NewRequestWithContext(ctx, h.HTTPMethod, h.URL, reqBodyByte)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request, %w", err)
+		return nil, fmt.Errorf("failed to create HTTP request, %w", err)
 	}
 	if h.Token != "" {
 		req.Header.Add("Authorization", "Bearer "+h.Token)
@@ -67,38 +76,37 @@ func (h *HTTPClient) MakeRequest(requestBody interface{}) (*http.Response, error
 	if err != nil {
 		return resp, fmt.Errorf("request failed, %w", err)
 	}
-	if (h.HTTPMethod == http.MethodGet || h.HTTPMethod == http.MethodPut) && resp.StatusCode != http.StatusOK {
-		return resp, fmt.Errorf("status code not 200. found %v, response body: %s", resp.StatusCode, responseToStringConvert(resp))
+
+	var expectedCodes []int
+	switch h.HTTPMethod {
+	case http.MethodGet, http.MethodPut:
+		expectedCodes = []int{http.StatusOK}
+	case http.MethodPost:
+		expectedCodes = []int{http.StatusOK, http.StatusCreated, http.StatusNoContent}
+	case http.MethodDelete:
+		expectedCodes = []int{http.StatusOK, http.StatusCreated, http.StatusNoContent, http.StatusAccepted}
+	default:
+		expectedCodes = []int{http.StatusOK} // Default fallback
 	}
-	if h.HTTPMethod == http.MethodPost && (resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent) {
-		return resp, fmt.Errorf("status code not 20X. found %v, response body: %s", resp.StatusCode, responseToStringConvert(resp))
-	}
-	if h.HTTPMethod == http.MethodDelete && (resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusAccepted) {
-		return resp, fmt.Errorf("status code not 20X. found %v, response body: %s", resp.StatusCode, responseToStringConvert(resp))
+
+	if err := h.handleErrorResponse(resp, expectedCodes); err != nil {
+		return resp, err
 	}
 	return resp, nil
 }
 
-func (h *HTTPClient) SetToken(token string) {
-	h.Token = token
-}
+// handleErrorResponse validates the HTTP response status code against expected codes.
+// Returns an error if the status code is not in the expected list, including response body for debugging.
+func (h *HTTPClient) handleErrorResponse(resp *http.Response, expectedCodes []int) error {
+	for _, code := range expectedCodes {
+		if resp.StatusCode == code {
+			return nil
+		}
+	}
 
-func (h *HTTPClient) SetMethod(method string) {
-	h.HTTPMethod = method
-}
-
-func (h *HTTPClient) SetURL(url string) {
-	h.URL = url
-}
-
-func (h *HTTPClient) SetHeaders(headers map[string]string) {
-	h.Headers = headers
-}
-
-func (h *HTTPClient) SetHost(host string) {
-	h.Host = host
-}
-
-func (h *HTTPClient) GetHost() string {
-	return h.Host
+	bodyStr, bodyErr := ResponseToString(resp)
+	if bodyErr != nil {
+		return fmt.Errorf("unexpected status code %d, failed to read response body: %w", resp.StatusCode, bodyErr)
+	}
+	return fmt.Errorf("unexpected status code %d, response body: %s", resp.StatusCode, bodyStr)
 }

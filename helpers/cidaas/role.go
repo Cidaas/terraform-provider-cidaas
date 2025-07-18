@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -29,76 +30,66 @@ type Role struct {
 	ClientConfig
 }
 
-type RoleService interface {
-	UpsertRole(role RoleModel) (*RoleResponse, error)
-	GetRole(role string) (*RoleResponse, error)
-	DeleteRole(role string) error
-	GetAll() ([]RoleModel, error)
-}
-
-func NewRole(clientConfig ClientConfig) RoleService {
+func NewRole(clientConfig ClientConfig) *Role {
 	return &Role{clientConfig}
 }
 
-func (r *Role) UpsertRole(role RoleModel) (*RoleResponse, error) {
-	var response RoleResponse
-	url := fmt.Sprintf("%s/%s", r.BaseURL, "roles-srv/role")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
+const rolesEndpoint = "roles-srv/role"
 
-	res, err := httpClient.MakeRequest(role)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (r *Role) UpsertRole(ctx context.Context, role RoleModel) (*RoleResponse, error) {
+	res, err := r.makeRequest(ctx, http.MethodPost, rolesEndpoint, role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert role: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response RoleResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (r *Role) GetRole(role string) (*RoleResponse, error) {
-	var response RoleResponse
-	url := fmt.Sprintf("%s/%s?role=%s", r.BaseURL, "roles-srv/role", role)
-
-	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(role)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (r *Role) GetRole(ctx context.Context, role string) (*RoleResponse, error) {
+	if role == "" {
+		return nil, fmt.Errorf("role cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s?role=%s", rolesEndpoint, role)
+	res, err := r.makeRequest(ctx, http.MethodGet, endpoint, role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get role: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response RoleResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (r *Role) DeleteRole(role string) error {
-	url := fmt.Sprintf("%s/%s?role=%s", r.BaseURL, "roles-srv/role", role)
-
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return err
+func (r *Role) DeleteRole(ctx context.Context, role string) error {
+	if role == "" {
+		return fmt.Errorf("role cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s?role=%s", rolesEndpoint, role)
+	res, err := r.makeRequest(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete role: %w", err)
 	}
 	defer res.Body.Close()
 	return nil
 }
 
-func (r *Role) GetAll() ([]RoleModel, error) {
-	var response AllRoleResponse
-	url := fmt.Sprintf("%s/%s", r.BaseURL, "groups-srv/graph/roles")
-
-	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
-	res, err := httpClient.MakeRequest(struct{}{})
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (r *Role) GetAll(ctx context.Context) ([]RoleModel, error) {
+	endpoint := "groups-srv/graph/roles"
+	res, err := r.makeRequest(ctx, http.MethodPost, endpoint, struct{}{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all roles: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response AllRoleResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}

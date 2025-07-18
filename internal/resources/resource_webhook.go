@@ -228,7 +228,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.Webhook.Upsert(*wbModel)
+	res, err := r.cidaasClient.Webhook.Upsert(ctx, *wbModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create webhook", util.FormatErrorMessage(err))
 		return
@@ -242,7 +242,7 @@ func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest
 func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state WebhookConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.Webhook.Get(state.ID.ValueString())
+	res, err := r.cidaasClient.Webhook.Get(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read webhook", util.FormatErrorMessage(err))
 		return
@@ -314,7 +314,7 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	_, err := r.cidaasClient.Webhook.Upsert(*wbModel)
+	_, err := r.cidaasClient.Webhook.Upsert(ctx, *wbModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update webhook", util.FormatErrorMessage(err))
 		return
@@ -328,7 +328,7 @@ func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.Webhook.Delete(state.ID.ValueString())
+	err := r.cidaasClient.Webhook.Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete webhook", util.FormatErrorMessage(err))
 		return
@@ -354,7 +354,7 @@ func (v configVerifier) MarkdownDescription(ctx context.Context) string {
 func (v configVerifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.ConfigValue.IsUnknown() ||
 		req.ConfigValue.IsNull() ||
-		!util.StringInSlice(req.ConfigValue.ValueString(), cidaas.AllowedAuthType) {
+		!util.Contains(cidaas.AllowedAuthType, req.ConfigValue.ValueString()) {
 		return
 	}
 

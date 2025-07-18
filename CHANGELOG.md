@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.5.0
+- Added context support for proper HTTP request cancellation and timeout handling
+- Enhanced resource `cidaas_app` import to include all schema fields
+- Added support for new fields in `cidaas_custom_provider` resource: `groups`, `pkce`, `auth_type`, `apikey_details`, `totp_details`, `cidaas_auth_details`
+
 ### 3.4.9
 
 ### Bug Fixes

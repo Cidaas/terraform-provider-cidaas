@@ -1,21 +1,20 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 	"testing"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const resourceTemplateGroup = "cidaas_template_group.example"
-
-var templateGroupID = acctest.RandString(10)
+// var templateGroupID = acctest.RandString(10)
 
 // create, read and update test
 // func TestTemplateGroup_Basic(t *testing.T) {
@@ -32,7 +31,7 @@ var templateGroupID = acctest.RandString(10)
 // 					resource "cidaas_template_group" "example" {
 // 						group_id                       = "`+templateGroupID+`"
 // 					}
-// 				`, acctest.BaseURL),
+// 				`, acctest.GetBaseURL()),
 // 				Check: resource.ComposeAggregateTestCheckFunc(
 // 					resource.TestCheckResourceAttr(resourceTemplateGroup, "group_id", templateGroupID),
 
@@ -70,7 +69,7 @@ var templateGroupID = acctest.RandString(10)
 // 							]
 // 						}
 // 					}
-// 				`, acctest.BaseURL),
+// 				`, acctest.GetBaseURL()),
 // 				Check: resource.ComposeAggregateTestCheckFunc(
 // 					resource.TestCheckResourceAttr(resourceTemplateGroup, "email_sender_config.from_email", "noreply@cidaas.eu"),
 // 				),
@@ -79,42 +78,49 @@ var templateGroupID = acctest.RandString(10)
 // 	})
 // }
 
-func CheckTemplateGroupDestroyed(s *terraform.State) error {
-	rs, ok := s.RootModule().Resources[resourceTemplateGroup]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceTemplateGroup)
-	}
+func checkTemplateGroupDestroyed(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceName)
+		}
 
-	tg := cidaas.TemplateGroup{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
+		tg := cidaas.TemplateGroup{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     acctest.GetBaseURL(),
+				AccessToken: acctest.TestToken,
+			},
+		}
+		res, _ := tg.Get(context.Background(), rs.Primary.Attributes["group_id"])
+		if res != nil && res.Status != http.StatusNoContent {
+			// when resource exists in remote
+			return fmt.Errorf("resource still exists %+v", res)
+		}
+		return nil
 	}
-	res, _ := tg.Get(rs.Primary.Attributes["group_id"])
-	if res != nil && res.Status != http.StatusNoContent {
-		// when resource exists in remote
-		return fmt.Errorf("resource stil exists %+v", res)
-	}
-	return nil
 }
 
 // group_id length should not be greater than 15
 func TestTemplateGroup_GourpIDLenghCheck(t *testing.T) {
+	t.Parallel()
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_TEMPLATE_GROUP, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             CheckTemplateGroupDestroyed,
+		CheckDestroy:             checkTemplateGroupDestroyed(testResourceName),
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
 					provider "cidaas" {
 						base_url = "%s"
 					}
-					resource "cidaas_template_group" "example" {
+					resource "cidaas_template_group" "%s" {
 						group_id  = "`+acctest.RandString(16)+`"
 					}		
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), testResourceID),
 				ExpectError: regexp.MustCompile("group_id string length must be at most 15"),
 			},
 		},

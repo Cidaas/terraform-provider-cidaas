@@ -292,7 +292,7 @@ func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
 		return
 	}
-	res, err := r.cidaasClient.SocialProvider.Upsert(model)
+	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -309,7 +309,7 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.SocialProvider.Get(state.ProviderName.ValueString(), state.ID.ValueString())
+	res, err := r.cidaasClient.SocialProvider.Get(ctx, state.ProviderName.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -353,7 +353,7 @@ func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 	model.ID = state.ID.ValueString()
-	res, err := r.cidaasClient.SocialProvider.Upsert(model)
+	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -372,7 +372,7 @@ func (r *SocialProvider) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.SocialProvider.Delete(state.ProviderName.ValueString(), state.ID.ValueString())
+	err := r.cidaasClient.SocialProvider.Delete(ctx, state.ProviderName.ValueString(), state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -391,7 +391,7 @@ func (r *SocialProvider) ImportState(ctx context.Context, req resource.ImportSta
 	}
 	providerName := parts[0]
 	providerID := parts[1]
-	if !util.StringInSlice(providerName, allowedProviders) {
+	if !util.Contains(allowedProviders, providerName) {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
 			fmt.Sprintf("Invalid provider_name provided in import identifier. Valid provider_names %+v, got: %s", allowedProviders, providerName),

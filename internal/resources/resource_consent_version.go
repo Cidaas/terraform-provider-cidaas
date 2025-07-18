@@ -165,8 +165,8 @@ var consentversionSchema = schema.Schema{
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								func() []string {
-									validLocals := make([]string, len(util.Locals)) //nolint:gofumpt
-									for i, locale := range util.Locals {
+									validLocals := make([]string, len(util.Locales)) //nolint:gofumpt
+									for i, locale := range util.Locales {
 										validLocals[i] = strings.ToLower(locale.LocaleString)
 									}
 									return validLocals
@@ -228,7 +228,7 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 		restLocals = plan.consentLocale[1:]
 	}
 
-	res, err := r.cidaasClient.ConsentVersion.Upsert(consent)
+	res, err := r.cidaasClient.ConsentVersion.Upsert(ctx, consent)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create consent version", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -244,7 +244,7 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 		if plan.ConsentType.ValueString() == URL {
 			consentLocal.URL = pcl.URL.ValueString()
 		}
-		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(consentLocal)
+		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(ctx, consentLocal)
 		if err != nil {
 			resp.Diagnostics.AddError("failed to create consent locale", fmt.Sprintf("Error: %s", err.Error()))
 			return
@@ -257,7 +257,7 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 	var state ConsentVersionConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(state.extract(ctx)...)
-	res, err := r.cidaasClient.ConsentVersion.Get(state.ConsentID.ValueString())
+	res, err := r.cidaasClient.ConsentVersion.Get(ctx, state.ConsentID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to read consent version", fmt.Sprintf("Error: %s ", err.Error()))
 		return
@@ -288,7 +288,7 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	for _, cl := range state.consentLocale {
-		res, err := r.cidaasClient.ConsentVersion.GetLocal(state.ID.ValueString(), cl.Locale.ValueString())
+		res, err := r.cidaasClient.ConsentVersion.GetLocal(ctx, state.ID.ValueString(), cl.Locale.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("Failed to read consent version locale", fmt.Sprintf("Error: %s ", err.Error()))
 			return
@@ -348,7 +348,7 @@ func (r *ConsentVersionResource) Update(ctx context.Context, req resource.Update
 		if plan.ConsentType.ValueString() == URL {
 			consentLocal.URL = pcl.URL.ValueString()
 		}
-		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(consentLocal)
+		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(ctx, consentLocal)
 		if err != nil {
 			resp.Diagnostics.AddError("Failed to update consent locale", fmt.Sprintf("Error: %s", err.Error()))
 			return

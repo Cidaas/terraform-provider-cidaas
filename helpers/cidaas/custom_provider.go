@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -35,6 +36,11 @@ type CustomProviderModel struct {
 	Domains               []string               `json:"domains,omitempty"`
 	AmrConfig             []AmrConfig            `json:"amrConfig,omitempty"`
 	UserInfoSource        string                 `json:"userInfoSource,omitempty"`
+	Pkce                  bool                   `json:"pkce"`
+	AuthType              string                 `json:"auth_type,omitempty"`
+	APIKeyDetails         APIKeyDetails          `json:"apikeyDetails,omitempty"`
+	TotpDetails           TotpDetails            `json:"totpDetails,omitempty"`
+	CidaasAuthDetails     AuthDetails            `json:"cidaasAuthDetails,omitempty"`
 }
 
 type UserInfoField struct {
@@ -82,24 +88,19 @@ type AllCustomProviderResponse struct {
 type CustomProvider struct {
 	ClientConfig
 }
-type CustomProvideService interface {
-	CreateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error)
-	UpdateCustomProvider(cp *CustomProviderModel) error
-	GetCustomProvider(providerName string) (*CustomProviderResponse, error)
-	DeleteCustomProvider(providerName string) error
-	GetAll() ([]CustomProviderModel, error)
-}
 
-func NewCustomProvider(clientConfig ClientConfig) CustomProvideService {
+func NewCustomProvider(clientConfig ClientConfig) *CustomProvider {
 	return &CustomProvider{clientConfig}
 }
 
-func (c *CustomProvider) CreateCustomProvider(cp *CustomProviderModel) (*CustomProviderResponse, error) {
+func (c *CustomProvider) CreateCustomProvider(ctx context.Context, cp *CustomProviderModel) (*CustomProviderResponse, error) {
 	var response CustomProviderResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(cp)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, cp)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -111,11 +112,13 @@ func (c *CustomProvider) CreateCustomProvider(cp *CustomProviderModel) (*CustomP
 	return &response, nil
 }
 
-func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) error {
+func (c *CustomProvider) UpdateCustomProvider(ctx context.Context, cp *CustomProviderModel) error {
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(cp)
+	client, err := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, cp)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -123,12 +126,14 @@ func (c *CustomProvider) UpdateCustomProvider(cp *CustomProviderModel) error {
 	return nil
 }
 
-func (c *CustomProvider) GetCustomProvider(providerName string) (*CustomProviderResponse, error) {
+func (c *CustomProvider) GetCustomProvider(ctx context.Context, providerName string) (*CustomProviderResponse, error) {
 	var response CustomProviderResponse
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "providers-srv/custom", providerName)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -140,11 +145,13 @@ func (c *CustomProvider) GetCustomProvider(providerName string) (*CustomProvider
 	return &response, nil
 }
 
-func (c *CustomProvider) DeleteCustomProvider(providerName string) error {
+func (c *CustomProvider) DeleteCustomProvider(ctx context.Context, providerName string) error {
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "providers-srv/custom", strings.ToLower(providerName))
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -152,12 +159,14 @@ func (c *CustomProvider) DeleteCustomProvider(providerName string) error {
 	return nil
 }
 
-func (c *CustomProvider) GetAll() ([]CustomProviderModel, error) {
+func (c *CustomProvider) GetAll(ctx context.Context) ([]CustomProviderModel, error) {
 	var response AllCustomProviderResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "providers-srv/custom")
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

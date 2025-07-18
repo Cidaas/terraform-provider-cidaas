@@ -133,7 +133,7 @@ func (d *RegistrationFieldsDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := registrationFieldsFilter.GetAndFilter(d.Client, data.Filters, listRegistrationFieldss)
+	result, diag := registrationFieldsFilter.GetAndFilter(ctx, d.Client, data.Filters, listRegistrationFieldss)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -146,8 +146,8 @@ func (d *RegistrationFieldsDataSource) Read(ctx context.Context, req datasource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listRegistrationFieldss(client *cidaas.Client) ([]any, error) {
-	rfs, err := client.RegField.GetAll()
+func listRegistrationFieldss(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	rfs, err := client.RegFields.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

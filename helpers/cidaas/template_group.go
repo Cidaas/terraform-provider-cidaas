@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -48,29 +49,22 @@ type IVRSenderConfig struct {
 	SenderNames []string `json:"sender_names,omitempty"`
 }
 
-var _ TemplateGroupService = &TemplateGroup{}
-
 type TemplateGroup struct {
 	ClientConfig
 }
 
-type TemplateGroupService interface {
-	Create(tg TemplateGroupModel) (*TemplateGroupResponse, error)
-	Update(tg TemplateGroupModel) (*TemplateGroupResponse, error)
-	Get(groupID string) (*TemplateGroupResponse, error)
-	Delete(groupID string) error
-}
-
-func NewTemplateGroup(clientConfig ClientConfig) TemplateGroupService {
+func NewTemplateGroup(clientConfig ClientConfig) *TemplateGroup {
 	return &TemplateGroup{clientConfig}
 }
 
-func (t *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
+func (t *TemplateGroup) Create(ctx context.Context, tg TemplateGroupModel) (*TemplateGroupResponse, error) {
 	var response TemplateGroupResponse
 	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/groups")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(tg)
+	client, err := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, tg)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -82,12 +76,14 @@ func (t *TemplateGroup) Create(tg TemplateGroupModel) (*TemplateGroupResponse, e
 	return &response, nil
 }
 
-func (t *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, error) {
+func (t *TemplateGroup) Update(ctx context.Context, tg TemplateGroupModel) (*TemplateGroupResponse, error) {
 	var response TemplateGroupResponse
 	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", tg.GroupID)
-	httpClient := util.NewHTTPClient(url, http.MethodPut, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(tg)
+	client, err := util.NewHTTPClient(url, http.MethodPut, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, tg)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -99,12 +95,14 @@ func (t *TemplateGroup) Update(tg TemplateGroupModel) (*TemplateGroupResponse, e
 	return &response, nil
 }
 
-func (t *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
+func (t *TemplateGroup) Get(ctx context.Context, groupID string) (*TemplateGroupResponse, error) {
 	var response TemplateGroupResponse
 	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", groupID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if res.StatusCode == http.StatusNoContent {
 		resp := &TemplateGroupResponse{
 			Status: http.StatusNoContent,
@@ -122,11 +120,13 @@ func (t *TemplateGroup) Get(groupID string) (*TemplateGroupResponse, error) {
 	return &response, nil
 }
 
-func (t *TemplateGroup) Delete(groupID string) error {
+func (t *TemplateGroup) Delete(ctx context.Context, groupID string) error {
 	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/groups", groupID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

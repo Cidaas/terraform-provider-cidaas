@@ -1,6 +1,7 @@
 package datasources
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -23,7 +24,7 @@ const (
 )
 
 // ListFunc is a wrapper for functions that will list and return values from the API.
-type ListFunc func(client *cidaas.Client) ([]any, error)
+type ListFunc func(ctx context.Context, client *cidaas.Client) ([]any, error)
 
 type FilterModel struct {
 	Name    types.String   `tfsdk:"name" json:"name"`
@@ -77,8 +78,8 @@ func (f FilterConfig) Schema() schema.SetNestedBlock {
 }
 
 // GetAndFilter will run all filter operations given the parameters
-func (f FilterConfig) GetAndFilter(client *cidaas.Client, filters []FilterModel, listFunc ListFunc) ([]any, diag.Diagnostic) {
-	elems, err := listFunc(client)
+func (f FilterConfig) GetAndFilter(ctx context.Context, client *cidaas.Client, filters []FilterModel, listFunc ListFunc) ([]any, diag.Diagnostic) {
+	elems, err := listFunc(ctx, client)
 	if err != nil {
 		return nil, diag.NewErrorDiagnostic(
 			"Failed to list resources",

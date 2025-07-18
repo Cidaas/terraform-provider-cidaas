@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -66,29 +67,39 @@ type WebhookResponse struct {
 	Data    WebhookModel `json:"data,omitempty"`
 }
 
-var _ WebhookService = &Webhook{}
-
 type Webhook struct {
 	ClientConfig
 }
-type WebhookService interface {
-	Upsert(wb WebhookModel) (*WebhookResponse, error)
-	Get(id string) (*WebhookResponse, error)
-	Delete(id string) error
-}
 
-func NewWebhook(clientConfig ClientConfig) WebhookService {
+func NewWebhook(clientConfig ClientConfig) *Webhook {
 	return &Webhook{clientConfig}
 }
 
-func (w *Webhook) Upsert(wb WebhookModel) (*WebhookResponse, error) {
-	var response WebhookResponse
-	url := fmt.Sprintf("%s/%s", w.BaseURL, "webhook-srv/webhook")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, w.AccessToken)
+const webhookEndpoint = "webhook-srv/webhook"
 
-	res, err := httpClient.MakeRequest(wb)
-	if err = util.HandleResponseError(res, err); err != nil {
+func (w *Webhook) Upsert(ctx context.Context, wb WebhookModel) (*WebhookResponse, error) {
+	res, err := w.makeRequest(ctx, http.MethodPost, webhookEndpoint, wb)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert webhook: %w", err)
+	}
+	defer res.Body.Close()
+
+	var response WebhookResponse
+	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
+	}
+	return &response, nil
+}
+
+func (w *Webhook) Get(ctx context.Context, id string) (*WebhookResponse, error) {
+	if id == "" {
+		return nil, fmt.Errorf("webhook ID cannot be empty")
+	}
+	var response WebhookResponse
+	endpoint := fmt.Sprintf("%s?id=%s", webhookEndpoint, id)
+	res, err := w.makeRequest(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get webhook: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -98,30 +109,14 @@ func (w *Webhook) Upsert(wb WebhookModel) (*WebhookResponse, error) {
 	return &response, nil
 }
 
-func (w *Webhook) Get(id string) (*WebhookResponse, error) {
-	var response WebhookResponse
-	url := fmt.Sprintf("%s/%s?id=%s", w.BaseURL, "webhook-srv/webhook", id)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, w.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (w *Webhook) Delete(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("webhook ID cannot be empty")
 	}
-	defer res.Body.Close()
-
-	if err = util.ProcessResponse(res, &response); err != nil {
-		return nil, err
-	}
-	return &response, nil
-}
-
-func (w *Webhook) Delete(id string) error {
-	url := fmt.Sprintf("%s/%s/%s", w.BaseURL, "webhook-srv/webhook", id)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, w.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return err
+	endpoint := fmt.Sprintf("%s/%s", webhookEndpoint, id)
+	res, err := w.makeRequest(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete webhook: %w", err)
 	}
 	defer res.Body.Close()
 	return nil

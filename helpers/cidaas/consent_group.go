@@ -2,6 +2,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -25,22 +26,19 @@ type ConsentGroupResponse struct {
 type ConsentGroup struct {
 	ClientConfig
 }
-type ConsentGroupService interface {
-	Upsert(cg ConsentGroupConfig) (*ConsentGroupResponse, error)
-	Get(consentGroupID string) (*ConsentGroupResponse, error)
-	Delete(consentGroupID string) error
-}
 
-func NewConsentGroup(clientConfig ClientConfig) ConsentGroupService {
+func NewConsentGroup(clientConfig ClientConfig) *ConsentGroup {
 	return &ConsentGroup{clientConfig}
 }
 
-func (c *ConsentGroup) Upsert(cg ConsentGroupConfig) (*ConsentGroupResponse, error) {
+func (c *ConsentGroup) Upsert(ctx context.Context, cg ConsentGroupConfig) (*ConsentGroupResponse, error) {
 	var response ConsentGroupResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/groups")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(cg)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, cg)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -52,12 +50,14 @@ func (c *ConsentGroup) Upsert(cg ConsentGroupConfig) (*ConsentGroupResponse, err
 	return &response, nil
 }
 
-func (c *ConsentGroup) Get(consentGroupID string) (*ConsentGroupResponse, error) {
+func (c *ConsentGroup) Get(ctx context.Context, consentGroupID string) (*ConsentGroupResponse, error) {
 	var response ConsentGroupResponse
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/groups", consentGroupID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -69,11 +69,13 @@ func (c *ConsentGroup) Get(consentGroupID string) (*ConsentGroupResponse, error)
 	return &response, nil
 }
 
-func (c *ConsentGroup) Delete(consentGroupID string) error {
+func (c *ConsentGroup) Delete(ctx context.Context, consentGroupID string) error {
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/groups", consentGroupID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

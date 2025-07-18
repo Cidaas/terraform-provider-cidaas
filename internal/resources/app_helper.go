@@ -66,7 +66,7 @@ func SetValueOrNullWithPlanValue(values []string, planValue *basetypes.SetValue,
 		"redirect_uris", "allowed_scopes", "allowed_logout_urls",
 		"login_providers", "allowed_web_origins", "allowed_origins", "allowed_mfa", "allowed_roles", "default_roles", "default_scopes", "pending_scopes",
 	}
-	if planValue.IsUnknown() && util.StringInSlice(attrName, computedSetAttributes) {
+	if planValue.IsUnknown() && util.Contains(computedSetAttributes, attrName) {
 		*planValue = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 	return diags

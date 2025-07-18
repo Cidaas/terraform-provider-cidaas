@@ -92,7 +92,7 @@ func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequ
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	res, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
+	res, err := r.cidaasClient.ScopeGroup.Upsert(ctx, scopeGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create scope group", util.FormatErrorMessage(err))
 		return
@@ -106,7 +106,7 @@ func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequ
 func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { //nolint:dupl
 	var state ScopeGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.ScopeGroup.Get(state.GroupName.ValueString())
+	res, err := r.cidaasClient.ScopeGroup.Get(ctx, state.GroupName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read scope group", util.FormatErrorMessage(err))
 		return
@@ -131,7 +131,7 @@ func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequ
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	_, err := r.cidaasClient.ScopeGroup.Upsert(scopeGroup)
+	_, err := r.cidaasClient.ScopeGroup.Upsert(ctx, scopeGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update scope group", util.FormatErrorMessage(err))
 		return
@@ -145,7 +145,7 @@ func (r *ScopeGroupResource) Delete(ctx context.Context, req resource.DeleteRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.ScopeGroup.Delete(state.GroupName.ValueString())
+	err := r.cidaasClient.ScopeGroup.Delete(ctx, state.GroupName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete scope group", util.FormatErrorMessage(err))
 		return

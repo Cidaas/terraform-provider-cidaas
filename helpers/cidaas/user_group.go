@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -42,87 +43,80 @@ type SubGroupResponse struct {
 type UserGroup struct {
 	ClientConfig
 }
-type UserGroupService interface {
-	Create(ug UserGroupData) (*UserGroupResponse, error)
-	Get(groupID string) (*UserGroupResponse, error)
-	Update(ug UserGroupData) (*UserGroupResponse, error)
-	Delete(groupID string) error
-	GetSubGroups(parentID string) ([]UserGroupData, error)
-}
 
-func NewUserGroup(clientConfig ClientConfig) UserGroupService {
+func NewUserGroup(clientConfig ClientConfig) *UserGroup {
 	return &UserGroup{clientConfig}
 }
 
-func (c *UserGroup) Create(ug UserGroupData) (*UserGroupResponse, error) {
-	var response UserGroupResponse
-	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/usergroups")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+const userGroupsEndpoint = "groups-srv/usergroups"
 
-	res, err := httpClient.MakeRequest(ug)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *UserGroup) Create(ctx context.Context, ug UserGroupData) (*UserGroupResponse, error) {
+	res, err := c.makeRequest(ctx, http.MethodPost, userGroupsEndpoint, ug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user group: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response UserGroupResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *UserGroup) Get(groupID string) (*UserGroupResponse, error) {
-	var response UserGroupResponse
-	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/usergroups", groupID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *UserGroup) Get(ctx context.Context, groupID string) (*UserGroupResponse, error) {
+	if groupID == "" {
+		return nil, fmt.Errorf("groupID cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s/%s", userGroupsEndpoint, groupID)
+	res, err := c.makeRequest(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to ger user group: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response UserGroupResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *UserGroup) Update(ug UserGroupData) (*UserGroupResponse, error) {
-	var response UserGroupResponse
-	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/usergroups")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(ug)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *UserGroup) Update(ctx context.Context, ug UserGroupData) (*UserGroupResponse, error) {
+	res, err := c.makeRequest(ctx, http.MethodPut, userGroupsEndpoint, ug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user group: %w", err)
 	}
 	defer res.Body.Close()
+
+	var response UserGroupResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *UserGroup) Delete(groupID string) error {
-	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/usergroups", groupID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+func (c *UserGroup) Delete(ctx context.Context, groupID string) error {
+	if groupID == "" {
+		return fmt.Errorf("groupID cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s/%s", userGroupsEndpoint, groupID)
+	res, err := c.makeRequest(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete user group: %w", err)
+	}
+	defer res.Body.Close()
 
-	res, err := httpClient.MakeRequest(nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
-	defer res.Body.Close()
 	return nil
 }
 
-func (c *UserGroup) GetSubGroups(parentID string) ([]UserGroupData, error) {
-	var response SubGroupResponse
-	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/graph/usergroups")
+func (c *UserGroup) GetSubGroups(ctx context.Context, parentID string) ([]UserGroupData, error) {
+	endpoint := "groups-srv/graph/usergroups"
 	payload := map[string]string{"parentId": parentID}
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(payload)
+	res, err := c.makeRequest(ctx, http.MethodPost, endpoint, payload)
 	if res.StatusCode == http.StatusNoContent {
 		return []UserGroupData{}, nil
 	}
@@ -130,6 +124,8 @@ func (c *UserGroup) GetSubGroups(parentID string) ([]UserGroupData, error) {
 		return nil, fmt.Errorf("failed to fetch sub groups: %w", err)
 	}
 	defer res.Body.Close()
+
+	var response SubGroupResponse
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to decode subgroup response: %w", err)
 	}

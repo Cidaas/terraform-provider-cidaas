@@ -120,7 +120,7 @@ func (d *SocialProviderDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := socialProviderFilter.GetAndFilter(d.Client, data.Filters, listSocialProviders)
+	result, diag := socialProviderFilter.GetAndFilter(ctx, d.Client, data.Filters, listSocialProviders)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -130,8 +130,8 @@ func (d *SocialProviderDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listSocialProviders(client *cidaas.Client) ([]any, error) {
-	sps, err := client.SocialProvider.GetAll()
+func listSocialProviders(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	sps, err := client.SocialProvider.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

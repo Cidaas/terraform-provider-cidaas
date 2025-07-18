@@ -1,91 +1,92 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	resourceUserGroup = "cidaas_user_groups.example"
-)
-
-var (
-	userGroupType        = acctest.RandString(10)
-	groupID              = acctest.RandString(10)
-	userGroupName        = acctest.RandString(10)
-	userGroupDescription = "sample user groups description"
-)
-
 // create, read and update test
 func TestUserGroup_Basic(t *testing.T) {
+	t.Parallel()
+
+	userGroupType := acctest.RandString(10)
+	groupID := acctest.RandString(10)
+	userGroupName := acctest.RandString(10)
+	userGroupDescription := "sample user groups description"
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_USER_GROUP, testResourceID)
+	resourceGroupTypeName := fmt.Sprintf("%s.%s", resources.RESOURCE_GROUP_TYPE, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testCheckUserGroupDestroyed,
+		CheckDestroy:             testCheckUserGroupDestroyed(testResourceID),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccUserGroupResourceConfig(userGroupType, groupID, userGroupDescription),
+				Config: testAccUserGroupResourceConfig(userGroupType, groupID, userGroupDescription, testResourceID, userGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrPair(resourceUserGroup, "group_type", resourceGroupType, "group_type"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "group_id", groupID),
-					resource.TestCheckResourceAttr(resourceUserGroup, "group_name", userGroupName),
-					resource.TestCheckResourceAttr(resourceUserGroup, "logo_url", "https://cidaas.de/logo"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "description", userGroupDescription),
-					resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.first_name", "cidaas"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "custom_fields.family_name", "widas"),
+					resource.TestCheckResourceAttrPair(testResourceName, "group_type", resourceGroupTypeName, "group_type"),
+					resource.TestCheckResourceAttr(testResourceName, "group_id", groupID),
+					resource.TestCheckResourceAttr(testResourceName, "group_name", userGroupName),
+					resource.TestCheckResourceAttr(testResourceName, "logo_url", "https://cidaas.de/logo"),
+					resource.TestCheckResourceAttr(testResourceName, "description", userGroupDescription),
+					resource.TestCheckResourceAttr(testResourceName, "custom_fields.first_name", "cidaas"),
+					resource.TestCheckResourceAttr(testResourceName, "custom_fields.family_name", "widas"),
 					// default value check
-					resource.TestCheckResourceAttr(resourceUserGroup, "make_first_user_admin", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttr(resourceUserGroup, "member_profile_visibility", "full"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "none_member_profile_visibility", "public"),
-					resource.TestCheckResourceAttr(resourceUserGroup, "parent_id", "root"),
+					resource.TestCheckResourceAttr(testResourceName, "make_first_user_admin", strconv.FormatBool(true)),
+					resource.TestCheckResourceAttr(testResourceName, "member_profile_visibility", "full"),
+					resource.TestCheckResourceAttr(testResourceName, "none_member_profile_visibility", "public"),
+					resource.TestCheckResourceAttr(testResourceName, "parent_id", "root"),
 					// computed properties check
-					resource.TestCheckResourceAttrSet(resourceUserGroup, "id"),
-					resource.TestCheckResourceAttrSet(resourceUserGroup, "created_at"),
-					resource.TestCheckResourceAttrSet(resourceUserGroup, "updated_at"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
+					resource.TestCheckResourceAttrSet(testResourceName, "created_at"),
+					resource.TestCheckResourceAttrSet(testResourceName, "updated_at"),
 				),
 			},
 			{
-				ResourceName:            resourceUserGroup,
+				ResourceName:            testResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateId:           groupID,
 				ImportStateVerifyIgnore: []string{"created_at", "updated_at"},
 			},
 			{
-				Config: testAccUserGroupResourceConfig(userGroupType, groupID, "updated user group description"),
+				Config: testAccUserGroupResourceConfig(userGroupType, groupID, "updated user group description", testResourceID, userGroupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceUserGroup, "group_type", userGroupType),
-					resource.TestCheckResourceAttr(resourceUserGroup, "description", "updated user group description"),
+					resource.TestCheckResourceAttr(testResourceName, "group_type", userGroupType),
+					resource.TestCheckResourceAttr(testResourceName, "description", "updated user group description"),
 				),
 			},
 		},
 	})
 }
 
-func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription string) string {
+func testAccUserGroupResourceConfig(groupType, groupID, groupDescription, resourceID, groupName string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "%s"
 		}
-		resource "cidaas_group_type" "example" {
+		resource "cidaas_group_type" "%s" {
 			group_type  = "`+groupType+`"
 			role_mode   = "no_roles"
 			description = "group type description"
 		}
-		resource "cidaas_user_groups" "example" {
-			group_type                     = cidaas_group_type.example.group_type
+		resource "cidaas_user_groups" "%s" {
+			group_type                     = cidaas_group_type.%s.group_type
 			group_id                       = "`+groupID+`"
-			group_name                     = "`+userGroupName+`"
+			group_name                     = "`+groupName+`"
 			logo_url                       = "https://cidaas.de/logo"
-			description                    = "`+userGroupDescription+`"
+			description                    = "`+groupDescription+`"
 			custom_fields = {
 				first_name  = "cidaas"
 				family_name = "widas"
@@ -94,71 +95,100 @@ func testAccUserGroupResourceConfig(groupType, groupID, userGroupDescription str
 			member_profile_visibility      = "full"
 			none_member_profile_visibility = "public"
 		}		
-	`, acctest.BaseURL)
+	`, acctest.GetBaseURL(), resourceID, resourceID, resourceID)
 }
 
-func testCheckUserGroupDestroyed(s *terraform.State) error {
-	rs, ok := s.RootModule().Resources[resourceUserGroup]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceUserGroup)
-	}
+func testCheckUserGroupDestroyed(resourceID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resourceGroupName := fmt.Sprintf("%s.%s", resources.RESOURCE_USER_GROUP, resourceID)
+		rs, ok := s.RootModule().Resources[resourceGroupName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceGroupName)
+		}
 
-	ug := cidaas.UserGroup{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
-	}
-	res, _ := ug.Get(rs.Primary.Attributes["group_id"])
-	if res != nil {
-		// when resource exists in remote
-		return fmt.Errorf("resource stil exists %+v", res)
-	}
+		ug := cidaas.UserGroup{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     acctest.GetBaseURL(),
+				AccessToken: acctest.TestToken,
+			},
+		}
+		res, err := ug.Get(context.Background(), rs.Primary.Attributes["group_id"])
+		if err != nil {
+			// If error is "not found", that's what we want
+			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				return nil
+			}
+			return fmt.Errorf("error checking if user group exists: %w", err)
+		}
 
-	rs, ok = s.RootModule().Resources[resourceGroupType]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceGroupType)
-	}
+		if res != nil {
+			// when resource exists in remote
+			return fmt.Errorf("resource still exists %+v", res)
+		}
 
-	groupType := cidaas.GroupType{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
-	}
-	resp, _ := groupType.Get(rs.Primary.Attributes["group_type"])
+		resourceGroupTypeName := fmt.Sprintf("%s.%s", resources.RESOURCE_GROUP_TYPE, resourceID)
 
-	if resp != nil {
-		// when resource exists in remote
-		return fmt.Errorf("resource %s stil exists", resp.Data.GroupType)
+		rs, ok = s.RootModule().Resources[resourceGroupTypeName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceGroupTypeName)
+		}
+
+		groupType := cidaas.GroupType{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     acctest.GetBaseURL(),
+				AccessToken: acctest.TestToken,
+			},
+		}
+		resp, err := groupType.Get(context.Background(), rs.Primary.Attributes["group_type"])
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				return nil
+			}
+			return fmt.Errorf("error checking if group type exists: %w", err)
+		}
+
+		if resp != nil {
+			// when resource exists in remote
+			return fmt.Errorf("resource %s still exists", resp.Data.GroupType)
+		}
+		return nil
 	}
-	return nil
 }
 
 // missing required fields group_type, group_name and group_id
 func TestUserGroup_MissingRequired(t *testing.T) {
+	t.Parallel()
 	requiredParams := []string{"group_name", "group_id"}
+
 	for _, v := range requiredParams {
-		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: fmt.Sprintf(`
-					provider "cidaas" {
-						base_url = "%s"
-					}
-					resource "cidaas_user_groups" "example" {}
-				`, acctest.BaseURL),
-					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, v)),
+		v := v // Capture loop variable
+		t.Run(fmt.Sprintf("missing_%s", v), func(t *testing.T) {
+			t.Parallel()
+			testResourceID := acctest.RandString(10)
+
+			resource.Test(t, resource.TestCase{
+				PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+				ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: fmt.Sprintf(`
+                        provider "cidaas" {
+                            base_url = "%s"
+                        }
+                        resource "cidaas_user_groups" "%s" {}
+                    `, acctest.GetBaseURL(), testResourceID),
+						ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, v)),
+					},
 				},
-			},
+			})
 		})
 	}
 }
 
 // check if group_type, group_name and group_id are empty string
 func TestUserGroup_CheckEmptyString(t *testing.T) {
+	t.Parallel()
+	testResourceID := acctest.RandString(10)
 	requiredParams := []string{"group_type", "group_name", "group_id"}
 	for _, v := range requiredParams {
 		resource.Test(t, resource.TestCase{
@@ -170,12 +200,12 @@ func TestUserGroup_CheckEmptyString(t *testing.T) {
 					provider "cidaas" {
 						base_url = "%s"
 					}
-					resource "cidaas_user_groups" "example" {
+					resource "cidaas_user_groups" "%s" {
 						group_type  =""
 						group_id    = ""
 						group_name  = ""
 					}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), testResourceID),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`Attribute %s string length must be at least 1`, v)),
 				},
 			},
@@ -185,19 +215,30 @@ func TestUserGroup_CheckEmptyString(t *testing.T) {
 
 // group_id can not be modified
 func TestUserGroup_GroupIDIsImmutable(t *testing.T) {
+	t.Parallel()
+
+	groupType := acctest.RandString(10)
+	groupID := acctest.RandString(10)
+	updatedGroupID := acctest.RandString(10)
+	groupName := acctest.RandString(10)
+	groupDescription := "sample user groups description"
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_USER_GROUP, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccUserGroupResourceConfig(userGroupType, groupID, userGroupDescription),
+				Config: testAccUserGroupResourceConfig(groupType, groupID, groupDescription, testResourceID, groupName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceUserGroup, "group_id", groupID),
-					resource.TestCheckResourceAttrSet(resourceUserGroup, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "group_id", groupID),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				Config:      testAccUserGroupResourceConfig(userGroupType, acctest.RandString(10), ""),
+				Config:      testAccUserGroupResourceConfig(groupType, updatedGroupID, groupDescription, testResourceID, groupName),
 				ExpectError: regexp.MustCompile("Attribute 'group_id' can't be modified"),
 			},
 		},

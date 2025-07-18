@@ -5,16 +5,17 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const (
-	resourceApp = "cidaas_app.example"
-)
-
 func TestApp_Basic(t *testing.T) {
+	t.Parallel()
+
 	clientName := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_APP, clientName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -22,15 +23,15 @@ func TestApp_Basic(t *testing.T) {
 			{
 				Config: testAppConfig(clientName, "https://cidaas.de"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceApp, "client_name", clientName),
-					resource.TestCheckResourceAttr(resourceApp, "company_website", "https://cidaas.de"),
-					resource.TestCheckResourceAttrSet(resourceApp, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "client_name", clientName),
+					resource.TestCheckResourceAttr(testResourceName, "company_website", "https://cidaas.de"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
 				Config: testAppConfig(clientName, "https://cidaas.com"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceApp, "company_website", "https://cidaas.com"),
+					resource.TestCheckResourceAttr(testResourceName, "company_website", "https://cidaas.com"),
 				),
 			},
 		},
@@ -43,7 +44,7 @@ func testAppConfig(clientName, companyWebsite string) string {
       base_url = "%s"
     }
     # The config below has the list of common config and main config
-    resource "cidaas_app" "example" {
+    resource "cidaas_app" "%s" {
       client_name         = "%s"
       client_type         = "SINGLE_PAGE"
       company_address     = "01"
@@ -57,6 +58,7 @@ func testAppConfig(clientName, companyWebsite string) string {
       grant_types         = ["authorization_code", "implicit", "refresh_token"]
     }`,
 		os.Getenv("BASE_URL"),
+		clientName,
 		clientName,
 		companyWebsite,
 	)

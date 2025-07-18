@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -38,26 +39,22 @@ type ScopeResponse struct {
 	Error   string     `json:"error,omitempty"`
 }
 
-type ScopeImpl struct {
+type Scope struct {
 	ClientConfig
 }
-type ScopeService interface {
-	Upsert(sc ScopeModel) (*ScopeResponse, error)
-	Get(scopeKey string) (*ScopeResponse, error)
-	Delete(scopeKey string) error
-	GetAll() ([]ScopeModel, error)
+
+func NewScope(clientConfig ClientConfig) *Scope {
+	return &Scope{clientConfig}
 }
 
-func NewScope(clientConfig ClientConfig) ScopeService {
-	return &ScopeImpl{clientConfig}
-}
-
-func (c *ScopeImpl) Upsert(sc ScopeModel) (*ScopeResponse, error) {
+func (c *Scope) Upsert(ctx context.Context, sc ScopeModel) (*ScopeResponse, error) {
 	var response ScopeResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/scope")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(sc)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, sc)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -69,12 +66,14 @@ func (c *ScopeImpl) Upsert(sc ScopeModel) (*ScopeResponse, error) {
 	return &response, nil
 }
 
-func (c *ScopeImpl) Get(scopeKey string) (*ScopeResponse, error) {
+func (c *Scope) Get(ctx context.Context, scopeKey string) (*ScopeResponse, error) {
 	var response ScopeResponse
 	url := fmt.Sprintf("%s/%s?scopekey=%s", c.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -86,11 +85,13 @@ func (c *ScopeImpl) Get(scopeKey string) (*ScopeResponse, error) {
 	return &response, nil
 }
 
-func (c *ScopeImpl) Delete(scopeKey string) error {
+func (c *Scope) Delete(ctx context.Context, scopeKey string) error {
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "scopes-srv/scope", strings.ToLower(scopeKey))
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -98,12 +99,14 @@ func (c *ScopeImpl) Delete(scopeKey string) error {
 	return nil
 }
 
-func (c *ScopeImpl) GetAll() ([]ScopeModel, error) {
+func (c *Scope) GetAll(ctx context.Context) ([]ScopeModel, error) {
 	var response AllScopeResp
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/scope/list")
-
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

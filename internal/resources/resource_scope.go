@@ -125,8 +125,8 @@ var scopeSchema = schema.Schema{
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								func() []string {
-									validLocals := make([]string, len(util.Locals))
-									for i, locale := range util.Locals {
+									validLocals := make([]string, len(util.Locales))
+									for i, locale := range util.Locales {
 										validLocals[i] = locale.LocaleString
 									}
 									return validLocals
@@ -159,7 +159,7 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	response, err := r.cidaasClient.Scope.Upsert(*scopePayload)
+	response, err := r.cidaasClient.Scopes.Upsert(ctx, *scopePayload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create scope", util.FormatErrorMessage(err))
 		return
@@ -172,7 +172,7 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ScopeConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.Scope.Get(state.ScopeKey.ValueString())
+	res, err := r.cidaasClient.Scopes.Get(ctx, state.ScopeKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read scope", util.FormatErrorMessage(err))
 		return
@@ -228,7 +228,7 @@ func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	_, err := r.cidaasClient.Scope.Upsert(*scopePayload)
+	_, err := r.cidaasClient.Scopes.Upsert(ctx, *scopePayload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update scope", util.FormatErrorMessage(err))
 		return
@@ -242,7 +242,7 @@ func (r *ScopeResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.Scope.Delete(state.ScopeKey.ValueString())
+	err := r.cidaasClient.Scopes.Delete(ctx, state.ScopeKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete scope", util.FormatErrorMessage(err))
 		return

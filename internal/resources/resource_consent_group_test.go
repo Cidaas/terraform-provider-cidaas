@@ -1,45 +1,46 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	resourceConsentGroup = "cidaas_consent_group.example"
-	description          = "Test consent Description"
-)
-
-var groupName = acctest.RandString(10)
-
-// create, read and update test
 func TestAccConsentGroupResource_Basic(t *testing.T) {
+	t.Parallel()
+
+	groupName := acctest.RandString(10)
+	description := "Test consent Description"
 	updatedDescription := "Updated consent Description"
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_CONSENT_GROUP, testResourceID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testCheckConsentGroupDestroyed,
+		CheckDestroy:             testCheckConsentGroupDestroyed(testResourceName),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConsentGroupResourceConfig(groupName, description),
+				Config: testAccConsentGroupResourceConfig(groupName, description, testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceConsentGroup, "group_name", groupName),
-					resource.TestCheckResourceAttr(resourceConsentGroup, "description", description),
-					resource.TestCheckResourceAttrSet(resourceConsentGroup, "id"),
-					resource.TestCheckResourceAttrSet(resourceConsentGroup, "created_at"),
-					resource.TestCheckResourceAttrSet(resourceConsentGroup, "updated_at"),
+					resource.TestCheckResourceAttr(testResourceName, "group_name", groupName),
+					resource.TestCheckResourceAttr(testResourceName, "description", description),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
+					resource.TestCheckResourceAttrSet(testResourceName, "created_at"),
+					resource.TestCheckResourceAttrSet(testResourceName, "updated_at"),
 				),
 			},
 			{
-				ResourceName:                         resourceConsentGroup,
+				ResourceName:                         testResourceName,
 				ImportStateVerifyIdentifierAttribute: "id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
@@ -47,64 +48,73 @@ func TestAccConsentGroupResource_Basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"updated_at", "created_at"},
 			},
 			{
-				Config: testAccConsentGroupResourceConfig(groupName, updatedDescription),
+				Config: testAccConsentGroupResourceConfig(groupName, updatedDescription, testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceConsentGroup, "description", updatedDescription),
-					resource.TestCheckResourceAttrSet(resourceConsentGroup, "updated_at"),
+					resource.TestCheckResourceAttr(testResourceName, "description", updatedDescription),
+					resource.TestCheckResourceAttrSet(testResourceName, "updated_at"),
 				),
 			},
 		},
 	})
 }
 
-func testAccConsentGroupResourceConfig(groupName, description string) string {
+func testAccConsentGroupResourceConfig(groupName, description, resourceID string) string {
 	return fmt.Sprintf(`
 	provider "cidaas" {
 		base_url = "%s"
 	}
-	resource "cidaas_consent_group" "example" {
+	resource "cidaas_consent_group" "%s" {
 		group_name  = "%s"
 		description = "%s"
 	}
-	`, acctest.BaseURL, groupName, description)
+	`, acctest.GetBaseURL(), resourceID, groupName, description)
 }
 
-func testCheckConsentGroupDestroyed(s *terraform.State) error {
-	rs, ok := s.RootModule().Resources[resourceConsentGroup]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceConsentGroup)
-	}
+func testCheckConsentGroupDestroyed(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceName)
+		}
 
-	consentGroup := cidaas.ConsentGroup{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
+		consentGroup := cidaas.ConsentGroup{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     os.Getenv("BASE_URL"),
+				AccessToken: acctest.TestToken,
+			},
+		}
+		res, _ := consentGroup.Get(context.Background(), rs.Primary.ID)
+		if res != nil {
+			// when resource exists in remote
+			return fmt.Errorf("resource still exists %+v", res)
+		}
+		return nil
 	}
-	res, _ := consentGroup.Get(rs.Primary.ID)
-	if res != nil {
-		// when resource exists in remote
-		return fmt.Errorf("resource stil exists %+v", res)
-	}
-	return nil
 }
 
 // failed validation on updating immutable proprty group_name
 func TestAccConsentGroupResource_GoupNameUpdateFail(t *testing.T) {
+	t.Parallel()
+
+	groupName := acctest.RandString(10)
+	description := "Test consent Description"
 	updateGroupName := acctest.RandString(10)
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_CONSENT_GROUP, testResourceID)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccConsentGroupResourceConfig(groupName, description),
+				Config: testAccConsentGroupResourceConfig(groupName, description, testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceConsentGroup, "group_name", groupName),
+					resource.TestCheckResourceAttr(testResourceName, "group_name", groupName),
 				),
 			},
 			{
-				Config:      testAccConsentGroupResourceConfig(updateGroupName, description),
+				Config:      testAccConsentGroupResourceConfig(updateGroupName, description, testResourceID),
 				ExpectError: regexp.MustCompile(`Attribute 'group_name' can't be modified.`),
 			},
 		},
@@ -113,6 +123,9 @@ func TestAccConsentGroupResource_GoupNameUpdateFail(t *testing.T) {
 
 // Empty group_name validation test
 func TestAccConsentGroupResource_EmptyGroupName(t *testing.T) {
+	t.Parallel()
+
+	description := "Test consent Description"
 	emptyGroupName := ""
 
 	resource.Test(t, resource.TestCase{
@@ -120,7 +133,7 @@ func TestAccConsentGroupResource_EmptyGroupName(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccConsentGroupResourceConfig(emptyGroupName, description),
+				Config:      testAccConsentGroupResourceConfig(emptyGroupName, description, acctest.RandString(10)),
 				ExpectError: regexp.MustCompile(`Attribute group_name string length must be at least 1, got: 0`),
 			},
 		},
@@ -129,6 +142,8 @@ func TestAccConsentGroupResource_EmptyGroupName(t *testing.T) {
 
 // missing required parameter
 func TestAccConsentGroupResource_MissingRequired(t *testing.T) {
+	t.Parallel()
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -138,10 +153,10 @@ func TestAccConsentGroupResource_MissingRequired(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_consent_group" "example" {
+				resource "cidaas_consent_group" "%s" {
 					description = "test description"
 				}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), acctest.RandString(10)),
 				ExpectError: regexp.MustCompile(`The argument "group_name" is required, but no definition was found.`),
 			},
 		},

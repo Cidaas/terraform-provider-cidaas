@@ -279,8 +279,8 @@ var regFieldSchema = schema.Schema{
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								func() []string {
-									validLocals := make([]string, len(util.Locals))
-									for i, locale := range util.Locals {
+									validLocals := make([]string, len(util.Locales))
+									for i, locale := range util.Locales {
 										validLocals[i] = locale.LocaleString
 									}
 									return validLocals
@@ -447,7 +447,7 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.RegField.Upsert(*rfModel)
+	res, err := r.cidaasClient.RegFields.Upsert(ctx, *rfModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create registration field", util.FormatErrorMessage(err))
 		return
@@ -463,7 +463,7 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state RegFieldConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.RegField.Get(state.FieldKey.ValueString())
+	res, err := r.cidaasClient.RegFields.Get(ctx, state.FieldKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read registration field", util.FormatErrorMessage(err))
 		return
@@ -573,13 +573,13 @@ func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, r
 			},
 			map[string]attr.Value{
 				"max_length": func() basetypes.Int64Value {
-					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+					if util.Contains([]string{"TEXT", "URL"}, res.Data.DataType) {
 						return types.Int64Null()
 					}
 					return util.Int64ValueOrNull(res.Data.FieldDefinition.MaxLength)
 				}(),
 				"min_length": func() basetypes.Int64Value {
-					if util.StringInSlice(res.Data.DataType, []string{"TEXT", "URL"}) {
+					if util.Contains([]string{"TEXT", "URL"}, res.Data.DataType) {
 						return types.Int64Null()
 					}
 					return util.Int64ValueOrNull(res.Data.FieldDefinition.MinLength)
@@ -611,7 +611,7 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 	fieldModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.RegField.Upsert(*fieldModel)
+	_, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update registration field", util.FormatErrorMessage(err))
 		return
@@ -625,7 +625,7 @@ func (r *RegFieldResource) Delete(ctx context.Context, req resource.DeleteReques
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.RegField.Delete(state.FieldKey.ValueString())
+	err := r.cidaasClient.RegFields.Delete(ctx, state.FieldKey.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete registration field", util.FormatErrorMessage(err))
 		return
@@ -696,7 +696,7 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 				tempLocalText.Attributes = cidaasAttribues
 			}
 			if !s.ConsentLabel.IsNull() && !s.ConsentLabel.IsUnknown() {
-				tempLocalText.ConsentLabel = &cidaas.Consent{
+				tempLocalText.ConsentLabel = &cidaas.ConsentLabel{
 					Label:     s.consent.Label.ValueString(),
 					LabelText: s.consent.LabelText.ValueString(),
 				}
@@ -779,7 +779,7 @@ func (v validateIsMaxMinMsgAvailableForRegex) ValidateString(ctx context.Context
 		var config RegFieldConfig
 		resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 		resp.Diagnostics.Append(config.ExtractConfigs(ctx)...)
-		if !util.StringInSlice(config.DataType.ValueString(), []string{"TEXT", "URL"}) {
+		if !util.Contains([]string{"TEXT", "URL"}, config.DataType.ValueString()) {
 			resp.Diagnostics.AddError(
 				"Validation Error",
 				fmt.Sprintf("The attribute %s is only allowed when data_type is TEXT or URL", req.Path.String()),
@@ -1008,7 +1008,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 
 	attrKeysRequiredDataTypes := []string{"SELECT", "RADIO", "MULTISELECT"}
-	if util.StringInSlice(req.ConfigValue.ValueString(), attrKeysRequiredDataTypes) {
+	if util.Contains(attrKeysRequiredDataTypes, req.ConfigValue.ValueString()) {
 		for _, s := range config.localTexts {
 			if !s.Attributes.IsNull() && !s.Attributes.IsUnknown() && !(len(s.attributes) > 0) {
 				resp.Diagnostics.AddError(
@@ -1020,7 +1020,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 
 	noMaxMinLengthDataTypes := []string{"CHECKBOX", "CONSENT", "JSON_STRING", "ARRAY", "NUMBER", "SELECT", "RADIO", "MULTISELECT", "MOBILE", "JSON_STRING", "TEXT", "URL"}
-	if util.StringInSlice(req.ConfigValue.ValueString(), noMaxMinLengthDataTypes) {
+	if util.Contains(noMaxMinLengthDataTypes, req.ConfigValue.ValueString()) {
 		if config.FieldDefinition.IsNull() {
 			return
 		}
@@ -1036,7 +1036,7 @@ func (v dataTypeValidator) ValidateString(ctx context.Context, req validator.Str
 		"TEXT", "NUMBER", "CHECKBOX", "PASSWORD", "DATE", "URL", "EMAIL",
 		"TEXTAREA", "MOBILE", "CONSENT", "JSON_STRING", "USERNAME", "ARRAY", "GROUPING", "DAYDATE",
 	}
-	if util.StringInSlice(req.ConfigValue.ValueString(), noAttributesDataTypes) {
+	if util.Contains(noAttributesDataTypes, req.ConfigValue.ValueString()) {
 		for _, v := range config.localTexts {
 			if len(v.attributes) > 0 {
 				resp.Diagnostics.AddError(

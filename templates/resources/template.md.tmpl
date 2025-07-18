@@ -9,14 +9,6 @@ description: |-
 
 {{ .Description | trimspace }}
 
-### V2 to V3 Migration:
-If you are migrating from v2 to v3, please note the changes in the format of the import identifier:
-
-- In **v2**, the import identifier was formed by joining template_key, template_type and locale with the character `-`. For example: `TERRAFORM_TEMPLATE-SMS-en-us`.
-
-- In **v3**, the import identifier format has been updated. The character `-` is replaced by the character `:`. For example: `TERRAFORM_TEMPLATE:SMS:en-us`.
-
-
 ### Managing System Templates:
 
 - To create system templates, set the **is_system_template** flag to `true`.

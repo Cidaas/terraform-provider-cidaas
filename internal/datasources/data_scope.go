@@ -136,7 +136,7 @@ func (d *ScopesDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := scopeFilter.GetAndFilter(d.Client, data.Filters, listScopes)
+	result, diag := scopeFilter.GetAndFilter(ctx, d.Client, data.Filters, listScopes)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -146,8 +146,8 @@ func (d *ScopesDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listScopes(client *cidaas.Client) ([]any, error) {
-	scopes, err := client.Scope.GetAll()
+func listScopes(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	scopes, err := client.Scopes.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

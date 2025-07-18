@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -32,24 +33,19 @@ type AllGroupTypeResponse struct {
 type GroupType struct {
 	ClientConfig
 }
-type GroupTypeService interface {
-	Create(gt GroupTypeData) (*GroupTypeResponse, error)
-	Get(groupType string) (*GroupTypeResponse, error)
-	Update(gt GroupTypeData) error
-	Delete(groupType string) error
-	GetAll() ([]GroupTypeData, error)
-}
 
-func NewGroupType(clientConfig ClientConfig) GroupTypeService {
+func NewGroupType(clientConfig ClientConfig) *GroupType {
 	return &GroupType{clientConfig}
 }
 
-func (c *GroupType) Create(gt GroupTypeData) (*GroupTypeResponse, error) {
+func (c *GroupType) Create(ctx context.Context, gt GroupTypeData) (*GroupTypeResponse, error) {
 	var response GroupTypeResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/grouptypes")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(gt)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, gt)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -61,12 +57,14 @@ func (c *GroupType) Create(gt GroupTypeData) (*GroupTypeResponse, error) {
 	return &response, nil
 }
 
-func (c *GroupType) Get(groupType string) (*GroupTypeResponse, error) {
+func (c *GroupType) Get(ctx context.Context, groupType string) (*GroupTypeResponse, error) {
 	var response GroupTypeResponse
 	url := fmt.Sprintf("%s/%s?groupType=%s", c.BaseURL, "groups-srv/grouptypes", groupType)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -78,11 +76,13 @@ func (c *GroupType) Get(groupType string) (*GroupTypeResponse, error) {
 	return &response, nil
 }
 
-func (c *GroupType) Update(gt GroupTypeData) error {
+func (c *GroupType) Update(ctx context.Context, gt GroupTypeData) error {
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/grouptypes")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(gt)
+	client, err := util.NewHTTPClient(url, http.MethodPut, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, gt)
 	if err != nil {
 		return err
 	}
@@ -90,11 +90,13 @@ func (c *GroupType) Update(gt GroupTypeData) error {
 	return nil
 }
 
-func (c *GroupType) Delete(groupType string) error {
+func (c *GroupType) Delete(ctx context.Context, groupType string) error {
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "groups-srv/grouptypes", groupType)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -102,12 +104,14 @@ func (c *GroupType) Delete(groupType string) error {
 	return nil
 }
 
-func (c *GroupType) GetAll() ([]GroupTypeData, error) {
+func (c *GroupType) GetAll(ctx context.Context) ([]GroupTypeData, error) {
 	var response AllGroupTypeResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "groups-srv/graph/grouptypes")
-
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-	res, err := httpClient.MakeRequest(struct{}{})
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, struct{}{})
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

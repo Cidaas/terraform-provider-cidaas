@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -32,22 +33,19 @@ type HostedPageResponse struct {
 type HostedPage struct {
 	ClientConfig
 }
-type HostedPageService interface {
-	Upsert(hp HostedPageModel) (*HostedPageResponse, error)
-	Get(hpGroupName string) (*HostedPageResponse, error)
-	Delete(hpGroupName string) error
-}
 
-func NewHostedPage(clientConfig ClientConfig) HostedPageService {
+func NewHostedPage(clientConfig ClientConfig) *HostedPage {
 	return &HostedPage{clientConfig}
 }
 
-func (hp *HostedPage) Upsert(hpm HostedPageModel) (*HostedPageResponse, error) {
+func (hp *HostedPage) Upsert(ctx context.Context, hpm HostedPageModel) (*HostedPageResponse, error) {
 	var response HostedPageResponse
 	url := fmt.Sprintf("%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, hp.AccessToken)
-
-	res, err := httpClient.MakeRequest(hpm)
+	client, err := util.NewHTTPClient(url, http.MethodPost, hp.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, hpm)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -59,12 +57,14 @@ func (hp *HostedPage) Upsert(hpm HostedPageModel) (*HostedPageResponse, error) {
 	return &response, nil
 }
 
-func (hp *HostedPage) Get(hpGroupName string) (*HostedPageResponse, error) {
+func (hp *HostedPage) Get(ctx context.Context, hpGroupName string) (*HostedPageResponse, error) {
 	var response HostedPageResponse
 	url := fmt.Sprintf("%s/%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, hp.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, hp.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -76,11 +76,13 @@ func (hp *HostedPage) Get(hpGroupName string) (*HostedPageResponse, error) {
 	return &response, nil
 }
 
-func (hp *HostedPage) Delete(hpGroupName string) error {
+func (hp *HostedPage) Delete(ctx context.Context, hpGroupName string) error {
 	url := fmt.Sprintf("%s/%s/%s", hp.BaseURL, "hostedpages-srv/hpgroup", hpGroupName)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, hp.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, hp.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

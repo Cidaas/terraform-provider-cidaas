@@ -1,85 +1,89 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// const (
-// 	resourceSocialPorvider = "cidaas_social_provider.example"
-// )
-
 var (
-	spName = acctest.RandString(10)
-	// spProviderName = "google"
+	spName         = acctest.RandString(10)
+	spProviderName = "google"
 	spClientID     = acctest.RandString(10)
 	spClientSecret = acctest.RandString(10)
 )
 
 // create, read and update test
-// func TestSocialProvider_Basic(t *testing.T) {
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-// 		CheckDestroy:             checksocialProviderDestroyed,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: socialProviderConfig(spName, spProviderName, spClientID, spClientSecret),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "name", spName),
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "provider_name", spProviderName),
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "client_id", spClientID),
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "client_secret", spClientSecret),
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "claims.required_claims.user_info.0", "name"),
+func TestSocialProvider_Basic(t *testing.T) {
+	t.Parallel()
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_SOCIAL_PROVIDER, testResourceID)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             checksocialProviderDestroyed(testResourceName),
+		Steps: []resource.TestStep{
+			{
+				Config: socialProviderConfig(spName, spProviderName, spClientID, spClientSecret, testResourceID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(testResourceName, "name", spName),
+					resource.TestCheckResourceAttr(testResourceName, "provider_name", spProviderName),
+					resource.TestCheckResourceAttr(testResourceName, "client_id", spClientID),
+					resource.TestCheckResourceAttr(testResourceName, "client_secret", spClientSecret),
+					resource.TestCheckResourceAttr(testResourceName, "claims.required_claims.user_info.0", "name"),
 
-// 					// default value check
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "enabled", strconv.FormatBool(false)),
-// 					resource.TestCheckResourceAttr(resourceSocialPorvider, "enabled_for_admin_portal", strconv.FormatBool(false)),
+					// default value check
+					resource.TestCheckResourceAttr(testResourceName, "enabled", strconv.FormatBool(false)),
+					resource.TestCheckResourceAttr(testResourceName, "enabled_for_admin_portal", strconv.FormatBool(false)),
 
-// 					resource.TestCheckResourceAttrSet(resourceSocialPorvider, "id"),
-// 				),
-// 			},
-// 			{
-// 				ResourceName:      resourceSocialPorvider,
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-// 					rs, ok := s.RootModule().Resources[resourceSocialPorvider]
-// 					if !ok {
-// 						return "", fmt.Errorf("Not found: %s", resourceSocialPorvider)
-// 					}
-// 					return rs.Primary.Attributes["provider_name"] + ":" + rs.Primary.ID, nil
-// 				},
-// 			},
-// 			{
-// 				Config: socialProviderConfig(spName, spProviderName, spClientID, spClientSecret),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					resource.TestCheckResourceAttrSet(resourceSocialPorvider, "id"),
-// 				),
-// 			},
-// 			// immutable name and provider_name validation
-// 			{
-// 				Config:      socialProviderConfig(spName, "facebook", spClientID, spClientSecret),
-// 				ExpectError: regexp.MustCompile(`Attribute 'provider_name' can't be modified`),
-// 			},
-// 			{
-// 				Config:      socialProviderConfig(acctest.RandString(5), spProviderName, spClientID, spClientSecret),
-// 				ExpectError: regexp.MustCompile(`Attribute 'name' can't be modified`),
-// 			},
-// 		},
-// 	})
-// }
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
+				),
+			},
+			{
+				ResourceName:      testResourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[testResourceName]
+					if !ok {
+						return "", fmt.Errorf("Not found: %s", testResourceName)
+					}
+					return rs.Primary.Attributes["provider_name"] + ":" + rs.Primary.ID, nil
+				},
+			},
+			{
+				Config: socialProviderConfig(spName, spProviderName, spClientID, spClientSecret, testResourceID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
+				),
+			},
+			// immutable name and provider_name validation
+			{
+				Config:      socialProviderConfig(spName, "facebook", spClientID, spClientSecret, testResourceID),
+				ExpectError: regexp.MustCompile(`Attribute 'provider_name' can't be modified`),
+			},
+			{
+				Config:      socialProviderConfig(acctest.RandString(5), spProviderName, spClientID, spClientSecret, testResourceID),
+				ExpectError: regexp.MustCompile(`Attribute 'name' can't be modified`),
+			},
+		},
+	})
+}
 
-func socialProviderConfig(name, providerName, clientID, clientSecret string) string {
+func socialProviderConfig(name, providerName, clientID, clientSecret, resourceID string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "%s"
 		}
-		resource "cidaas_social_provider" "example" {
+		resource "cidaas_social_provider" "%s" {
 			name                     = "%s"
 			provider_name            = "%s"
 			client_id                = "%s"
@@ -110,37 +114,40 @@ func socialProviderConfig(name, providerName, clientID, clientSecret string) str
 				}
 			]
 		}
-	`, acctest.BaseURL, name, providerName, clientID, clientSecret)
+	`, acctest.GetBaseURL(), resourceID, name, providerName, clientID, clientSecret)
 }
 
-// func checksocialProviderDestroyed(s *terraform.State) error {
-// 	rs, ok := s.RootModule().Resources[resourceSocialPorvider]
-// 	if !ok {
-// 		return fmt.Errorf("resource %s not fround", resourceSocialPorvider)
-// 	}
+func checksocialProviderDestroyed(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceName)
+		}
 
-// 	sp := cidaas.SocialProvider{
-// 		ClientConfig: cidaas.ClientConfig{
-// 			BaseURL:     os.Getenv("BASE_URL"),
-// 			AccessToken: acctest.TestToken,
-// 		},
-// 	}
-// 	res, _ := sp.Get(rs.Primary.Attributes["provider_name"], rs.Primary.Attributes["id"])
-// 	if res != nil {
-// 		// when resource exists in remote
-// 		return fmt.Errorf("resource stil exists %+v", res)
-// 	}
-// 	return nil
-// }
+		sp := cidaas.SocialProvider{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     acctest.GetBaseURL(),
+				AccessToken: acctest.TestToken,
+			},
+		}
+		res, _ := sp.Get(context.Background(), rs.Primary.Attributes["provider_name"], rs.Primary.Attributes["id"])
+		if res != nil {
+			// when resource exists in remote
+			return fmt.Errorf("resource still exists %+v", res)
+		}
+		return nil
+	}
+}
 
 // Invalid provider_name validation
 func TestSocialProvider_InvalidProviderName(t *testing.T) {
+	t.Parallel()
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      socialProviderConfig(spName, acctest.RandString(10), spClientID, spClientSecret),
+				Config:      socialProviderConfig(spName, acctest.RandString(10), spClientID, spClientSecret, acctest.RandString(10)),
 				ExpectError: regexp.MustCompile(`Attribute provider_name value must be one of:`),
 			},
 		},
@@ -149,24 +156,34 @@ func TestSocialProvider_InvalidProviderName(t *testing.T) {
 
 // missing required parameter
 func TestSocialProvider_MissingRequired(t *testing.T) {
+	t.Parallel()
+
 	requiredParams := []string{
 		"name", "provider_name", "client_id", "client_secret",
 	}
+
 	for _, param := range requiredParams {
-		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: fmt.Sprintf(`
-						provider "cidaas" {
-							base_url = "%s"
-						}
-						resource "cidaas_social_provider" "example" {}
-					`, acctest.BaseURL),
-					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, param)),
+		param := param // Capture loop variable
+		t.Run(fmt.Sprintf("missing_%s", param), func(t *testing.T) {
+			t.Parallel()
+
+			testResourceID := acctest.RandString(10)
+
+			resource.Test(t, resource.TestCase{
+				PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+				ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: fmt.Sprintf(`
+                            provider "cidaas" {
+                                base_url = "%s"
+                            }
+                            resource "cidaas_social_provider" "%s" {}
+                        `, acctest.GetBaseURL(), testResourceID),
+						ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required`, param)),
+					},
 				},
-			},
+			})
 		})
 	}
 }

@@ -95,7 +95,7 @@ func (d *CustomProviderDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := customProviderFilter.GetAndFilter(d.Client, data.Filters, listCustomProviders)
+	result, diag := customProviderFilter.GetAndFilter(ctx, d.Client, data.Filters, listCustomProviders)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -108,8 +108,8 @@ func (d *CustomProviderDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listCustomProviders(client *cidaas.Client) ([]any, error) {
-	cps, err := client.CustomProvider.GetAll()
+func listCustomProviders(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	cps, err := client.CustomProvider.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

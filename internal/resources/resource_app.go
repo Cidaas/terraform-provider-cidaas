@@ -59,7 +59,7 @@ func (r *AppResource) ValidateConfig(ctx context.Context, req resource.ValidateC
 	}
 
 	for _, rule := range validationRules {
-		if util.StringInSlice(config.ClientType.ValueString(), rule.clientTypes) && rule.attribute.IsNull() {
+		if util.Contains(rule.clientTypes, config.ClientType.ValueString()) && rule.attribute.IsNull() {
 			resp.Diagnostics.AddError(
 				"Missing required argument",
 				fmt.Sprintf(rule.errorMessage, config.ClientType.ValueString()),
@@ -82,7 +82,7 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	res, err := r.cidaasClient.App.Create(*appModel)
+	res, err := r.cidaasClient.Apps.Create(ctx, *appModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create app", util.FormatErrorMessage(err))
 		return
@@ -104,14 +104,14 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	data, err := r.cidaasClient.App.Get(state.ClientID.ValueString())
-
+	data, err := r.cidaasClient.Apps.Get(ctx, state.ClientID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read app", util.FormatErrorMessage(err))
 		return
 	}
 
-	updateAppState(&state, *data)
+	isImport := !state.ClientID.IsNull() && state.ClientName.IsNull()
+	updateAppState(&state, *data, isImport)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -130,7 +130,7 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 	appModel.ID = state.ID.ValueString()
-	_, err := r.cidaasClient.App.Update(*appModel)
+	_, err := r.cidaasClient.Apps.Update(ctx, *appModel)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update app", util.FormatErrorMessage(err))
 		return
@@ -144,7 +144,7 @@ func (r *AppResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.App.Delete(state.ClientID.ValueString())
+	err := r.cidaasClient.Apps.Delete(ctx, state.ClientID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete app", util.FormatErrorMessage(err))
 		return
@@ -155,7 +155,10 @@ func (r *AppResource) ImportState(ctx context.Context, req resource.ImportStateR
 	resource.ImportStatePassthroughID(ctx, path.Root("client_id"), req, resp)
 }
 
-func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
+// updateAppState updates the Terraform state with data from the API response.
+// During import operations (isImport=true), all fields are updated.
+// During normal reads (isImport=false), only configured fields from tf file are updated.
+func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	data := resp.Data
 	state.ID = util.StringValueOrNull(&data.ID)
 	state.ClientID = util.StringValueOrNull(&data.ClientID)
@@ -168,309 +171,308 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 	state.AllowedScopes = util.SetValueOrNull(data.AllowedScopes)
 
 	// RedirectURIS, AllowedLogoutUrls, GrantTypes are required to be set when import is done based on the client_type
-	if util.StringInSlice(data.ClientType, []string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}) || !state.RedirectURIS.IsNull() {
+	if util.Contains([]string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}, data.ClientType) || !state.RedirectURIS.IsNull() {
 		state.RedirectURIS = util.SetValueOrNull(data.RedirectURIS)
 	}
-	if util.StringInSlice(data.ClientType, []string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}) || !state.AllowedLogoutUrls.IsNull() {
+	if util.Contains([]string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}, data.ClientType) || !state.AllowedLogoutUrls.IsNull() {
 		state.AllowedLogoutUrls = util.SetValueOrNull(data.AllowedLogoutUrls)
 	}
-	if util.StringInSlice(data.ClientType, []string{"DEVICE"}) || !state.GrantTypes.IsNull() {
+	if util.Contains([]string{"DEVICE"}, data.ClientType) || !state.GrantTypes.IsNull() {
 		state.GrantTypes = util.SetValueOrNull(data.GrantTypes)
 	}
-
 	// String attributes
-	if !state.AccentColor.IsNull() {
+	if !state.AccentColor.IsNull() || isImport {
 		state.AccentColor = util.StringValueOrNull(&data.AccentColor)
 	}
-	if !state.PrimaryColor.IsNull() {
+	if !state.PrimaryColor.IsNull() || isImport {
 		state.PrimaryColor = util.StringValueOrNull(&data.PrimaryColor)
 	}
-	if !state.MediaType.IsNull() {
+	if !state.MediaType.IsNull() || isImport {
 		state.MediaType = util.StringValueOrNull(&data.MediaType)
 	}
-	if !state.HostedPageGroup.IsNull() {
+	if !state.HostedPageGroup.IsNull() || isImport {
 		state.HostedPageGroup = util.StringValueOrNull(&data.HostedPageGroup)
 	}
-	if !state.TemplateGroupID.IsNull() {
+	if !state.TemplateGroupID.IsNull() || isImport {
 		state.TemplateGroupID = util.StringValueOrNull(&data.TemplateGroupID)
 	}
-	if !state.LogoAlign.IsNull() {
+	if !state.LogoAlign.IsNull() || isImport {
 		state.LogoAlign = util.StringValueOrNull(&data.LogoAlign)
 	}
-	if !state.Webfinger.IsNull() {
+	if !state.Webfinger.IsNull() || isImport {
 		state.Webfinger = util.StringValueOrNull(&data.Webfinger)
 	}
-	if !state.ContentAlign.IsNull() {
+	if !state.ContentAlign.IsNull() || isImport {
 		state.ContentAlign = util.StringValueOrNull(&data.ContentAlign)
 	}
-	if !state.ClientDisplayName.IsNull() {
+	if !state.ClientDisplayName.IsNull() || isImport {
 		state.ClientDisplayName = util.StringValueOrNull(&data.ClientDisplayName)
 	}
-	if !state.PolicyURI.IsNull() {
+	if !state.PolicyURI.IsNull() || isImport {
 		state.PolicyURI = util.StringValueOrNull(&data.PolicyURI)
 	}
-	if !state.TosURI.IsNull() {
+	if !state.TosURI.IsNull() || isImport {
 		state.TosURI = util.StringValueOrNull(&data.TosURI)
 	}
-	if !state.ImprintURI.IsNull() {
+	if !state.ImprintURI.IsNull() || isImport {
 		state.ImprintURI = util.StringValueOrNull(&data.ImprintURI)
 	}
-	if !state.TokenEndpointAuthMethod.IsNull() {
+	if !state.TokenEndpointAuthMethod.IsNull() || isImport {
 		state.TokenEndpointAuthMethod = util.StringValueOrNull(&data.TokenEndpointAuthMethod)
 	}
-	if !state.TokenEndpointAuthSigningAlg.IsNull() {
+	if !state.TokenEndpointAuthSigningAlg.IsNull() || isImport {
 		state.TokenEndpointAuthSigningAlg = util.StringValueOrNull(&data.TokenEndpointAuthSigningAlg)
 	}
-	if !state.CaptchaRef.IsNull() {
+	if !state.CaptchaRef.IsNull() || isImport {
 		state.CaptchaRef = util.StringValueOrNull(&data.CaptchaRef)
 	}
-	if !state.CommunicationMediumVerification.IsNull() {
+	if !state.CommunicationMediumVerification.IsNull() || isImport {
 		state.CommunicationMediumVerification = util.StringValueOrNull(&data.CommunicationMediumVerification)
 	}
-	if !state.BackchannelLogoutURI.IsNull() {
+	if !state.BackchannelLogoutURI.IsNull() || isImport {
 		state.BackchannelLogoutURI = util.StringValueOrNull(&data.BackchannelLogoutURI)
 	}
-	if !state.LogoURI.IsNull() {
+	if !state.LogoURI.IsNull() || isImport {
 		state.LogoURI = util.StringValueOrNull(&data.LogoURI)
 	}
-	if !state.InitiateLoginURI.IsNull() {
+	if !state.InitiateLoginURI.IsNull() || isImport {
 		state.InitiateLoginURI = util.StringValueOrNull(&data.InitiateLoginURI)
 	}
-	if !state.RegistrationClientURI.IsNull() {
+	if !state.RegistrationClientURI.IsNull() || isImport {
 		state.RegistrationClientURI = util.StringValueOrNull(&data.RegistrationClientURI)
 	}
-	if !state.RegistrationAccessToken.IsNull() {
+	if !state.RegistrationAccessToken.IsNull() || isImport {
 		state.RegistrationAccessToken = util.StringValueOrNull(&data.RegistrationAccessToken)
 	}
-	if !state.ClientURI.IsNull() {
+	if !state.ClientURI.IsNull() || isImport {
 		state.ClientURI = util.StringValueOrNull(&data.ClientURI)
 	}
-	if !state.JwksURI.IsNull() {
+	if !state.JwksURI.IsNull() || isImport {
 		state.JwksURI = util.StringValueOrNull(&data.JwksURI)
 	}
-	if !state.Jwks.IsNull() {
+	if !state.Jwks.IsNull() || isImport {
 		state.Jwks = util.StringValueOrNull(&data.Jwks)
 	}
-	if !state.SectorIdentifierURI.IsNull() {
+	if !state.SectorIdentifierURI.IsNull() || isImport {
 		state.SectorIdentifierURI = util.StringValueOrNull(&data.SectorIdentifierURI)
 	}
-	if !state.SubjectType.IsNull() {
+	if !state.SubjectType.IsNull() || isImport {
 		state.SubjectType = util.StringValueOrNull(&data.SubjectType)
 	}
-	if !state.IDTokenSignedResponseAlg.IsNull() {
+	if !state.IDTokenSignedResponseAlg.IsNull() || isImport {
 		state.IDTokenSignedResponseAlg = util.StringValueOrNull(&data.IDTokenSignedResponseAlg)
 	}
-	if !state.IDTokenEncryptedResponseAlg.IsNull() {
+	if !state.IDTokenEncryptedResponseAlg.IsNull() || isImport {
 		state.IDTokenEncryptedResponseAlg = util.StringValueOrNull(&data.IDTokenEncryptedResponseAlg)
 	}
-	if !state.IDTokenEncryptedResponseEnc.IsNull() {
+	if !state.IDTokenEncryptedResponseEnc.IsNull() || isImport {
 		state.IDTokenEncryptedResponseEnc = util.StringValueOrNull(&data.IDTokenEncryptedResponseEnc)
 	}
-	if !state.UserinfoSignedResponseAlg.IsNull() {
+	if !state.UserinfoSignedResponseAlg.IsNull() || isImport {
 		state.UserinfoSignedResponseAlg = util.StringValueOrNull(&data.UserinfoSignedResponseAlg)
 	}
-	if !state.UserinfoEncryptedResponseAlg.IsNull() {
+	if !state.UserinfoEncryptedResponseAlg.IsNull() || isImport {
 		state.UserinfoEncryptedResponseAlg = util.StringValueOrNull(&data.UserinfoEncryptedResponseAlg)
 	}
-	if !state.UserinfoEncryptedResponseEnc.IsNull() {
+	if !state.UserinfoEncryptedResponseEnc.IsNull() || isImport {
 		state.UserinfoEncryptedResponseEnc = util.StringValueOrNull(&data.UserinfoEncryptedResponseEnc)
 	}
-	if !state.RequestObjectSigningAlg.IsNull() {
+	if !state.RequestObjectSigningAlg.IsNull() || isImport {
 		state.RequestObjectSigningAlg = util.StringValueOrNull(&data.RequestObjectSigningAlg)
 	}
-	if !state.RequestObjectEncryptionAlg.IsNull() {
+	if !state.RequestObjectEncryptionAlg.IsNull() || isImport {
 		state.RequestObjectEncryptionAlg = util.StringValueOrNull(&data.RequestObjectEncryptionAlg)
 	}
-	if !state.RequestObjectEncryptionEnc.IsNull() {
+	if !state.RequestObjectEncryptionEnc.IsNull() || isImport {
 		state.RequestObjectEncryptionEnc = util.StringValueOrNull(&data.RequestObjectEncryptionEnc)
 	}
-	if !state.Description.IsNull() {
+	if !state.Description.IsNull() || isImport {
 		state.Description = util.StringValueOrNull(&data.Description)
 	}
-	if !state.ConsentPageGroup.IsNull() {
+	if !state.ConsentPageGroup.IsNull() || isImport {
 		state.ConsentPageGroup = util.StringValueOrNull(&data.ConsentPageGroup)
 	}
-	if !state.PasswordPolicyRef.IsNull() {
+	if !state.PasswordPolicyRef.IsNull() || isImport {
 		state.PasswordPolicyRef = util.StringValueOrNull(&data.PasswordPolicyRef)
 	}
-	if !state.BlockingMechanismRef.IsNull() {
+	if !state.BlockingMechanismRef.IsNull() || isImport {
 		state.BlockingMechanismRef = util.StringValueOrNull(&data.BlockingMechanismRef)
 	}
-	if !state.Sub.IsNull() {
+	if !state.Sub.IsNull() || isImport {
 		state.Sub = util.StringValueOrNull(&data.Sub)
 	}
-	if !state.Role.IsNull() {
+	if !state.Role.IsNull() || isImport {
 		state.Role = util.StringValueOrNull(&data.Role)
 	}
-	if !state.MfaConfiguration.IsNull() {
+	if !state.MfaConfiguration.IsNull() || isImport {
 		state.MfaConfiguration = util.StringValueOrNull(&data.MfaConfiguration)
 	}
-	if !state.BackgroundURI.IsNull() {
+	if !state.BackgroundURI.IsNull() || isImport {
 		state.BackgroundURI = util.StringValueOrNull(&data.BackgroundURI)
 	}
-	if !state.VideoURL.IsNull() {
+	if !state.VideoURL.IsNull() || isImport {
 		state.VideoURL = util.StringValueOrNull(&data.VideoURL)
 	}
-	if !state.BotCaptchaRef.IsNull() {
+	if !state.BotCaptchaRef.IsNull() || isImport {
 		state.BotCaptchaRef = util.StringValueOrNull(&data.BotCaptchaRef)
 	}
-	if !state.BotProvider.IsNull() {
+	if !state.BotProvider.IsNull() || isImport {
 		state.BotProvider = util.StringValueOrNull(&data.BotProvider)
 	}
 
 	// Boolean attributes
-	if !state.AllowGuestLogin.IsNull() {
+	if !state.AllowGuestLogin.IsNull() || isImport {
 		state.AllowGuestLogin = util.BoolValueOrNull(data.AllowGuestLogin)
 	}
-	if !state.EnableDeduplication.IsNull() {
+	if !state.EnableDeduplication.IsNull() || isImport {
 		state.EnableDeduplication = util.BoolValueOrNull(data.EnableDeduplication)
 	}
-	if !state.AutoLoginAfterRegister.IsNull() {
+	if !state.AutoLoginAfterRegister.IsNull() || isImport {
 		state.AutoLoginAfterRegister = util.BoolValueOrNull(data.AutoLoginAfterRegister)
 	}
-	if !state.RegisterWithLoginInformation.IsNull() {
+	if !state.RegisterWithLoginInformation.IsNull() || isImport {
 		state.RegisterWithLoginInformation = util.BoolValueOrNull(data.RegisterWithLoginInformation)
 	}
-	if !state.IsHybridApp.IsNull() {
+	if !state.IsHybridApp.IsNull() || isImport {
 		state.IsHybridApp = util.BoolValueOrNull(data.IsHybridApp)
 	}
-	if !state.Enabled.IsNull() {
+	if !state.Enabled.IsNull() || isImport {
 		state.Enabled = util.BoolValueOrNull(data.Enabled)
 	}
-	if !state.IsRememberMeSelected.IsNull() {
+	if !state.IsRememberMeSelected.IsNull() || isImport {
 		state.IsRememberMeSelected = util.BoolValueOrNull(data.IsRememberMeSelected)
 	}
-	if !state.AllowDisposableEmail.IsNull() {
+	if !state.AllowDisposableEmail.IsNull() || isImport {
 		state.AllowDisposableEmail = util.BoolValueOrNull(data.AllowDisposableEmail)
 	}
-	if !state.ValidatePhoneNumber.IsNull() {
+	if !state.ValidatePhoneNumber.IsNull() || isImport {
 		state.ValidatePhoneNumber = util.BoolValueOrNull(data.ValidatePhoneNumber)
 	}
-	if !state.SmartMfa.IsNull() {
+	if !state.SmartMfa.IsNull() || isImport {
 		state.SmartMfa = util.BoolValueOrNull(data.SmartMfa)
 	}
-	if !state.EnableBotDetection.IsNull() {
+	if !state.EnableBotDetection.IsNull() || isImport {
 		state.EnableBotDetection = util.BoolValueOrNull(data.EnableBotDetection)
 	}
-	if !state.IsLoginSuccessPageEnabled.IsNull() {
+	if !state.IsLoginSuccessPageEnabled.IsNull() || isImport {
 		state.IsLoginSuccessPageEnabled = util.BoolValueOrNull(data.IsLoginSuccessPageEnabled)
 	}
-	if !state.IsRegisterSuccessPageEnabled.IsNull() {
+	if !state.IsRegisterSuccessPageEnabled.IsNull() || isImport {
 		state.IsRegisterSuccessPageEnabled = util.BoolValueOrNull(data.IsRegisterSuccessPageEnabled)
 	}
-	if !state.IsGroupLoginSelectionEnabled.IsNull() {
+	if !state.IsGroupLoginSelectionEnabled.IsNull() || isImport {
 		state.IsGroupLoginSelectionEnabled = util.BoolValueOrNull(data.IsGroupLoginSelectionEnabled)
 	}
 
-	if !state.JweEnabled.IsNull() {
+	if !state.JweEnabled.IsNull() || isImport {
 		state.JweEnabled = util.BoolValueOrNull(data.JweEnabled)
 	}
-	if !state.UserConsent.IsNull() {
+	if !state.UserConsent.IsNull() || isImport {
 		state.UserConsent = util.BoolValueOrNull(data.UserConsent)
 	}
-	if !state.EnablePasswordlessAuth.IsNull() {
+	if !state.EnablePasswordlessAuth.IsNull() || isImport {
 		state.EnablePasswordlessAuth = util.BoolValueOrNull(data.EnablePasswordlessAuth)
 	}
-	if !state.RequireAuthTime.IsNull() {
+	if !state.RequireAuthTime.IsNull() || isImport {
 		state.RequireAuthTime = util.BoolValueOrNull(data.RequireAuthTime)
 	}
-	if !state.EnableLoginSpi.IsNull() {
+	if !state.EnableLoginSpi.IsNull() || isImport {
 		state.EnableLoginSpi = util.BoolValueOrNull(data.EnableLoginSpi)
 	}
-	if !state.BackchannelLogoutSessionRequired.IsNull() {
+	if !state.BackchannelLogoutSessionRequired.IsNull() || isImport {
 		state.BackchannelLogoutSessionRequired = util.BoolValueOrNull(data.BackchannelLogoutSessionRequired)
 	}
-	if !state.AcceptRolesInTheRegistration.IsNull() {
+	if !state.AcceptRolesInTheRegistration.IsNull() || isImport {
 		state.AcceptRolesInTheRegistration = util.BoolValueOrNull(data.AcceptRolesInTheRegistration)
 	}
 
 	// Integer attributes
-	if !state.DefaultMaxAge.IsNull() {
+	if !state.DefaultMaxAge.IsNull() || isImport {
 		state.DefaultMaxAge = util.Int64ValueOrNull(data.DefaultMaxAge)
 	}
-	if !state.TokenLifetimeInSeconds.IsNull() {
+	if !state.TokenLifetimeInSeconds.IsNull() || isImport {
 		state.TokenLifetimeInSeconds = util.Int64ValueOrNull(data.TokenLifetimeInSeconds)
 	}
-	if !state.IDTokenLifetimeInSeconds.IsNull() {
+	if !state.IDTokenLifetimeInSeconds.IsNull() || isImport {
 		state.IDTokenLifetimeInSeconds = util.Int64ValueOrNull(data.IDTokenLifetimeInSeconds)
 	}
-	if !state.RefreshTokenLifetimeInSeconds.IsNull() {
+	if !state.RefreshTokenLifetimeInSeconds.IsNull() || isImport {
 		state.RefreshTokenLifetimeInSeconds = util.Int64ValueOrNull(data.RefreshTokenLifetimeInSeconds)
 	}
 
 	// Set attributes
-	if !state.AllowedWebOrigins.IsNull() {
+	if !state.AllowedWebOrigins.IsNull() || isImport {
 		state.AllowedWebOrigins = util.SetValueOrNull(data.AllowedWebOrigins)
 	}
-	if !state.DefaultScopes.IsNull() {
+	if !state.DefaultScopes.IsNull() || isImport {
 		state.DefaultScopes = util.SetValueOrNull(data.DefaultScopes)
 	}
-	if !state.AllowedRoles.IsNull() {
+	if !state.AllowedRoles.IsNull() || isImport {
 		state.AllowedRoles = util.SetValueOrNull(data.AllowedRoles)
 	}
-	if !state.ResponseTypes.IsNull() {
+	if !state.ResponseTypes.IsNull() || isImport {
 		state.ResponseTypes = util.SetValueOrNull(data.ResponseTypes)
 	}
-	if !state.AllowLoginWith.IsNull() {
+	if !state.AllowLoginWith.IsNull() || isImport {
 		state.AllowLoginWith = util.SetValueOrNull(data.AllowLoginWith)
 	}
-	if !state.PostLogoutRedirectUris.IsNull() {
+	if !state.PostLogoutRedirectUris.IsNull() || isImport {
 		state.PostLogoutRedirectUris = util.SetValueOrNull(data.PostLogoutRedirectUris)
 	}
-	if !state.GroupIDs.IsNull() {
+	if !state.GroupIDs.IsNull() || isImport {
 		state.GroupIDs = util.SetValueOrNull(data.GroupIDs)
 	}
-	if !state.AllowedFields.IsNull() {
+	if !state.AllowedFields.IsNull() || isImport {
 		state.AllowedFields = util.SetValueOrNull(data.AllowedFields)
 	}
-	if !state.GroupTypes.IsNull() {
+	if !state.GroupTypes.IsNull() || isImport {
 		state.GroupTypes = util.SetValueOrNull(data.GroupTypes)
 	}
-	if !state.AdditionalAccessTokenPayload.IsNull() {
+	if !state.AdditionalAccessTokenPayload.IsNull() || isImport {
 		state.AdditionalAccessTokenPayload = util.SetValueOrNull(data.AdditionalAccessTokenPayload)
 	}
-	if !state.RequiredFields.IsNull() {
+	if !state.RequiredFields.IsNull() || isImport {
 		state.RequiredFields = util.SetValueOrNull(data.RequiredFields)
 	}
-	if !state.Contacts.IsNull() {
+	if !state.Contacts.IsNull() || isImport {
 		state.Contacts = util.SetValueOrNull(data.Contacts)
 	}
-	if !state.WebMessageUris.IsNull() {
+	if !state.WebMessageUris.IsNull() || isImport {
 		state.WebMessageUris = util.SetValueOrNull(data.WebMessageUris)
 	}
-	if !state.AllowedOrigins.IsNull() {
+	if !state.AllowedOrigins.IsNull() || isImport {
 		state.AllowedOrigins = util.SetValueOrNull(data.AllowedOrigins)
 	}
-	if !state.LoginProviders.IsNull() {
+	if !state.LoginProviders.IsNull() || isImport {
 		state.LoginProviders = util.SetValueOrNull(data.LoginProviders)
 	}
-	if !state.PendingScopes.IsNull() {
+	if !state.PendingScopes.IsNull() || isImport {
 		state.PendingScopes = util.SetValueOrNull(data.PendingScopes)
 	}
-	if !state.AllowedMfa.IsNull() {
+	if !state.AllowedMfa.IsNull() || isImport {
 		state.AllowedMfa = util.SetValueOrNull(data.AllowedMfa)
 	}
-	if !state.DefaultRoles.IsNull() {
+	if !state.DefaultRoles.IsNull() || isImport {
 		state.DefaultRoles = util.SetValueOrNull(data.DefaultRoles)
 	}
-	if !state.DefaultAcrValues.IsNull() {
+	if !state.DefaultAcrValues.IsNull() || isImport {
 		state.DefaultAcrValues = util.SetValueOrNull(data.DefaultAcrValues)
 	}
-	if !state.SuggestMfa.IsNull() {
+	if !state.SuggestMfa.IsNull() || isImport {
 		state.SuggestMfa = util.SetValueOrNull(data.SuggestMfa)
 	}
-	if !state.CaptchaRefs.IsNull() {
+	if !state.CaptchaRefs.IsNull() || isImport {
 		state.CaptchaRefs = util.SetValueOrNull(data.CaptchaRefs)
 	}
-	if !state.ConsentRefs.IsNull() {
+	if !state.ConsentRefs.IsNull() || isImport {
 		state.ConsentRefs = util.SetValueOrNull(data.ConsentRefs)
 	}
-	if !state.RequestUris.IsNull() {
+	if !state.RequestUris.IsNull() || isImport {
 		state.RequestUris = util.SetValueOrNull(data.RequestUris)
 	}
 
 	// Map & List attributes
-	if !state.ApplicationMetaData.IsNull() && len(data.ApplicationMetaData) > 0 {
+	if (!state.ApplicationMetaData.IsNull() || isImport) && len(data.ApplicationMetaData) > 0 {
 		metaData := map[string]attr.Value{}
 		for key, value := range data.ApplicationMetaData {
 			val := value
@@ -479,7 +481,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.ApplicationMetaData = types.MapValueMust(types.StringType, metaData)
 	}
 
-	if !state.CustomProviders.IsNull() && len(state.CustomProviders.Elements()) > 0 && len(data.SocialProviders) > 0 {
+	if ((!state.SocialProviders.IsNull() && len(state.SocialProviders.Elements()) > 0) || isImport) && len(data.SocialProviders) > 0 {
 		var spObjectValues []attr.Value
 		spObjectType := types.ObjectType{
 			AttrTypes: map[string]attr.Type{
@@ -537,13 +539,13 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		return providerMetaObjectValues
 	}
 
-	if !state.CustomProviders.IsNull() && len(state.CustomProviders.Elements()) > 0 && len(data.CustomProviders) > 0 {
+	if ((!state.CustomProviders.IsNull() && len(state.CustomProviders.Elements()) > 0) || isImport) && len(data.CustomProviders) > 0 {
 		state.CustomProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(data.CustomProviders))
 	}
-	if !state.SamlProviders.IsNull() && len(state.SamlProviders.Elements()) > 0 && len(data.SamlProviders) > 0 {
+	if ((!state.SamlProviders.IsNull() && len(state.SamlProviders.Elements()) > 0) || isImport) && len(data.SamlProviders) > 0 {
 		state.SamlProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(data.SamlProviders))
 	}
-	if !state.AdProviders.IsNull() && len(state.AdProviders.Elements()) > 0 && len(data.AdProviders) > 0 {
+	if ((!state.AdProviders.IsNull() && len(state.AdProviders.Elements()) > 0) || isImport) && len(data.AdProviders) > 0 {
 		state.AdProviders = types.ListValueMust(providerObjectType, createProviderMetaObjectValues(data.AdProviders))
 	}
 
@@ -573,14 +575,14 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		return allowedGroupObjectValues
 	}
 
-	if !state.AllowedGroups.IsNull() && len(state.AllowedGroups.Elements()) > 0 && len(data.AllowedGroups) > 0 {
+	if ((!state.AllowedGroups.IsNull() && len(state.AllowedGroups.Elements()) > 0) || isImport) && len(data.AllowedGroups) > 0 {
 		state.AllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(data.AllowedGroups))
 	}
-	if !state.OperationsAllowedGroups.IsNull() && len(state.OperationsAllowedGroups.Elements()) > 0 && len(data.OperationsAllowedGroups) > 0 {
+	if ((!state.OperationsAllowedGroups.IsNull() && len(state.OperationsAllowedGroups.Elements()) > 0) || isImport) && len(data.OperationsAllowedGroups) > 0 {
 		state.OperationsAllowedGroups = types.ListValueMust(allowedGroupsObjectType, createAllowedGroupsObjectValues(data.OperationsAllowedGroups))
 	}
 
-	if !state.AllowGuestLoginGroups.IsNull() && len(state.AllowGuestLoginGroups.Elements()) > 0 && len(data.AllowGuestLoginGroups) > 0 {
+	if ((!state.AllowGuestLoginGroups.IsNull() && len(state.AllowGuestLoginGroups.Elements()) > 0) || isImport) && len(data.AllowGuestLoginGroups) > 0 {
 		var allowedGroupObjectValues []attr.Value
 		for _, group := range data.AllowGuestLoginGroups {
 			groupID := group.GroupID
@@ -596,7 +598,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.AllowGuestLoginGroups = types.ListValueMust(allowedGroupsObjectType, allowedGroupObjectValues)
 	}
 
-	if !state.LoginSpi.IsNull() && data.LoginSpi != nil {
+	if (!state.LoginSpi.IsNull() || isImport) && data.LoginSpi != nil {
 		oauthClientID := util.StringValueOrNull(&data.LoginSpi.OauthClientID)
 		spiURL := util.StringValueOrNull(&data.LoginSpi.SpiURL)
 
@@ -606,13 +608,13 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 				"spi_url":         types.StringType,
 			},
 			map[string]attr.Value{
-				"oauth_client_id": &oauthClientID,
-				"spi_url":         &spiURL,
+				"oauth_client_id": oauthClientID,
+				"spi_url":         spiURL,
 			})
 		state.LoginSpi = loginSpi
 	}
 
-	if !state.GroupSelection.IsNull() && data.GroupSelection != nil {
+	if (!state.GroupSelection.IsNull() || isImport) && data.GroupSelection != nil {
 		alwaysShowGroupSelection := util.BoolValueOrNull(data.GroupSelection.AlwaysShowGroupSelection)
 		selectableGroups := util.SetValueOrNull(data.GroupSelection.SelectableGroups)
 		selectableGroupTypes := util.SetValueOrNull(data.GroupSelection.SelectableGroupTypes)
@@ -624,14 +626,14 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 				"selectable_group_types":      types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"always_show_group_selection": &alwaysShowGroupSelection,
-				"selectable_groups":           &selectableGroups,
-				"selectable_group_types":      &selectableGroupTypes,
+				"always_show_group_selection": alwaysShowGroupSelection,
+				"selectable_groups":           selectableGroups,
+				"selectable_group_types":      selectableGroupTypes,
 			})
 		state.GroupSelection = groupSelection
 	}
 
-	if !state.Mfa.IsNull() && data.Mfa != nil {
+	if (!state.Mfa.IsNull() || isImport) && data.Mfa != nil {
 		setting := util.StringValueOrNull(&data.Mfa.Setting)
 		timeInterval := util.Int64ValueOrNull(data.Mfa.TimeIntervalInSeconds)
 		allowedMethods := util.SetValueOrNull(data.Mfa.AllowedMethods)
@@ -643,15 +645,15 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 				"allowed_methods":          types.SetType{ElemType: types.StringType},
 			},
 			map[string]attr.Value{
-				"setting":                  &setting,
-				"time_interval_in_seconds": &timeInterval,
-				"allowed_methods":          &allowedMethods,
+				"setting":                  setting,
+				"time_interval_in_seconds": timeInterval,
+				"allowed_methods":          allowedMethods,
 			},
 		)
 		state.Mfa = mfa
 	}
 
-	if !state.MobileSettings.IsNull() && data.MobileSettings != nil {
+	if (!state.MobileSettings.IsNull() || isImport) && data.MobileSettings != nil {
 		mobileSettings := types.ObjectValueMust(
 			map[string]attr.Type{
 				"team_id":      types.StringType,
@@ -668,7 +670,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.MobileSettings = mobileSettings
 	}
 
-	if !state.SuggestVerificationMethods.IsNull() && data.SuggestVerificationMethods != nil {
+	if (!state.SuggestVerificationMethods.IsNull() || isImport) && data.SuggestVerificationMethods != nil {
 		skipDurationInDays := types.Int32Value(data.SuggestVerificationMethods.SkipDurationInDays)
 		skipUntil := util.StringValueOrNull(&data.SuggestVerificationMethods.MandatoryConfig.SkipUntil)
 		mandatatoryRange := util.StringValueOrNull(&data.SuggestVerificationMethods.MandatoryConfig.Range)
@@ -714,7 +716,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		state.SuggestVerificationMethods = obj
 	}
 
-	if !state.GroupRoleRestriction.IsNull() && data.GroupRoleRestriction != nil && len(data.GroupRoleRestriction.Filters) > 0 {
+	if (!state.GroupRoleRestriction.IsNull() || isImport) && data.GroupRoleRestriction != nil && len(data.GroupRoleRestriction.Filters) > 0 {
 		roleFilterType := map[string]attr.Type{
 			"match_condition": types.StringType,
 			"roles":           types.SetType{ElemType: types.StringType},
@@ -727,44 +729,40 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse) {
 		filterObjectType := types.ObjectType{
 			AttrTypes: filterType,
 		}
-		if !(state.GroupRoleRestriction.IsNull()) {
-			var filters basetypes.ListValue
-			var filterObjectValues []attr.Value
+		var filters basetypes.ListValue
+		var filterObjectValues []attr.Value
 
-			parentMatchCondition := util.StringValueOrNull(&data.GroupRoleRestriction.MatchCondition)
-			if len(data.GroupRoleRestriction.Filters) > 0 {
-				for _, grr := range data.GroupRoleRestriction.Filters {
-					groupID := grr.GroupID
-					matchCondition := grr.RoleFilter.MatchCondition
-					roles := grr.RoleFilter.Roles
-					objValue := types.ObjectValueMust(
-						filterType,
-						map[string]attr.Value{
-							"group_id": util.StringValueOrNull(&groupID),
-							"role_filter": types.ObjectValueMust(
-								roleFilterType,
-								map[string]attr.Value{
-									"match_condition": util.StringValueOrNull(&matchCondition),
-									"roles":           util.SetValueOrNull(roles),
-								},
-							),
-						})
-					filterObjectValues = append(filterObjectValues, objValue)
-				}
-				filters = types.ListValueMust(filterObjectType, filterObjectValues)
-			}
-
-			obj := types.ObjectValueMust(
-				map[string]attr.Type{
-					"match_condition": types.StringType,
-					"filters":         types.ListType{ElemType: types.ObjectType{AttrTypes: filterType}},
-				},
+		parentMatchCondition := util.StringValueOrNull(&data.GroupRoleRestriction.MatchCondition)
+		for _, grr := range data.GroupRoleRestriction.Filters {
+			groupID := grr.GroupID
+			matchCondition := grr.RoleFilter.MatchCondition
+			roles := grr.RoleFilter.Roles
+			objValue := types.ObjectValueMust(
+				filterType,
 				map[string]attr.Value{
-					"match_condition": parentMatchCondition,
-					"filters":         filters,
-				},
-			)
-			state.GroupRoleRestriction = obj
+					"group_id": util.StringValueOrNull(&groupID),
+					"role_filter": types.ObjectValueMust(
+						roleFilterType,
+						map[string]attr.Value{
+							"match_condition": util.StringValueOrNull(&matchCondition),
+							"roles":           util.SetValueOrNull(roles),
+						},
+					),
+				})
+			filterObjectValues = append(filterObjectValues, objValue)
 		}
+		filters = types.ListValueMust(filterObjectType, filterObjectValues)
+
+		obj := types.ObjectValueMust(
+			map[string]attr.Type{
+				"match_condition": types.StringType,
+				"filters":         types.ListType{ElemType: types.ObjectType{AttrTypes: filterType}},
+			},
+			map[string]attr.Value{
+				"match_condition": parentMatchCondition,
+				"filters":         filters,
+			},
+		)
+		state.GroupRoleRestriction = obj
 	}
 }

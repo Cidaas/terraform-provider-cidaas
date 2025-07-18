@@ -174,7 +174,7 @@ func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest,
 		}
 	}
 
-	res, err := r.cidaasClient.PasswordPolicy.Create(payload)
+	res, err := r.cidaasClient.PasswordPolicy.Create(ctx, payload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -186,7 +186,7 @@ func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest,
 func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state PasswordPolicyConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.PasswordPolicy.Get(state.ID.ValueString())
+	res, err := r.cidaasClient.PasswordPolicy.Get(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -256,7 +256,7 @@ func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest,
 		}
 	}
 
-	res, err := r.cidaasClient.PasswordPolicy.Update(payload)
+	res, err := r.cidaasClient.PasswordPolicy.Update(ctx, payload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -275,7 +275,7 @@ func (r *PasswordPolicy) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	err := r.cidaasClient.PasswordPolicy.Delete(state.ID.ValueString())
+	err := r.cidaasClient.PasswordPolicy.Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return

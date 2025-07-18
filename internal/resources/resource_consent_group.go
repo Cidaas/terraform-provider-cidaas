@@ -90,7 +90,7 @@ func (r *ConsentGroupResource) Create(ctx context.Context, req resource.CreateRe
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	res, err := r.cidaasClient.ConsentGroup.Upsert(consentGroup)
+	res, err := r.cidaasClient.ConsentGroup.Upsert(ctx, consentGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -105,7 +105,7 @@ func (r *ConsentGroupResource) Create(ctx context.Context, req resource.CreateRe
 func (r *ConsentGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { //nolint:dupl
 	var state ConsentGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.ConsentGroup.Get(state.ID.ValueString())
+	res, err := r.cidaasClient.ConsentGroup.Get(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read consent group", fmt.Sprintf("Error: %s ", err.Error()))
 		return
@@ -129,7 +129,7 @@ func (r *ConsentGroupResource) Update(ctx context.Context, req resource.UpdateRe
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
-	res, err := r.cidaasClient.ConsentGroup.Upsert(consentGroup)
+	res, err := r.cidaasClient.ConsentGroup.Upsert(ctx, consentGroup)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -144,7 +144,7 @@ func (r *ConsentGroupResource) Delete(ctx context.Context, req resource.DeleteRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.ConsentGroup.Delete(state.ID.ValueString())
+	err := r.cidaasClient.ConsentGroup.Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete consent group", fmt.Sprintf("Error: %s", err.Error()))
 		return

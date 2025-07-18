@@ -89,7 +89,7 @@ func (d *ScopeGroupDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := scopeGroupFilter.GetAndFilter(d.Client, data.Filters, listScopeGroups)
+	result, diag := scopeGroupFilter.GetAndFilter(ctx, d.Client, data.Filters, listScopeGroups)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -99,8 +99,8 @@ func (d *ScopeGroupDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listScopeGroups(client *cidaas.Client) ([]any, error) {
-	sgs, err := client.ScopeGroup.GetAll()
+func listScopeGroups(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	sgs, err := client.ScopeGroup.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

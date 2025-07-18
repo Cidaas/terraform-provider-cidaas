@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"regexp"
 	"strings"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
@@ -50,14 +51,20 @@ type ProviderConfig struct {
 	UserinfoEndpoint      types.String `tfsdk:"userinfo_endpoint"`
 	ScopeDisplayLabel     types.String `tfsdk:"scope_display_label"`
 	Domains               types.Set    `tfsdk:"domains"`
-	// Scopes                []Scope       `tfsdk:"scopes"`
-	// UserinfoFields        UserInfoField `tfsdk:"userinfo_fields"`
-	Scopes         types.List   `tfsdk:"scopes"`
-	UserinfoFields types.Object `tfsdk:"userinfo_fields"`
-	scopes         []*CpScope
-	userinfoFields *UserInfoField
-	AmrConfig      types.List   `tfsdk:"amr_config"`
-	UserinfoSource types.String `tfsdk:"userinfo_source"`
+	Scopes                types.List   `tfsdk:"scopes"`
+	UserinfoFields        types.Object `tfsdk:"userinfo_fields"`
+	scopes                []*CpScope
+	userinfoFields        *UserInfoField
+	AmrConfig             types.List   `tfsdk:"amr_config"`
+	UserinfoSource        types.String `tfsdk:"userinfo_source"`
+	Pkce                  types.Bool   `tfsdk:"pkce"`
+	AuthType              types.String `tfsdk:"auth_type"`
+	APIKeyDetails         types.Object `tfsdk:"apikey_details"`
+	TOTPDetails           types.Object `tfsdk:"totp_details"`
+	CidaasAuthDetails     types.Object `tfsdk:"cidaas_auth_details"`
+	apiKeyDetails         *AuthConfig
+	totpDetails           *AuthConfig
+	cidaasAuthDetails     *CidaasAuthConfig
 }
 
 type CpScope struct {
@@ -97,6 +104,7 @@ type UserInfoField struct {
 	MobileNumber      types.Object `tfsdk:"mobile_number"`
 	Address           types.Object `tfsdk:"address"`
 	Sub               types.Object `tfsdk:"sub"`
+	Groups            types.Object `tfsdk:"groups"`
 
 	name              *UfNestedObject
 	familyName        *UfNestedObject
@@ -118,6 +126,7 @@ type UserInfoField struct {
 	mobileNumber      *UfNestedObject
 	address           *UfNestedObject
 	sub               *UfNestedObject
+	groups            *UfNestedObject
 
 	CustomFields types.Map `tfsdk:"custom_fields"`
 }
@@ -159,6 +168,7 @@ func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 		extractField(pc.userinfoFields.MobileNumber, &pc.userinfoFields.mobileNumber)
 		extractField(pc.userinfoFields.Address, &pc.userinfoFields.address)
 		extractField(pc.userinfoFields.Sub, &pc.userinfoFields.sub)
+		extractField(pc.userinfoFields.Groups, &pc.userinfoFields.groups)
 
 		if !pc.userinfoFields.EmailVerified.IsNull() && !pc.userinfoFields.EmailVerified.IsUnknown() {
 			pc.userinfoFields.emailVerified = &UfEmailVerifiedNestedObject{}
@@ -169,6 +179,19 @@ func (pc *ProviderConfig) extract(ctx context.Context) diag.Diagnostics {
 	if !pc.Scopes.IsNull() {
 		pc.scopes = make([]*CpScope, 0, len(pc.Scopes.Elements()))
 		diags.Append(pc.Scopes.ElementsAs(ctx, &pc.scopes, false)...)
+	}
+
+	if !pc.APIKeyDetails.IsNull() {
+		pc.apiKeyDetails = &AuthConfig{}
+		diags = pc.APIKeyDetails.As(ctx, pc.apiKeyDetails, basetypes.ObjectAsOptions{})
+	}
+	if !pc.TOTPDetails.IsNull() {
+		pc.totpDetails = &AuthConfig{}
+		diags = pc.TOTPDetails.As(ctx, pc.totpDetails, basetypes.ObjectAsOptions{})
+	}
+	if !pc.CidaasAuthDetails.IsNull() {
+		pc.cidaasAuthDetails = &CidaasAuthConfig{}
+		diags = pc.CidaasAuthDetails.As(ctx, pc.cidaasAuthDetails, basetypes.ObjectAsOptions{})
 	}
 	return diags
 }
@@ -284,6 +307,7 @@ var customProviderSchema = schema.Schema{
 				"mobile_number":      createStandardNestedAttribute(),
 				"address":            createStandardNestedAttribute(),
 				"sub":                createStandardNestedAttribute(),
+				"groups":             createStandardNestedAttribute(),
 
 				"email_verified": schema.SingleNestedAttribute{
 					Optional: true,
@@ -332,6 +356,94 @@ var customProviderSchema = schema.Schema{
 				stringvalidator.OneOf([]string{"IDTOKEN", "USERINFOENDPOINT"}...),
 			},
 		},
+		"pkce": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			MarkdownDescription: "The flag to enable or disable pkce flow. By default, the value is set to `false`",
+			Default:             booldefault.StaticBool(false),
+		},
+		"auth_type": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Type of authentication. Allowed values `APIKEY`, `CIDAAS_OAUTH2` and `TOTP`.",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"APIKEY", "CIDAAS_OAUTH2", "TOTP"}...),
+			},
+		},
+		"apikey_details": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for API key-based authentication. It's a **required** parameter when the auth_type is APIKEY.",
+			Attributes: map[string]schema.Attribute{
+				"placeholder": schema.StringAttribute{
+					Required:    true,
+					Description: "The attribute is the placeholder for the key which need to be passed as a query parameter or in the request header.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z-]+$`),
+							"must contain only lowercase alphabets",
+						),
+					},
+				},
+				"placement": schema.StringAttribute{
+					Required: true,
+					Description: "The placement of the API key in the request (e.g., query)." +
+						"The allowed value are `header` and `query`.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
+					},
+				},
+				"key": schema.StringAttribute{
+					Required: true,
+					Description: "The API key that will be used to authenticate the webhook request." +
+						"The key that will be passed in the request header or in query param as configured in the attribute `placement`",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+			},
+		},
+		"totp_details": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for TOTP based authentication.  It's a **required** parameter when the auth_type is TOTP.",
+			Attributes: map[string]schema.Attribute{
+				"placeholder": schema.StringAttribute{
+					Required:    true,
+					Description: "A placeholder value for the TOTP.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+						stringvalidator.RegexMatches(
+							regexp.MustCompile(`^[a-z-]+$`),
+							"must contain only lowercase alphabets",
+						),
+					},
+				},
+				"placement": schema.StringAttribute{
+					Required: true,
+					Description: "The placement of the TOTP in the request." +
+						"The allowed value are `header` and `query`.",
+					Validators: []validator.String{
+						stringvalidator.OneOf(cidaas.AllowedKeyPlacementValue...),
+					},
+				},
+				"key": schema.StringAttribute{
+					Required:    true,
+					Description: "The key used for TOTP authentication.",
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+			},
+		},
+		"cidaas_auth_details": schema.SingleNestedAttribute{
+			Optional:    true,
+			Description: "Configuration for Cidaas authentication. It's a **required** parameter when the auth_type is CIDAAS_OAUTH2.",
+			Attributes: map[string]schema.Attribute{
+				"client_id": schema.StringAttribute{
+					Required:    true,
+					Description: "The client ID for Cidaas authentication.",
+				},
+			},
+		},
 	},
 }
 
@@ -344,7 +456,7 @@ func (r *CustomProvider) Create(ctx context.Context, req resource.CreateRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(cp)
+	res, err := r.cidaasClient.CustomProvider.CreateCustomProvider(ctx, cp)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create custom provider", util.FormatErrorMessage(err))
 		return
@@ -357,7 +469,7 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	var state ProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
-	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(state.ProviderName.ValueString())
+	res, err := r.cidaasClient.CustomProvider.GetCustomProvider(ctx, state.ProviderName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read custom provider", util.FormatErrorMessage(err))
 		return
@@ -374,6 +486,8 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.ClientID = util.StringValueOrNull(&res.Data.ClientID)
 	state.ClientSecret = util.StringValueOrNull(&res.Data.ClientSecret)
 	state.Domains = util.SetValueOrNull(res.Data.Domains)
+	state.Pkce = types.BoolValue(res.Data.Pkce)
+	state.AuthType = util.StringValueOrNull(&res.Data.AuthType)
 
 	var diag diag.Diagnostics
 	var objectValues []attr.Value
@@ -407,7 +521,7 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 		"name", "family_name", "given_name", "middle_name", "nickname",
 		"preferred_username", "profile", "picture", "website", "gender",
 		"birthdate", "zoneinfo", "locale", "updated_at", "email",
-		"phone_number", "mobile_number", "address", "sub",
+		"phone_number", "mobile_number", "address", "sub", "groups",
 	}
 
 	metadataAttributeTypes := make(map[string]attr.Type)
@@ -535,6 +649,52 @@ func (r *CustomProvider) Read(ctx context.Context, req resource.ReadRequest, res
 
 	state.UserinfoSource = util.StringValueOrNull(&res.Data.UserInfoSource)
 
+	authConfig := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"placeholder": types.StringType,
+			"placement":   types.StringType,
+			"key":         types.StringType,
+		},
+	}
+
+	if res.Data.APIKeyDetails.Apikey != "" {
+		apiKeyConfig, diags := types.ObjectValue(authConfig.AttrTypes, map[string]attr.Value{
+			"placeholder": util.StringValueOrNull(&res.Data.APIKeyDetails.ApikeyPlaceholder),
+			"placement":   util.StringValueOrNull(&res.Data.APIKeyDetails.ApikeyPlacement),
+			"key":         util.StringValueOrNull(&res.Data.APIKeyDetails.Apikey),
+		})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.APIKeyDetails = apiKeyConfig
+	}
+	if res.Data.TotpDetails.TotpKey != "" {
+		totpConfig, diags := types.ObjectValue(authConfig.AttrTypes, map[string]attr.Value{
+			"placeholder": util.StringValueOrNull(&res.Data.TotpDetails.TotpPlaceholder),
+			"placement":   util.StringValueOrNull(&res.Data.TotpDetails.TotpPlacement),
+			"key":         util.StringValueOrNull(&res.Data.TotpDetails.TotpKey),
+		})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.TOTPDetails = totpConfig
+	}
+
+	if res.Data.CidaasAuthDetails.ClientID != "" {
+		oauthConfig, diags := types.ObjectValue(map[string]attr.Type{
+			"client_id": types.StringType,
+		}, map[string]attr.Value{
+			"client_id": util.StringValueOrNull(&res.Data.CidaasAuthDetails.ClientID),
+		})
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state.CidaasAuthDetails = oauthConfig
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
@@ -551,7 +711,7 @@ func (r *CustomProvider) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 	cp.ID = state.ID.ValueString()
-	err := r.cidaasClient.CustomProvider.UpdateCustomProvider(cp)
+	err := r.cidaasClient.CustomProvider.UpdateCustomProvider(ctx, cp)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update custom provider", util.FormatErrorMessage(err))
 		return
@@ -565,7 +725,7 @@ func (r *CustomProvider) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.CustomProvider.DeleteCustomProvider(state.ProviderName.ValueString())
+	err := r.cidaasClient.CustomProvider.DeleteCustomProvider(ctx, state.ProviderName.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete custom provier", util.FormatErrorMessage(err))
 		return
@@ -589,6 +749,8 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 	cp.UserinfoEndpoint = plan.UserinfoEndpoint.ValueString()
 	cp.ClientID = plan.ClientID.ValueString()
 	cp.ClientSecret = plan.ClientSecret.ValueString()
+	cp.Pkce = plan.Pkce.ValueBool()
+	cp.AuthType = plan.AuthType.ValueString()
 
 	diags = plan.Domains.ElementsAs(ctx, &cp.Domains, false)
 	if diags.HasError() {
@@ -636,6 +798,7 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 		addUserInfoField("mobile_number", plan.userinfoFields.MobileNumber, plan.userinfoFields.mobileNumber)
 		addUserInfoField("address", plan.userinfoFields.Address, plan.userinfoFields.address)
 		addUserInfoField("sub", plan.userinfoFields.Sub, plan.userinfoFields.sub)
+		addUserInfoField("groups", plan.userinfoFields.Groups, plan.userinfoFields.groups)
 
 		if !plan.userinfoFields.EmailVerified.IsNull() &&
 			plan.userinfoFields.emailVerified != nil &&
@@ -681,6 +844,26 @@ func prepareCpRequestPayload(ctx context.Context, plan ProviderConfig) (*cidaas.
 		cp.UserInfoSource = plan.UserinfoSource.ValueString()
 	}
 
+	if !plan.APIKeyDetails.IsNull() {
+		cp.APIKeyDetails = cidaas.APIKeyDetails{
+			ApikeyPlaceholder: plan.apiKeyDetails.Placeholder.ValueString(),
+			ApikeyPlacement:   plan.apiKeyDetails.Placement.ValueString(),
+			Apikey:            plan.apiKeyDetails.Key.ValueString(),
+		}
+	}
+	if !plan.TOTPDetails.IsNull() {
+		cp.TotpDetails = cidaas.TotpDetails{
+			TotpPlaceholder: plan.totpDetails.Placeholder.ValueString(),
+			TotpPlacement:   plan.totpDetails.Placement.ValueString(),
+			TotpKey:         plan.totpDetails.Key.ValueString(),
+		}
+	}
+	if !plan.CidaasAuthDetails.IsNull() {
+		cp.CidaasAuthDetails = cidaas.AuthDetails{
+			ClientID: plan.cidaasAuthDetails.ClientID.ValueString(),
+		}
+	}
+
 	return &cp, diags
 }
 
@@ -720,6 +903,7 @@ func userInfoDefaultValue() basetypes.ObjectValue {
 		"mobile_number":      standardFieldType,
 		"address":            standardFieldType,
 		"sub":                standardFieldType,
+		"groups":             standardFieldType,
 		"custom_fields":      types.MapType{ElemType: types.StringType},
 	}
 
@@ -761,6 +945,7 @@ func userInfoDefaultValue() basetypes.ObjectValue {
 		"mobile_number": assignedValue("mobile_number"),
 		"address":       assignedValue("address"),
 		"sub":           assignedValue("sub"),
+		"groups":        assignedValue("groups"),
 		"custom_fields": types.MapNull(types.StringType),
 	}
 

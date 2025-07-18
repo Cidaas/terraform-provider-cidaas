@@ -89,7 +89,7 @@ func (d *RoleDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := roleFilter.GetAndFilter(d.Client, data.Filters, listRoles)
+	result, diag := roleFilter.GetAndFilter(ctx, d.Client, data.Filters, listRoles)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -99,8 +99,8 @@ func (d *RoleDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listRoles(client *cidaas.Client) ([]any, error) {
-	roles, err := client.Role.GetAll()
+func listRoles(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	roles, err := client.Roles.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

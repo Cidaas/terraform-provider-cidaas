@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -65,31 +66,25 @@ type VerificationType struct {
 	UsageTypes       []string `json:"usageTypes,omitempty"`
 }
 
-var _ TemplateService = &Template{}
-
+// TODO: add isSystemTemplate to struct
 type Template struct {
 	ClientConfig
 }
 
-type TemplateService interface {
-	Upsert(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error)
-	Get(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error)
-	Delete(templateKey string, templateType string) error
-	GetMasterList(groupID string) (*MasterListResponse, error)
-}
-
-func NewTemplate(clientConfig ClientConfig) TemplateService {
+func NewTemplate(clientConfig ClientConfig) *Template {
 	return &Template{clientConfig}
 }
 
-func (t *Template) Upsert(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
+func (t *Template) Upsert(ctx context.Context, template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/template")
 	if !isSystemTemplate {
 		url += "/custom"
 	}
-	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(template)
+	client, err := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, template)
 	if err != nil {
 		return nil, err
 	}
@@ -110,16 +105,18 @@ func (t *Template) Upsert(template TemplateModel, isSystemTemplate bool) (respon
 	return response, nil
 }
 
-func (t *Template) Get(template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
+func (t *Template) Get(ctx context.Context, template TemplateModel, isSystemTemplate bool) (response *TemplateResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.BaseURL, "templates-srv/template")
 	if isSystemTemplate {
 		url += "/find"
 	} else {
 		url += "/custom/find"
 	}
-	httpClient := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(template)
+	client, err := util.NewHTTPClient(url, http.MethodPost, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, template)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -143,11 +140,13 @@ func (t *Template) Get(template TemplateModel, isSystemTemplate bool) (response 
 	return response, nil
 }
 
-func (t *Template) Delete(templateKey string, templateType string) error {
+func (t *Template) Delete(ctx context.Context, templateKey string, templateType string) error {
 	url := fmt.Sprintf("%s/%s/%s/%s", t.BaseURL, "templates-srv/template/custom", strings.ToUpper(templateKey), strings.ToUpper(templateType))
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, t.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -155,12 +154,14 @@ func (t *Template) Delete(templateKey string, templateType string) error {
 	return nil
 }
 
-func (t *Template) GetMasterList(groupID string) (*MasterListResponse, error) {
+func (t *Template) GetMasterList(ctx context.Context, groupID string) (*MasterListResponse, error) {
 	var response MasterListResponse
 	url := fmt.Sprintf("%s/%s/%s", t.BaseURL, "templates-srv/master/settings", groupID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, t.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

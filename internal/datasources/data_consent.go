@@ -82,7 +82,7 @@ func (d *ConsentDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := consentFilter.GetAndFilter(d.Client, data.Filters, listConsents)
+	result, diag := consentFilter.GetAndFilter(ctx, d.Client, data.Filters, listConsents)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -92,8 +92,8 @@ func (d *ConsentDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listConsents(client *cidaas.Client) ([]any, error) {
-	consents, err := client.Consent.GetAll()
+func listConsents(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	consents, err := client.Consent.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
