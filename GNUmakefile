@@ -55,6 +55,6 @@ test: fmtcheck
 	go test $(TEST) $(TESTARGS) -timeout=5m -parallel=4
 
 test-ci:
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m -parallel=2 -coverprofile .coverage.txt ./...
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m -parallel=1 -coverprofile .coverage.txt ./...
 	go tool cover -func .coverage.txt
 	go tool cover -html=.coverage.txt -o coverage.html
