@@ -106,7 +106,7 @@ func (r *ConsentResource) Create(ctx context.Context, req resource.CreateRequest
 		ConsentGroupID: plan.ConsentGroupID.ValueString(),
 		Enabled:        plan.Enabled.ValueBool(),
 	}
-	res, err := r.cidaasClient.Consent.Upsert(consent)
+	res, err := r.cidaasClient.Consent.Upsert(ctx, consent)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create consent", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -120,7 +120,7 @@ func (r *ConsentResource) Create(ctx context.Context, req resource.CreateRequest
 func (r *ConsentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ConsentConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.Consent.GetConsentInstances(state.ConsentGroupID.ValueString())
+	res, err := r.cidaasClient.Consent.GetConsentInstances(ctx, state.ConsentGroupID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to read consent", fmt.Sprintf("Error: %s ", err.Error()))
 		return
@@ -164,7 +164,7 @@ func (r *ConsentResource) Update(ctx context.Context, req resource.UpdateRequest
 		ConsentGroupID: plan.ConsentGroupID.ValueString(),
 		Enabled:        plan.Enabled.ValueBool(),
 	}
-	res, err := r.cidaasClient.Consent.Upsert(consent)
+	res, err := r.cidaasClient.Consent.Upsert(ctx, consent)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update consent", fmt.Sprintf("Error: %s", err.Error()))
 		return
@@ -179,7 +179,7 @@ func (r *ConsentResource) Delete(ctx context.Context, req resource.DeleteRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.Consent.Delete(state.ID.ValueString())
+	err := r.cidaasClient.Consent.Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete consent", fmt.Sprintf("Error: %s", err.Error()))
 		return

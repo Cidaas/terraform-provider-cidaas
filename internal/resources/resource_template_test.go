@@ -1,6 +1,7 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,23 +9,13 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-)
-
-// only covers custom temaplates tests
-// locale validation is already done in other resources, hence skipped in template resource
-
-const resourceTemplate = "cidaas_template.example"
-
-var (
-	templateLocale  = "de-de"
-	templateKey     = strings.ToUpper(acctest.RandString(10))
-	templateType    = "SMS"
-	templateContent = acctest.RandString(256)
 )
 
 // create, read and update test
@@ -77,50 +68,81 @@ func testTemplateConfig(locale, templateKey, templateType, content string) strin
 		provider "cidaas" {
 			base_url = "%s"
 		}
-		resource "cidaas_template" "example" {
+		resource "cidaas_template" "%s" {
 			locale        = "%s"
 			template_key  = "%s"
 			template_type = "%s"
 			content       = "%s"
 		}
-		`, "https://automation-test.dev.cidaas.eu", locale, templateKey, templateType, content)
+		`, acctest.GetBaseURL(), templateKey, locale, templateKey, templateType, content)
 }
 
-func checkTemplateDestroyed(s *terraform.State) error {
-	rs, ok := s.RootModule().Resources[resourceTemplate]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceTemplate)
-	}
+func checkTemplateDestroyed(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceName)
+		}
 
-	template := cidaas.Template{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
-	}
+		template := cidaas.Template{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     os.Getenv("BASE_URL"),
+				AccessToken: acctest.TestToken,
+			},
+		}
 
-	templatePayload := cidaas.TemplateModel{
-		Locale:       rs.Primary.Attributes["locale"],
-		TemplateKey:  rs.Primary.Attributes["temaplte_key"],
-		TemplateType: rs.Primary.Attributes["temaplte_type"],
-	}
+		templatePayload := cidaas.TemplateModel{
+			Locale:       rs.Primary.Attributes["locale"],
+			TemplateKey:  rs.Primary.Attributes["temaplte_key"],
+			TemplateType: rs.Primary.Attributes["temaplte_type"],
+		}
 
-	res, _ := template.Get(templatePayload, false)
-	if res != nil && res.Status != http.StatusNoContent {
-		// when resource exists in remote
-		return fmt.Errorf("resource stil exists %+v", res)
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := template.Get(context.Background(), templatePayload, false)
+
+			// Check if resource is successfully deleted (nil or NoContent status)
+			if res == nil || res.Status == http.StatusNoContent {
+				return nil // Resource successfully deleted
+			}
+
+			// Handle other errors
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if template exists: %w", err)
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("template still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
+		}
+
+		return nil
 	}
-	return nil
 }
 
 // subject can not be empty when template type is SMS
 func TestTemplate_EmailSubjectCheck(t *testing.T) {
+	t.Parallel()
+
+	templateLocale := "de-de"
+	templateContent := acctest.RandString(256)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testTemplateConfig(templateLocale, templateKey, "EMAIL", templateContent),
+				Config:      testTemplateConfig(templateLocale, acctest.RandString(10), "EMAIL", templateContent),
 				ExpectError: regexp.MustCompile("subject can not be empty when template_type is EMAIL"),
 			},
 		},
@@ -130,6 +152,12 @@ func TestTemplate_EmailSubjectCheck(t *testing.T) {
 // template_key must be a valid string consisting only of uppercase letters,
 // digits (0-9), underscores (_), and hyphens (-)
 func TestTemplate_TemplateKeyValidation(t *testing.T) {
+	t.Parallel()
+
+	templateLocale := "de-de"
+	templateType := "SMS"
+	templateContent := acctest.RandString(256)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -144,6 +172,11 @@ func TestTemplate_TemplateKeyValidation(t *testing.T) {
 
 // template_type must be one of "EMAIL", "SMS", "IVR" and "PUSH"
 func TestTemplate_TemplateTypeValidation(t *testing.T) {
+	t.Parallel()
+
+	templateLocale := "de-de"
+	templateContent := acctest.RandString(256)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -158,39 +191,54 @@ func TestTemplate_TemplateTypeValidation(t *testing.T) {
 
 // required params locale, template_key, teamplte_type and content
 func TestTemplate_MissingRequired(t *testing.T) {
+	t.Parallel()
+
 	requiredParams := []string{"locale", "template_key", "template_type", "content"}
-	for _, v := range requiredParams {
-		resource.Test(t, resource.TestCase{
-			PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-			ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-			Steps: []resource.TestStep{
-				{
-					Config: fmt.Sprintf(`
-						provider "cidaas" {
-							base_url = "%s"
-						}
-						resource "cidaas_template" "example" {}
-					`, "https://automation-test.dev.cidaas.eu"),
-					ExpectError: regexp.MustCompile(fmt.Sprintf(`"%s" is required`, v)), // TODO: full string validation
+
+	for _, param := range requiredParams {
+		param := param // Capture loop variable
+		t.Run(fmt.Sprintf("missing_%s", param), func(t *testing.T) {
+			t.Parallel()
+
+			testResourceID := acctest.RandString(10)
+
+			resource.Test(t, resource.TestCase{
+				PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+				ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config: fmt.Sprintf(`
+                            provider "cidaas" {
+                                base_url = "%s"
+                            }
+                            resource "cidaas_template" "%s" {}
+                        `, acctest.GetBaseURL(), testResourceID),
+						ExpectError: regexp.MustCompile(fmt.Sprintf(`"%s" is required`, param)),
+					},
 				},
-			},
+			})
 		})
 	}
 }
 
-// System Template basic create update and delete, system template can not be imported
+// System Template basic create, update and delete, system template can not be imported
 func TestTemplate_SystemTemplateBasic(t *testing.T) {
+	t.Parallel()
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_TEMPLATE, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             checkTemplateDestroyed,
+		CheckDestroy:             checkTemplateDestroyed(testResourceName),
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_template" "example" {
+				resource "cidaas_template" "%s" {
 					locale             = "en-us"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
@@ -201,10 +249,10 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, "https://automation-test.dev.cidaas.eu"),
+				`, acctest.GetBaseURL(), testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "is_system_template", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttrSet(resourceTemplate, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "is_system_template", strconv.FormatBool(true)),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
@@ -212,7 +260,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_template" "example" {
+				resource "cidaas_template" "%s" {
 					locale             = "en-us"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
@@ -223,9 +271,9 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, "https://automation-test.dev.cidaas.eu"),
+				`, acctest.GetBaseURL(), testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
+					resource.TestCheckResourceAttr(testResourceName, "content", "Hi {{name}}, here is the {{code}} to verify the user updated"),
 				),
 			},
 			// templated reverted back to the old state
@@ -234,7 +282,7 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_template" "example" {
+				resource "cidaas_template" "%s" {
 					locale             = "en-us"
 					template_key       = "VERIFY_USER"
 					template_type      = "SMS"
@@ -245,9 +293,9 @@ func TestTemplate_SystemTemplateBasic(t *testing.T) {
 					verification_type  = "SMS"
 					usage_type         = "VERIFICATION_CONFIGURATION"
 				}
-				`, "https://automation-test.dev.cidaas.eu"),
+				`, acctest.GetBaseURL(), testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceTemplate, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
+					resource.TestCheckResourceAttr(testResourceName, "content", "Hi {{name}}, here is the {{code}} to verify the user"),
 				),
 			},
 		},

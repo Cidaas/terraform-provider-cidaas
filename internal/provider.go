@@ -106,7 +106,7 @@ func (p *cidaasProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		BaseURL:      data.BaseURL.ValueString(),
 	}
 
-	client, err := cidaas.NewClient(clientConfig)
+	client, err := cidaas.NewClient(ctx, clientConfig)
 	if err != nil {
 		resp.Diagnostics.AddError("provide configuration failed", fmt.Sprintf("failed to create cidaas client %s", err.Error()))
 		return

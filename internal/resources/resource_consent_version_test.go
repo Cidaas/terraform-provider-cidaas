@@ -4,51 +4,52 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-const (
-	resourceConsentVersion = "cidaas_consent_version.example"
-)
-
-// create, read and update test
 func TestConsentVersion_Basic(t *testing.T) {
+	t.Parallel()
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_CONSENT_VERSION, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConsentVersionConfig("consent version in German"),
+				Config: testConsentVersionConfig("consent version in German", testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceConsentVersion, "consent_type", "SCOPES"),
-					resource.TestCheckResourceAttrSet(resourceConsentVersion, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "consent_type", "SCOPES"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				ResourceName:      resourceConsentVersion,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					rs, ok := s.RootModule().Resources[resourceConsentVersion]
+					rs, ok := s.RootModule().Resources[testResourceName]
 					if !ok {
-						return "", fmt.Errorf("Not found: %s", resourceConsentVersion)
+						return "", fmt.Errorf("Not found: %s", testResourceName)
 					}
 					return rs.Primary.Attributes["consent_id"] + ":" + rs.Primary.ID + ":de:en", nil
 				},
 			},
 			{
-				Config: testConsentVersionConfig("updated consent version in German"),
+				Config: testConsentVersionConfig("updated consent version in German", testResourceID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceConsentVersion, "consent_type", "SCOPES"),
+					resource.TestCheckResourceAttr(testResourceName, "consent_type", "SCOPES"),
 				),
 			},
 		},
 	})
 }
 
-func testConsentVersionConfig(content string) string {
+func testConsentVersionConfig(content, resourceID string) string {
 	return fmt.Sprintf(`
 		provider "cidaas" {
 			base_url = "%s"
@@ -62,7 +63,7 @@ func testConsentVersionConfig(content string) string {
 			name             = "sample_consent"
 			enabled          = true
 		}
-		resource "cidaas_consent_version" "example" {
+		resource "cidaas_consent_version" "%s" {
 			version         = 1
 			consent_id      = cidaas_consent.sample.id
 			consent_type    = "SCOPES"
@@ -79,5 +80,5 @@ func testConsentVersionConfig(content string) string {
 				}
 			]
 		}		
-	`, acctest.BaseURL, content)
+	`, acctest.GetBaseURL(), resourceID, content)
 }

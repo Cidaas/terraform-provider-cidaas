@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -57,14 +58,14 @@ type FieldDefinition struct {
 }
 
 type LocaleText struct {
-	MinLengthErrorMsg string       `json:"minLength,omitempty"`
-	MaxLengthErrorMsg string       `json:"maxLength,omitempty"`
-	RequiredMsg       string       `json:"required,omitempty"`
-	Language          string       `json:"language,omitempty"`
-	Locale            string       `json:"locale,omitempty"`
-	Name              string       `json:"name,omitempty"`
-	Attributes        []*Attribute `json:"attributes,omitempty"`
-	ConsentLabel      *Consent     `json:"consentLabel,omitempty"`
+	MinLengthErrorMsg string        `json:"minLength,omitempty"`
+	MaxLengthErrorMsg string        `json:"maxLength,omitempty"`
+	RequiredMsg       string        `json:"required,omitempty"`
+	Language          string        `json:"language,omitempty"`
+	Locale            string        `json:"locale,omitempty"`
+	Name              string        `json:"name,omitempty"`
+	Attributes        []*Attribute  `json:"attributes,omitempty"`
+	ConsentLabel      *ConsentLabel `json:"consentLabel,omitempty"`
 }
 
 type Attribute struct {
@@ -72,34 +73,27 @@ type Attribute struct {
 	Value string `json:"value,omitempty"`
 }
 
-type Consent struct {
+type ConsentLabel struct {
 	Label     string `json:"label,omitempty"`
 	LabelText string `json:"label_text,omitempty"`
 }
-
-var _ RegFieldService = &RegField{}
 
 type RegField struct {
 	ClientConfig
 }
 
-type RegFieldService interface {
-	Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error)
-	Get(fieldKey string) (*RegistrationFieldResponse, error)
-	Delete(fieldKey string) error
-	GetAll() ([]RegistrationFieldConfig, error)
-}
-
-func NewRegField(clientConfig ClientConfig) RegFieldService {
+func NewRegField(clientConfig ClientConfig) *RegField {
 	return &RegField{clientConfig}
 }
 
-func (r *RegField) Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error) {
+func (r *RegField) Upsert(ctx context.Context, rfc RegistrationFieldConfig) (*RegistrationFieldResponse, error) {
 	var response RegistrationFieldResponse
 	url := fmt.Sprintf("%s/%s", r.BaseURL, "fieldsetup-srv/fields")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(rfc)
+	client, err := util.NewHTTPClient(url, http.MethodPost, r.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, rfc)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -111,12 +105,14 @@ func (r *RegField) Upsert(rfc RegistrationFieldConfig) (*RegistrationFieldRespon
 	return &response, nil
 }
 
-func (r *RegField) Get(fieldKey string) (*RegistrationFieldResponse, error) {
+func (r *RegField) Get(ctx context.Context, fieldKey string) (*RegistrationFieldResponse, error) {
 	var response RegistrationFieldResponse
 	url := fmt.Sprintf("%s/%s/%s", r.BaseURL, "fieldsetup-srv/fields", fieldKey)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -128,11 +124,13 @@ func (r *RegField) Get(fieldKey string) (*RegistrationFieldResponse, error) {
 	return &response, nil
 }
 
-func (r *RegField) Delete(fieldKey string) error {
+func (r *RegField) Delete(ctx context.Context, fieldKey string) error {
 	url := fmt.Sprintf("%s/%s/%s", r.BaseURL, "fieldsetup-srv/fields", fieldKey)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, r.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -140,12 +138,14 @@ func (r *RegField) Delete(fieldKey string) error {
 	return nil
 }
 
-func (r *RegField) GetAll() ([]RegistrationFieldConfig, error) {
+func (r *RegField) GetAll(ctx context.Context) ([]RegistrationFieldConfig, error) {
 	var response AllRegFieldResponse
 	url := fmt.Sprintf("%s/%s", r.BaseURL, "registration-setup-srv/fields/list")
-	httpClient := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, r.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

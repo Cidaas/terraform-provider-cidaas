@@ -103,8 +103,8 @@ var hostedPageSchema = schema.Schema{
 			Validators: []validator.String{
 				stringvalidator.OneOf(
 					func() []string {
-						validLocals := make([]string, len(util.Locals))
-						for i, locale := range util.Locals {
+						validLocals := make([]string, len(util.Locales))
+						for i, locale := range util.Locales {
 							validLocals[i] = locale.LocaleString
 						}
 						return validLocals
@@ -136,8 +136,8 @@ var hostedPageSchema = schema.Schema{
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								func() []string {
-									validLocals := make([]string, len(util.Locals))
-									for i, locale := range util.Locals {
+									validLocals := make([]string, len(util.Locales))
+									for i, locale := range util.Locales {
 										validLocals[i] = locale.LocaleString
 									}
 									return validLocals
@@ -181,7 +181,7 @@ func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.HostedPage.Upsert(*hpPayload)
+	res, err := r.cidaasClient.HostedPages.Upsert(ctx, *hpPayload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create hosted page", util.FormatErrorMessage(err))
 		return
@@ -198,7 +198,7 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.HostedPage.Get(state.ID.ValueString())
+	res, err := r.cidaasClient.HostedPages.Get(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read hosted page", util.FormatErrorMessage(err))
 		return
@@ -256,7 +256,7 @@ func (r *HostedPageResource) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	_, err := r.cidaasClient.HostedPage.Upsert(*hpPayload)
+	_, err := r.cidaasClient.HostedPages.Upsert(ctx, *hpPayload)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update hosted page", util.FormatErrorMessage(err))
 		return
@@ -270,7 +270,7 @@ func (r *HostedPageResource) Delete(ctx context.Context, req resource.DeleteRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.HostedPage.Delete(state.ID.ValueString())
+	err := r.cidaasClient.HostedPages.Delete(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete hosted page", util.FormatErrorMessage(err))
 		return

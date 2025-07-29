@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -28,26 +29,22 @@ type ConsentInstanceResponse struct {
 	Data    []ConsentModel `json:"data,omitempty"`
 }
 
-type ConsentClient struct {
+type Consent struct {
 	ClientConfig
 }
-type ConsentService interface {
-	Upsert(consent ConsentModel) (*ConsentResponse, error)
-	GetConsentInstances(consentGroupID string) (*ConsentInstanceResponse, error)
-	Delete(consentID string) error
-	GetAll() ([]ConsentModel, error)
+
+func NewConsent(clientConfig ClientConfig) *Consent {
+	return &Consent{clientConfig}
 }
 
-func NewConsent(clientConfig ClientConfig) ConsentService {
-	return &ConsentClient{clientConfig}
-}
-
-func (c *ConsentClient) Upsert(consentConfig ConsentModel) (*ConsentResponse, error) {
+func (c *Consent) Upsert(ctx context.Context, consentConfig ConsentModel) (*ConsentResponse, error) {
 	var response ConsentResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/instance")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(consentConfig)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, consentConfig)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -59,12 +56,14 @@ func (c *ConsentClient) Upsert(consentConfig ConsentModel) (*ConsentResponse, er
 	return &response, nil
 }
 
-func (c *ConsentClient) GetConsentInstances(consentGroupID string) (*ConsentInstanceResponse, error) {
+func (c *Consent) GetConsentInstances(ctx context.Context, consentGroupID string) (*ConsentInstanceResponse, error) {
 	var response ConsentInstanceResponse
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/consent/instance", consentGroupID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if res.StatusCode == http.StatusNoContent {
 		return &ConsentInstanceResponse{
 			Success: false,
@@ -81,11 +80,13 @@ func (c *ConsentClient) GetConsentInstances(consentGroupID string) (*ConsentInst
 	return &response, nil
 }
 
-func (c *ConsentClient) Delete(consentID string) error {
+func (c *Consent) Delete(ctx context.Context, consentID string) error {
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/consent/instance", consentID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
@@ -93,12 +94,14 @@ func (c *ConsentClient) Delete(consentID string) error {
 	return nil
 }
 
-func (c *ConsentClient) GetAll() ([]ConsentModel, error) {
+func (c *Consent) GetAll(ctx context.Context) ([]ConsentModel, error) {
 	var response ConsentInstanceResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/instance/all/list")
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}

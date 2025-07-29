@@ -118,7 +118,7 @@ func (r *GroupTypeResource) Create(ctx context.Context, req resource.CreateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.cidaasClient.GroupType.Create(groupType)
+	res, err := r.cidaasClient.GroupType.Create(ctx, groupType)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to create group type", util.FormatErrorMessage(err))
 		return
@@ -132,7 +132,7 @@ func (r *GroupTypeResource) Create(ctx context.Context, req resource.CreateReque
 func (r *GroupTypeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state GroupTypeConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	res, err := r.cidaasClient.GroupType.Get(state.GroupType.ValueString())
+	res, err := r.cidaasClient.GroupType.Get(ctx, state.GroupType.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to read group type", util.FormatErrorMessage(err))
 		return
@@ -165,7 +165,7 @@ func (r *GroupTypeResource) Update(ctx context.Context, req resource.UpdateReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.GroupType.Update(groupType)
+	err := r.cidaasClient.GroupType.Update(ctx, groupType)
 	if err != nil {
 		resp.Diagnostics.AddError("failed to update group type", util.FormatErrorMessage(err))
 		return
@@ -179,7 +179,7 @@ func (r *GroupTypeResource) Delete(ctx context.Context, req resource.DeleteReque
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	err := r.cidaasClient.GroupType.Delete(state.GroupType.ValueString())
+	err := r.cidaasClient.GroupType.Delete(ctx, state.GroupType.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("failed to delete group type", util.FormatErrorMessage(err))
 		return
@@ -220,7 +220,7 @@ func (v allowedRolesValidator) ValidateSet(ctx context.Context, req validator.Se
 		return
 	}
 
-	allowedRolesRequired := util.StringInSlice(roleMode, []string{"roles_required", "allowed_roles"})
+	allowedRolesRequired := util.Contains([]string{"roles_required", "allowed_roles"}, roleMode)
 	if allowedRolesRequired && len(allowedRoles) == 0 {
 		resp.Diagnostics.AddError("Unexpected Resource Configuration",
 			fmt.Sprintf("The attribute allowed_roles cannot be empty when role_mode is set to %s", roleMode))

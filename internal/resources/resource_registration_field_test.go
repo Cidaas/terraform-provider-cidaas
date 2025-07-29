@@ -5,17 +5,18 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const (
-	resourceRegField = "cidaas_registration_field.example"
-)
-
 // create, read and update test
 func TestRegistrationField_CheckBoxBasic(t *testing.T) {
+	t.Parallel()
+
 	fieldKey := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_REGISTRATION_FIELD, fieldKey)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -23,12 +24,12 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 			{
 				Config: testRegFieldConfig("CHECKBOX", fieldKey, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				ResourceName:      resourceRegField,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     fieldKey,
@@ -36,7 +37,7 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 			{
 				Config: testRegFieldConfig("CHECKBOX", fieldKey, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 		},
@@ -44,7 +45,11 @@ func TestRegistrationField_CheckBoxBasic(t *testing.T) {
 }
 
 func TestRegistrationField_GroupBasic(t *testing.T) {
+	t.Parallel()
+
 	fieldKey := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_REGISTRATION_FIELD, fieldKey)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -52,12 +57,12 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 			{
 				Config: testRegFieldConfig("TEXT", fieldKey, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				ResourceName:      resourceRegField,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     fieldKey,
@@ -65,7 +70,7 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 			{
 				Config: testRegFieldConfig("TEXT", fieldKey, false, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 		},
@@ -73,7 +78,11 @@ func TestRegistrationField_GroupBasic(t *testing.T) {
 }
 
 func TestRegistrationField_TextBasic(t *testing.T) {
-	fiedKey := acctest.RandString(10)
+	t.Parallel()
+
+	fieldKey := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_REGISTRATION_FIELD, fieldKey)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -83,7 +92,7 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_registration_field" "example" {
+				resource "cidaas_registration_field" "%s" {
 					data_type                                      = "TEXT"
 					field_key                                      = "%s"
 					field_type                                     = "CUSTOM"  // CUSTOM and SYSTEM, SYSTEM can not be created but modified
@@ -119,17 +128,17 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 						regex = "^.{10,100}$"
 					}
 				}							
-			`, acctest.BaseURL, fiedKey),
+			`, acctest.GetBaseURL(), fieldKey, fieldKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", fiedKey),
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				ResourceName:      resourceRegField,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     fiedKey,
+				ImportStateId:     fieldKey,
 			},
 		},
 	})
@@ -140,7 +149,7 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 		provider "cidaas" {
 			base_url = "%s"
 		}
-		resource "cidaas_registration_field" "example" {
+		resource "cidaas_registration_field" "%s" {
 			data_type                                      = "%s"
 			field_key                                      = "%s"
 			field_type                                     = "CUSTOM"
@@ -169,11 +178,14 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 				}
 			]
 		}				
-	`, acctest.BaseURL, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
+	`, acctest.GetBaseURL(), fieldKey, dataType, fieldKey, strconv.FormatBool(internal), strconv.FormatBool(isGroup))
 }
 
 func TestRegistrationField_SelectBasic(t *testing.T) {
+	t.Parallel()
+
 	fieldKey := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_REGISTRATION_FIELD, fieldKey)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
@@ -184,7 +196,7 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_registration_field" "example" {
+				resource "cidaas_registration_field" "%s" {
 					data_type                                      = "RADIO"
 					field_key                                      = "%s"
 					field_type                                     = "CUSTOM"
@@ -225,14 +237,14 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 						}
 					]
 				}
-			`, acctest.BaseURL, fieldKey),
+			`, acctest.GetBaseURL(), fieldKey, fieldKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceRegField, "field_key", fieldKey),
-					resource.TestCheckResourceAttrSet(resourceRegField, "id"),
+					resource.TestCheckResourceAttr(testResourceName, "field_key", fieldKey),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
 				),
 			},
 			{
-				ResourceName:      resourceRegField,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateId:     fieldKey,

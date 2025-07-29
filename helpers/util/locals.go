@@ -1,5 +1,6 @@
 package util
 
+// LocaleData represents locale information including language, country, and display names.
 type LocaleData struct {
 	LocaleString    string
 	Country         string
@@ -13,8 +14,12 @@ type LocaleData struct {
 	Variant         string
 }
 
+const (
+	DefaultLanguage = "en"
+)
+
 // TODO: read from api for a dynamic list
-var Locals = []LocaleData{
+var Locales = []LocaleData{
 	{LocaleString: "ar", Country: "", DisplayCountry: "", DisplayLanguage: "Arabic", DisplayName: "Arabic", DisplayVariant: "", ISO3Country: "", ISO3Language: "ara", Language: "ar", Variant: ""},
 	{LocaleString: "ar-AE", Country: "AE", DisplayCountry: "United Arab Emirates", DisplayLanguage: "Arabic", DisplayName: "Arabic (United Arab Emirates)", DisplayVariant: "", ISO3Country: "ARE", ISO3Language: "ara", Language: "ar", Variant: ""},
 	{LocaleString: "ar-BH", Country: "BH", DisplayCountry: "Bahrain", DisplayLanguage: "Arabic", DisplayName: "Arabic (Bahrain)", DisplayVariant: "", ISO3Country: "BHR", ISO3Language: "ara", Language: "ar", Variant: ""},
@@ -158,23 +163,22 @@ var Locals = []LocaleData{
 	{LocaleString: "id", Country: "ID", DisplayCountry: "Indonesia", DisplayLanguage: "Indonesian", DisplayName: "Indonesian (Indonesia)", DisplayVariant: "", ISO3Country: "IDN", ISO3Language: "ind", Language: "id", Variant: ""},
 }
 
-func GetLanguageForLocale(locale string) string {
-	for _, v := range Locals {
-		if v.LocaleString == locale {
-			return v.Language
-		}
+var localeToLanguageMap map[string]string
+
+// init initializes the locale lookup map for efficient language code retrieval.
+// This function runs automatically when the package is imported.
+func init() {
+	localeToLanguageMap = make(map[string]string, len(Locales))
+	for _, locale := range Locales {
+		localeToLanguageMap[locale.LocaleString] = locale.Language
 	}
-	return "en"
 }
 
-var AllowedClaims = []string{
-	"name", "given_name", "family_name", "nickname", "preferred_username", "profile",
-	"picture", "website", "email", "email_verified", "gender", "middle_name", "birthdate", "zoneinfo", "locale",
-	"phone_number", "phone_number_verified", "formatted", "street_address", "locality", "region", "postal_code", "country",
-}
-
-var AllowedProviders = []string{
-	"google", "facebook", "linkedin", "amazon", "foursquare", "github",
-	"instagram", "yammer", "wordpress", "microsoft", "yahoo", "officeenterprise", "salesforce", "paypal_sandbox", "paypal",
-	"apple", "twitter", "netid", "netid_qa",
+// GetLanguageForLocale returns the language code for a given locale string.
+// Returns "en" as default if the locale is not found.
+func GetLanguageForLocale(locale string) string {
+	if lang, exists := localeToLanguageMap[locale]; exists {
+		return lang
+	}
+	return DefaultLanguage
 }

@@ -101,7 +101,7 @@ func (d *GroupTypeDataSource) Read(
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
-	result, diag := groupTypeFilter.GetAndFilter(d.Client, data.Filters, listGroupTypes)
+	result, diag := groupTypeFilter.GetAndFilter(ctx, d.Client, data.Filters, listGroupTypes)
 	if diag != nil {
 		resp.Diagnostics.Append(diag)
 		return
@@ -114,8 +114,8 @@ func (d *GroupTypeDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listGroupTypes(client *cidaas.Client) ([]any, error) {
-	groupTypes, err := client.GroupType.GetAll()
+func listGroupTypes(ctx context.Context, client *cidaas.Client) ([]any, error) {
+	groupTypes, err := client.GroupType.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}

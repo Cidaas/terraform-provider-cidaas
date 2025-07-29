@@ -1,21 +1,23 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 const (
-	resourceScope       = "cidaas_scope.example"
 	scopeSecurityLevel  = "CONFIDENTIAL"
 	requiredUserConsent = false
 	title               = "scope title in German"
@@ -24,7 +26,6 @@ const (
 )
 
 var (
-	scopeKey              = acctest.RandString(10)
 	defaultScopeGroupName = []string{"developer"}
 	localizedDescriptions = []map[string]string{
 		{
@@ -35,63 +36,67 @@ var (
 	}
 )
 
-// TODO: empty groupNameString test fails as it returns a plan to
-// update even though there is no change to update
-
 // create, read and update test
-// func TestAccScopeResource_Basic(t *testing.T) {
-// 	updatedScopeDescription := "Updated description of the scope in German"
-// 	updatedRequiredUserConsent := true
-// 	localizedDescriptions = []map[string]string{
-// 		{
-// 			"title":  title,
-// 			"locale": locale,
-// 			// description is updated to validate update operation
-// 			"description": updatedScopeDescription,
-// 		},
-// 	}
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
-// 		CheckDestroy:             testCheckScopeDestroyed,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					resource.TestCheckResourceAttr(resourceScope, "security_level", scopeSecurityLevel),
-// 					resource.TestCheckResourceAttr(resourceScope, "scope_key", scopeKey),
-// 					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(requiredUserConsent)),
-// 					resource.TestCheckResourceAttr(resourceScope, "group_name.0", "developer"),
-// 					resource.TestCheckResourceAttrSet(resourceScope, "id"),
-// 					resource.TestCheckResourceAttrSet(resourceScope, "scope_owner"),
-// 				),
-// 			},
-// 			{
-// 				ResourceName:      resourceScope,
-// 				ImportStateId:     scopeKey,
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 			},
-// 			{
-// 				// required_user_consent & description in localized_descriptions updated
-// 				Config: testAccScopeResourceConfig(
-// 					scopeSecurityLevel,
-// 					scopeKey,
-// 					updatedRequiredUserConsent,
-// 					defaultScopeGroupName,
-// 					localizedDescriptions,
-// 				),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(updatedRequiredUserConsent)),
-// 					resource.TestCheckResourceAttr(resourceScope, "localized_descriptions.0.description", updatedScopeDescription),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+func TestAccScopeResource_Basic(t *testing.T) {
+	t.Parallel()
+
+	updatedScopeDescription := "Updated description of the scope in German"
+	updatedRequiredUserConsent := true
+	localizedDesc := []map[string]string{
+		{
+			"title":  title,
+			"locale": locale,
+			// description is updated to validate update operation
+			"description": updatedScopeDescription,
+		},
+	}
+	scopeKey := acctest.RandString(10)
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_SCOPE, testResourceID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             testCheckScopeDestroyed(testResourceName),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, testResourceID, requiredUserConsent, defaultScopeGroupName, localizedDesc),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(testResourceName, "security_level", scopeSecurityLevel),
+					resource.TestCheckResourceAttr(testResourceName, "scope_key", scopeKey),
+					resource.TestCheckResourceAttr(testResourceName, "required_user_consent", strconv.FormatBool(requiredUserConsent)),
+					resource.TestCheckResourceAttr(testResourceName, "group_name.0", "developer"),
+					resource.TestCheckResourceAttrSet(testResourceName, "id"),
+					resource.TestCheckResourceAttrSet(testResourceName, "scope_owner"),
+				),
+			},
+			{
+				ResourceName:      testResourceName,
+				ImportStateId:     scopeKey,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// required_user_consent & description in localized_descriptions updated
+				Config: testAccScopeResourceConfig(
+					scopeSecurityLevel,
+					scopeKey,
+					testResourceID,
+					updatedRequiredUserConsent,
+					defaultScopeGroupName,
+					localizedDesc,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(testResourceName, "required_user_consent", strconv.FormatBool(updatedRequiredUserConsent)),
+					resource.TestCheckResourceAttr(testResourceName, "localized_descriptions.0.description", updatedScopeDescription),
+				),
+			},
+		},
+	})
+}
 
 func testAccScopeResourceConfig(
-	securityLevel, scopeKey string,
+	securityLevel, scopeKey, resourceID string,
 	requiredUserConsent bool,
 	groupName []string,
 	localizedDescriptions []map[string]string,
@@ -105,7 +110,7 @@ func testAccScopeResourceConfig(
 		provider "cidaas" {
 			base_url = "%s"
 		}
-		resource "cidaas_scope" "example" {
+		resource "cidaas_scope" "%s" {
 			security_level = "`+securityLevel+`"
 			scope_key = "`+scopeKey+`"
 			required_user_consent = "`+strconv.FormatBool(requiredUserConsent)+`"
@@ -118,44 +123,78 @@ func testAccScopeResourceConfig(
 				}
 			]
 		}
-	`, acctest.BaseURL)
+	`, acctest.GetBaseURL(), resourceID)
 }
 
-func testCheckScopeDestroyed(s *terraform.State) error {
-	rs, ok := s.RootModule().Resources[resourceScope]
-	if !ok {
-		return fmt.Errorf("resource %s not fround", resourceScope)
-	}
+func testCheckScopeDestroyed(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", resourceName)
+		}
 
-	scope := cidaas.ScopeImpl{
-		ClientConfig: cidaas.ClientConfig{
-			BaseURL:     os.Getenv("BASE_URL"),
-			AccessToken: acctest.TestToken,
-		},
+		scope := cidaas.Scope{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     os.Getenv("BASE_URL"),
+				AccessToken: acctest.TestToken,
+			},
+		}
+
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := scope.Get(context.Background(), rs.Primary.Attributes["scope_key"])
+
+			// Check if resource is successfully deleted (nil response)
+			if res == nil {
+				return nil // Resource successfully deleted
+			}
+
+			// Handle other errors
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if scope exists: %w", err)
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("scope still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
+		}
+
+		return nil
 	}
-	res, _ := scope.Get(rs.Primary.Attributes["scope_key"])
-	if res != nil {
-		// when resource exists in remote
-		return fmt.Errorf("resource stil exists %+v", res)
-	}
-	return nil
 }
 
 // failed validation on updating immutable proprty scope_key
 func TestAccScopeResource_ImmutableScopeKeyUpdateFail(t *testing.T) {
+	t.Parallel()
+
+	scopeKey := acctest.RandString(10)
 	updatedScopeKey := acctest.RandString(10)
+
+	testResourceID := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_SCOPE, testResourceID)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
+				Config: testAccScopeResourceConfig(scopeSecurityLevel, scopeKey, testResourceID, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceScope, "scope_key", scopeKey),
+					resource.TestCheckResourceAttr(testResourceName, "scope_key", scopeKey),
 				),
 			},
 			{
-				Config:      testAccScopeResourceConfig(scopeSecurityLevel, updatedScopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
+				Config:      testAccScopeResourceConfig(scopeSecurityLevel, updatedScopeKey, testResourceID, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
 				ExpectError: regexp.MustCompile(`Attribute 'scope_key' can't be modified.`),
 			},
 		},
@@ -164,6 +203,9 @@ func TestAccScopeResource_ImmutableScopeKeyUpdateFail(t *testing.T) {
 
 // Invalid security_level validation
 func TestAccScopeResource_InvalidSecurityLevel(t *testing.T) {
+	t.Parallel()
+
+	scopeKey := acctest.RandString(10)
 	invalidSecurityLevel := "INVALID"
 
 	resource.Test(t, resource.TestCase{
@@ -171,7 +213,7 @@ func TestAccScopeResource_InvalidSecurityLevel(t *testing.T) {
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccScopeResourceConfig(invalidSecurityLevel, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
+				Config:      testAccScopeResourceConfig(invalidSecurityLevel, scopeKey, scopeKey, requiredUserConsent, defaultScopeGroupName, localizedDescriptions),
 				ExpectError: regexp.MustCompile(`Attribute security_level value must be one of: \["PUBLIC" "CONFIDENTIAL"\]`),
 			},
 		},
@@ -180,6 +222,8 @@ func TestAccScopeResource_InvalidSecurityLevel(t *testing.T) {
 
 // missing required parameter scope_key
 func TestAccScopeResource_MissingRequired(t *testing.T) {
+	t.Parallel()
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -189,9 +233,9 @@ func TestAccScopeResource_MissingRequired(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_scope" "example" {
+				resource "cidaas_scope" "%s" {
 				}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), acctest.RandString(10)),
 				ExpectError: regexp.MustCompile(`The argument "scope_key" is required, but no definition was found.`),
 			},
 		},
@@ -200,6 +244,11 @@ func TestAccScopeResource_MissingRequired(t *testing.T) {
 
 // check default required_user_consent is false
 func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
+	t.Parallel()
+
+	scopeKey := acctest.RandString(10)
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_SCOPE, scopeKey)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -209,7 +258,7 @@ func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_scope" "example" {
+				resource "cidaas_scope" "%s" {
 					security_level = "PUBLIC"
 					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
@@ -221,10 +270,10 @@ func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
 						}
 					]
 				}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), scopeKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceScope, "required_user_consent"),
-					resource.TestCheckResourceAttr(resourceScope, "required_user_consent", strconv.FormatBool(false)),
+					resource.TestCheckResourceAttrSet(testResourceName, "required_user_consent"),
+					resource.TestCheckResourceAttr(testResourceName, "required_user_consent", strconv.FormatBool(false)),
 				),
 			},
 		},
@@ -233,6 +282,10 @@ func TestAccScopeResource_DefaultRequiredConsent(t *testing.T) {
 
 // localized_descriptions[i].title is required
 func TestAccScopeResource_TitleRequired(t *testing.T) {
+	t.Parallel()
+
+	scopeKey := acctest.RandString(10)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -242,7 +295,7 @@ func TestAccScopeResource_TitleRequired(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_scope" "example" {
+				resource "cidaas_scope" "%s" {
 					security_level = "PUBLIC"
 					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
@@ -253,7 +306,7 @@ func TestAccScopeResource_TitleRequired(t *testing.T) {
 						}
 					]
 				}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), scopeKey),
 				ExpectError: regexp.MustCompile(`attribute "title" is required`),
 			},
 		},
@@ -262,7 +315,11 @@ func TestAccScopeResource_TitleRequired(t *testing.T) {
 
 // Invalid locale validation
 func TestAccScopeResource_InvalidLocale(t *testing.T) {
+	t.Parallel()
+
+	scopeKey := acctest.RandString(10)
 	invalidLocale := "ab"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -272,7 +329,7 @@ func TestAccScopeResource_InvalidLocale(t *testing.T) {
 				provider "cidaas" {
 					base_url = "%s"
 				}
-				resource "cidaas_scope" "example" {
+				resource "cidaas_scope" "%s" {
 					security_level = "PUBLIC"
 					scope_key = "`+scopeKey+`"
 					group_name = ["developer"]
@@ -284,7 +341,7 @@ func TestAccScopeResource_InvalidLocale(t *testing.T) {
 						}
 					]
 				}
-				`, acctest.BaseURL),
+				`, acctest.GetBaseURL(), scopeKey),
 				ExpectError: regexp.MustCompile(`locale value must be one of`), // TODO:full error string comparison
 			},
 		},

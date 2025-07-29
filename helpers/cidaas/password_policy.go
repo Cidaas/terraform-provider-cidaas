@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -40,23 +41,19 @@ type PasswordPolicyUpdateResponse struct {
 type PasswordPolicy struct {
 	ClientConfig
 }
-type PasswordPolicyService interface {
-	Get(id string) (*PasswordPolicyResponse, error)
-	Create(cp PasswordPolicyModel) (*PasswordPolicyResponse, error)
-	Update(cp PasswordPolicyModel) (*PasswordPolicyUpdateResponse, error)
-	Delete(id string) error
-}
 
-func NewPasswordPolicy(clientConfig ClientConfig) PasswordPolicyService {
+func NewPasswordPolicy(clientConfig ClientConfig) *PasswordPolicy {
 	return &PasswordPolicy{clientConfig}
 }
 
-func (p *PasswordPolicy) Get(id string) (*PasswordPolicyResponse, error) {
+func (p *PasswordPolicy) Get(ctx context.Context, id string) (*PasswordPolicyResponse, error) {
 	var response PasswordPolicyResponse
 	url := fmt.Sprintf("%s/%s/%s", p.BaseURL, "verification-actions-srv/policies", id)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, p.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, p.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -68,12 +65,14 @@ func (p *PasswordPolicy) Get(id string) (*PasswordPolicyResponse, error) {
 	return &response, nil
 }
 
-func (p *PasswordPolicy) Create(payload PasswordPolicyModel) (*PasswordPolicyResponse, error) {
+func (p *PasswordPolicy) Create(ctx context.Context, payload PasswordPolicyModel) (*PasswordPolicyResponse, error) {
 	var response PasswordPolicyResponse
 	url := fmt.Sprintf("%s/%s", p.BaseURL, "verification-actions-srv/policies")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, p.AccessToken)
-
-	res, err := httpClient.MakeRequest(payload)
+	client, err := util.NewHTTPClient(url, http.MethodPost, p.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, payload)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -84,12 +83,14 @@ func (p *PasswordPolicy) Create(payload PasswordPolicyModel) (*PasswordPolicyRes
 	return &response, nil
 }
 
-func (p *PasswordPolicy) Update(payload PasswordPolicyModel) (*PasswordPolicyUpdateResponse, error) {
+func (p *PasswordPolicy) Update(ctx context.Context, payload PasswordPolicyModel) (*PasswordPolicyUpdateResponse, error) {
 	var response PasswordPolicyUpdateResponse
 	url := fmt.Sprintf("%s/%s", p.BaseURL, "verification-actions-srv/policies")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, p.AccessToken)
-
-	res, err := httpClient.MakeRequest(payload)
+	client, err := util.NewHTTPClient(url, http.MethodPut, p.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, payload)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -100,11 +101,13 @@ func (p *PasswordPolicy) Update(payload PasswordPolicyModel) (*PasswordPolicyUpd
 	return &response, nil
 }
 
-func (p *PasswordPolicy) Delete(id string) error {
+func (p *PasswordPolicy) Delete(ctx context.Context, id string) error {
 	url := fmt.Sprintf("%s/%s/%s", p.BaseURL, "verification-actions-srv/policies", id)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, p.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, p.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}

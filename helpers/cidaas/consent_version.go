@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -56,23 +57,18 @@ type ConsentVersion struct {
 	ClientConfig
 }
 
-type ConsentVersionService interface {
-	Upsert(consent ConsentVersionModel) (*ConsentVersionResponse, error)
-	Get(consentID string) (*ConsentVersionReadResponse, error)
-	UpsertLocal(consentLocal ConsentLocalModel) (*ConsentLocalResponse, error)
-	GetLocal(consentVersionID string, locale string) (*ConsentLocalResponse, error)
-}
-
-func NewConsentVersion(clientConfig ClientConfig) ConsentVersionService {
+func NewConsentVersion(clientConfig ClientConfig) *ConsentVersion {
 	return &ConsentVersion{clientConfig}
 }
 
-func (c *ConsentVersion) Upsert(consentVersionConfig ConsentVersionModel) (*ConsentVersionResponse, error) {
+func (c *ConsentVersion) Upsert(ctx context.Context, consentVersionConfig ConsentVersionModel) (*ConsentVersionResponse, error) {
 	var response ConsentVersionResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/versions")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(consentVersionConfig)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, consentVersionConfig)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -84,12 +80,14 @@ func (c *ConsentVersion) Upsert(consentVersionConfig ConsentVersionModel) (*Cons
 	return &response, nil
 }
 
-func (c *ConsentVersion) Get(consentID string) (*ConsentVersionReadResponse, error) {
+func (c *ConsentVersion) Get(ctx context.Context, consentID string) (*ConsentVersionReadResponse, error) {
 	var response ConsentVersionReadResponse
 	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "consent-management-srv/v2/consent/versions/list", consentID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -101,12 +99,14 @@ func (c *ConsentVersion) Get(consentID string) (*ConsentVersionReadResponse, err
 	return &response, nil
 }
 
-func (c *ConsentVersion) UpsertLocal(consentLocal ConsentLocalModel) (*ConsentLocalResponse, error) {
+func (c *ConsentVersion) UpsertLocal(ctx context.Context, consentLocal ConsentLocalModel) (*ConsentLocalResponse, error) {
 	var response ConsentLocalResponse
 	url := fmt.Sprintf("%s/%s", c.BaseURL, "consent-management-srv/v2/consent/locale")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(consentLocal)
+	client, err := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, consentLocal)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -118,12 +118,14 @@ func (c *ConsentVersion) UpsertLocal(consentLocal ConsentLocalModel) (*ConsentLo
 	return &response, nil
 }
 
-func (c *ConsentVersion) GetLocal(consentVersionID string, locale string) (*ConsentLocalResponse, error) {
+func (c *ConsentVersion) GetLocal(ctx context.Context, consentVersionID string, locale string) (*ConsentLocalResponse, error) {
 	var response ConsentLocalResponse
 	url := fmt.Sprintf("%s/%s/%s?locale=%s", c.BaseURL, "consent-management-srv/v2/consent/locale", consentVersionID, locale)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	client, err := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if res.StatusCode == http.StatusNoContent {
 		return &ConsentLocalResponse{
 			Success: false,

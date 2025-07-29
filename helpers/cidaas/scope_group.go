@@ -2,6 +2,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -31,74 +32,67 @@ type AllScopeGroupResp struct {
 type ScopeGroup struct {
 	ClientConfig
 }
-type ScopeGroupService interface {
-	Upsert(sg ScopeGroupConfig) (*ScopeGroupResponse, error)
-	Get(scopeGroupName string) (*ScopeGroupResponse, error)
-	Delete(scopeGroupName string) error
-	GetAll() ([]ScopeGroupConfig, error)
-}
 
-func NewScopeGroup(clientConfig ClientConfig) ScopeGroupService {
+func NewScopeGroup(clientConfig ClientConfig) *ScopeGroup {
 	return &ScopeGroup{clientConfig}
 }
 
-func (c *ScopeGroup) Upsert(sg ScopeGroupConfig) (*ScopeGroupResponse, error) {
-	var response ScopeGroupResponse
-	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/group")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, c.AccessToken)
+const scopeGroupEndpoint = "scopes-srv/group"
 
-	res, err := httpClient.MakeRequest(sg)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *ScopeGroup) Upsert(ctx context.Context, sg ScopeGroupConfig) (*ScopeGroupResponse, error) {
+	res, err := c.makeRequest(ctx, http.MethodPost, scopeGroupEndpoint, sg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert scope group: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response ScopeGroupResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *ScopeGroup) Get(scopeGroupName string) (*ScopeGroupResponse, error) {
-	var response ScopeGroupResponse
-	url := fmt.Sprintf("%s/%s?group_name=%s", c.BaseURL, "scopes-srv/group", scopeGroupName)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *ScopeGroup) Get(ctx context.Context, scopeGroupName string) (*ScopeGroupResponse, error) {
+	if scopeGroupName == "" {
+		return nil, fmt.Errorf("scopeGroupName cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s?group_name=%s", scopeGroupEndpoint, scopeGroupName)
+	res, err := c.makeRequest(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scope group: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response ScopeGroupResponse
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}
 	return &response, nil
 }
 
-func (c *ScopeGroup) Delete(scopeGroupName string) error {
-	url := fmt.Sprintf("%s/%s/%s", c.BaseURL, "scopes-srv/group", scopeGroupName)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return err
+func (c *ScopeGroup) Delete(ctx context.Context, scopeGroupName string) error {
+	if scopeGroupName == "" {
+		return fmt.Errorf("scopeGroupName cannot be empty")
+	}
+	endpoint := fmt.Sprintf("%s/%s", scopeGroupEndpoint, scopeGroupName)
+	res, err := c.makeRequest(ctx, http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete scope group: %w", err)
 	}
 	defer res.Body.Close()
 	return nil
 }
 
-func (c *ScopeGroup) GetAll() ([]ScopeGroupConfig, error) {
-	var response AllScopeGroupResp
-	url := fmt.Sprintf("%s/%s", c.BaseURL, "scopes-srv/group/list")
-	httpClient := util.NewHTTPClient(url, http.MethodGet, c.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return nil, err
+func (c *ScopeGroup) GetAll(ctx context.Context) ([]ScopeGroupConfig, error) {
+	endpoint := "scopes-srv/group/list"
+	res, err := c.makeRequest(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scope group list: %w", err)
 	}
 	defer res.Body.Close()
 
+	var response AllScopeGroupResp
 	if err = util.ProcessResponse(res, &response); err != nil {
 		return nil, err
 	}

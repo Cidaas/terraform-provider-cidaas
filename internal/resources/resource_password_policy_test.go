@@ -6,17 +6,17 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-const resourcePwdPolicy = "cidaas_password_policy.example"
-
-// create, read and update test
 func TestAccPwdPolicyResource_Basic(t *testing.T) {
+	t.Parallel()
+
 	policyName := acctest.RandString(10)
-	// regex := `^(?=.*[A-Za-z])(?!.*\\s).{6,15}$`
-	// updateRegex := `^(?=.*[A-Z])(?=.*[a-z])(?=(.*[0-9]){1})(?!.*\\s).{8,15}$`
+	testResourceName := fmt.Sprintf("%s.%s", resources.RESOURCE_PASSWORD_POLICY, policyName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
@@ -24,16 +24,15 @@ func TestAccPwdPolicyResource_Basic(t *testing.T) {
 			{
 				Config: testAccPwdPolicyResourceConfig(policyName, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "policy_name", policyName),
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.block_compromised", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.deny_usage_count", strconv.Itoa(0)),
-					// resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.strength_regexes.[0]",  regex), // Bitwise operators are not supported
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.change_enforcement.expiration_in_days", strconv.Itoa(0)),
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.change_enforcement.notify_user_before_in_days", strconv.Itoa(0)),
+					resource.TestCheckResourceAttr(testResourceName, "policy_name", policyName),
+					resource.TestCheckResourceAttr(testResourceName, "password_policy.block_compromised", strconv.FormatBool(true)),
+					resource.TestCheckResourceAttr(testResourceName, "password_policy.deny_usage_count", strconv.Itoa(0)),
+					resource.TestCheckResourceAttr(testResourceName, "password_policy.change_enforcement.expiration_in_days", strconv.Itoa(0)),
+					resource.TestCheckResourceAttr(testResourceName, "password_policy.change_enforcement.notify_user_before_in_days", strconv.Itoa(0)),
 				),
 			},
 			{
-				ResourceName:      resourcePwdPolicy,
+				ResourceName:      testResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				// ImportStateId:     "id",
@@ -41,7 +40,7 @@ func TestAccPwdPolicyResource_Basic(t *testing.T) {
 			{
 				Config: testAccPwdPolicyResourceConfig(policyName, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourcePwdPolicy, "password_policy.block_compromised", strconv.FormatBool(false)),
+					resource.TestCheckResourceAttr(testResourceName, "password_policy.block_compromised", strconv.FormatBool(false)),
 				),
 			},
 		},
@@ -53,7 +52,7 @@ func testAccPwdPolicyResourceConfig(policyName string, blockCompromised bool) st
 	provider "cidaas" {
 		base_url = "%s"
 	}
-	resource "cidaas_password_policy" "example" {
+	resource "cidaas_password_policy" "%s" {
 		policy_name 	  = "%s"
 		password_policy = {
 			block_compromised = "%+v"
@@ -62,11 +61,12 @@ func testAccPwdPolicyResourceConfig(policyName string, blockCompromised bool) st
 			],
 		}
 	}
-	`, acctest.BaseURL, policyName, blockCompromised)
+	`, acctest.GetBaseURL(), policyName, policyName, blockCompromised)
 }
 
-// missing required parameter
 func TestAccPwdPolicyResource_MissingRequired(t *testing.T) {
+	t.Parallel()
+
 	requiredParams := []string{
 		"policy_name",
 	}
@@ -81,8 +81,8 @@ func TestAccPwdPolicyResource_MissingRequired(t *testing.T) {
 						provider "cidaas" {
 							base_url = "%s"
 						}
-						resource "cidaas_password_policy" "example" {}
-					`, acctest.BaseURL),
+						resource "cidaas_password_policy" "%s" {}
+					`, acctest.GetBaseURL(), acctest.RandString(10)),
 					ExpectError: regexp.MustCompile(fmt.Sprintf(`The argument "%s" is required, but no definition was found.`, param)),
 				},
 			},

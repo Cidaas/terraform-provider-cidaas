@@ -158,6 +158,7 @@ func (d *SystemTemplateOptionsDataSource) Read(
 
 	data.ID = types.StringValue(uuid.New().String())
 	result, diag := systemTemplateFilter.GetAndFilter(
+		ctx,
 		d.Client,
 		data.Filters,
 		listSystemTemplateOptions,
@@ -174,9 +175,9 @@ func (d *SystemTemplateOptionsDataSource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func listSystemTemplateOptions(client *cidaas.Client) ([]any, error) {
+func listSystemTemplateOptions(ctx context.Context, client *cidaas.Client) ([]any, error) {
 	// system template masterlist is fetched with the groupID "default"
-	masterListResp, err := client.Template.GetMasterList("default")
+	masterListResp, err := client.Templates.GetMasterList(ctx, "default")
 	if err != nil {
 		return nil, err
 	}

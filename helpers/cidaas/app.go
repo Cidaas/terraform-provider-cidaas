@@ -1,6 +1,7 @@
 package cidaas
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -257,45 +258,22 @@ type ClientSecret struct {
 	ClientSecretIssuedAt  int64  `json:"client_secret_issued_at,omitempty"`
 }
 
-var _ AppService = &App{}
-
 type App struct {
 	ClientConfig
 }
-type AppService interface {
-	Create(app AppModel) (AppResponse, error)
-	Get(clientID string) (*AppResponse, error)
-	Update(app AppModel) (AppResponse, error)
-	Delete(clientID string) error
-}
 
-func NewApp(clientConfig ClientConfig) AppService {
+func NewApp(clientConfig ClientConfig) *App {
 	return &App{clientConfig}
 }
 
-func (a *App) Create(app AppModel) (AppResponse, error) {
+func (a *App) Create(ctx context.Context, app AppModel) (*AppResponse, error) {
 	var response AppResponse
 	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
-	httpClient := util.NewHTTPClient(url, http.MethodPost, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(app)
-	if err = util.HandleResponseError(res, err); err != nil {
-		return response, err
+	client, err := util.NewHTTPClient(url, http.MethodPost, a.AccessToken)
+	if err != nil {
+		return nil, err
 	}
-	defer res.Body.Close()
-
-	if err = util.ProcessResponse(res, &response); err != nil {
-		return response, err
-	}
-	return response, nil
-}
-
-func (a *App) Get(clientID string) (*AppResponse, error) {
-	var response AppResponse
-	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
-	httpClient := util.NewHTTPClient(url, http.MethodGet, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(nil)
+	res, err := client.MakeRequest(ctx, app)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return nil, err
 	}
@@ -307,28 +285,51 @@ func (a *App) Get(clientID string) (*AppResponse, error) {
 	return &response, nil
 }
 
-func (a *App) Update(app AppModel) (AppResponse, error) {
+func (a *App) Get(ctx context.Context, clientID string) (*AppResponse, error) {
 	var response AppResponse
-	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
-	httpClient := util.NewHTTPClient(url, http.MethodPut, a.AccessToken)
-
-	res, err := httpClient.MakeRequest(app)
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	client, err := util.NewHTTPClient(url, http.MethodGet, a.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
-		return response, err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if err = util.ProcessResponse(res, &response); err != nil {
-		return response, err
+		return nil, err
 	}
-	return response, nil
+	return &response, nil
 }
 
-func (a *App) Delete(clientID string) error {
-	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
-	httpClient := util.NewHTTPClient(url, http.MethodDelete, a.AccessToken)
+func (a *App) Update(ctx context.Context, app AppModel) (*AppResponse, error) {
+	var response AppResponse
+	url := fmt.Sprintf("%s/%s", a.BaseURL, "apps-srv/clients")
+	client, err := util.NewHTTPClient(url, http.MethodPut, a.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	res, err := client.MakeRequest(ctx, app)
+	if err = util.HandleResponseError(res, err); err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
 
-	res, err := httpClient.MakeRequest(nil)
+	if err = util.ProcessResponse(res, &response); err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (a *App) Delete(ctx context.Context, clientID string) error {
+	url := fmt.Sprintf("%s/%s/%s", a.BaseURL, "apps-srv/clients", clientID)
+	client, err := util.NewHTTPClient(url, http.MethodDelete, a.AccessToken)
+	if err != nil {
+		return err
+	}
+	res, err := client.MakeRequest(ctx, nil)
 	if err = util.HandleResponseError(res, err); err != nil {
 		return err
 	}
