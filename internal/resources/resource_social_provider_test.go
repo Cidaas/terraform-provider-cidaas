@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
@@ -130,11 +132,36 @@ func checksocialProviderDestroyed(resourceName string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		res, _ := sp.Get(context.Background(), rs.Primary.Attributes["provider_name"], rs.Primary.Attributes["id"])
-		if res != nil {
-			// when resource exists in remote
-			return fmt.Errorf("resource still exists %+v", res)
+
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := sp.Get(context.Background(), rs.Primary.Attributes["provider_name"], rs.Primary.Attributes["id"])
+
+			// Check if resource is successfully deleted (nil response)
+			if res == nil {
+				return nil // Resource successfully deleted
+			}
+
+			// Handle other errors
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if social provider exists: %w", err)
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("social provider still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
+
 		return nil
 	}
 }

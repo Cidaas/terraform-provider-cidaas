@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
@@ -109,11 +111,36 @@ func testCheckConsentDestroyed(resourceName string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		res, _ := consent.GetConsentInstances(context.Background(), rs.Primary.ID)
-		if res != nil && res.Status != http.StatusNoContent && len(res.Data) > 0 {
-			// when resource exists in remote
-			return fmt.Errorf("resource still exists %+v", res)
+
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := consent.GetConsentInstances(context.Background(), rs.Primary.ID)
+
+			// Check if resource is successfully deleted (nil, NoContent status, or empty data)
+			if res == nil || res.Status == http.StatusNoContent || len(res.Data) == 0 {
+				return nil // Resource successfully deleted
+			}
+
+			// Handle other errors
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if consent exists: %w", err)
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("consent still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
+
 		return nil
 	}
 }

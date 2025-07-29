@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
@@ -100,6 +101,7 @@ func testAccUserGroupResourceConfig(groupType, groupID, groupDescription, resour
 
 func testCheckUserGroupDestroyed(resourceID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		// Check User Group destruction with retry logic
 		resourceGroupName := fmt.Sprintf("%s.%s", resources.RESOURCE_USER_GROUP, resourceID)
 		rs, ok := s.RootModule().Resources[resourceGroupName]
 		if !ok {
@@ -112,22 +114,36 @@ func testCheckUserGroupDestroyed(resourceID string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		res, err := ug.Get(context.Background(), rs.Primary.Attributes["group_id"])
-		if err != nil {
-			// If error is "not found", that's what we want
-			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
-				return nil
+
+		// Add retry logic for user group eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := ug.Get(context.Background(), rs.Primary.Attributes["group_id"])
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					break // User group successfully deleted, continue to group type check
+				}
+				return fmt.Errorf("error checking if user group exists: %w", err)
 			}
-			return fmt.Errorf("error checking if user group exists: %w", err)
+
+			// Check if resource is nil
+			if res == nil {
+				break // User group successfully deleted, continue to group type check
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("user group still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
 
-		if res != nil {
-			// when resource exists in remote
-			return fmt.Errorf("resource still exists %+v", res)
-		}
-
+		// Check Group Type destruction with retry logic
 		resourceGroupTypeName := fmt.Sprintf("%s.%s", resources.RESOURCE_GROUP_TYPE, resourceID)
-
 		rs, ok = s.RootModule().Resources[resourceGroupTypeName]
 		if !ok {
 			return fmt.Errorf("resource %s not found", resourceGroupTypeName)
@@ -139,18 +155,34 @@ func testCheckUserGroupDestroyed(resourceID string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		resp, err := groupType.Get(context.Background(), rs.Primary.Attributes["group_type"])
-		if err != nil {
-			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
-				return nil
+
+		// Add retry logic for group type eventual consistency
+		for i := 0; i < maxRetries; i++ {
+			resp, err := groupType.Get(context.Background(), rs.Primary.Attributes["group_type"])
+			if err != nil {
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
+					return nil // Both resources successfully deleted
+				}
+				return fmt.Errorf("error checking if group type exists: %w", err)
 			}
-			return fmt.Errorf("error checking if group type exists: %w", err)
+
+			// Check if resource is nil
+			if resp == nil {
+				return nil // Both resources successfully deleted
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("group type still exists after %d retries: %s", maxRetries, resp.Data.GroupType)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
 
-		if resp != nil {
-			// when resource exists in remote
-			return fmt.Errorf("resource %s still exists", resp.Data.GroupType)
-		}
 		return nil
 	}
 }

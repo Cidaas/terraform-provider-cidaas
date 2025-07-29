@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
@@ -82,18 +83,34 @@ func testCheckScopeGroupDestroyed(resourceName string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		res, err := scopeGroup.Get(context.Background(), rs.Primary.Attributes["group_name"])
-		if err != nil {
-			// If error is "not found", that's what we want
-			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
-				return nil
+
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := scopeGroup.Get(context.Background(), rs.Primary.Attributes["group_name"])
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if scope group exists: %w", err)
 			}
-			return fmt.Errorf("error checking if resource exists: %w", err)
+
+			// Check if resource is successfully deleted (empty ID or nil response)
+			if res == nil || res.Data.ID == "" {
+				return nil // Resource successfully deleted
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("scope group still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
-		if res.Data.ID != "" {
-			// when resource exists in remote
-			return fmt.Errorf("resource still exists %+v", res)
-		}
+
 		return nil
 	}
 }

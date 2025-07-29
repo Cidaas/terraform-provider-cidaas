@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
@@ -146,12 +148,36 @@ func testCheckHostedPageDestroyed(resourceName string) resource.TestCheckFunc {
 				AccessToken: acctest.TestToken,
 			},
 		}
-		res, _ := hp.Get(context.Background(), rs.Primary.Attributes["hosted_page_group_name"])
 
-		if res != nil {
-			// when resource exists in remote
-			return fmt.Errorf("resource %s still exists", res.Data)
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := hp.Get(context.Background(), rs.Primary.Attributes["hosted_page_group_name"])
+
+			// Check if resource is successfully deleted (nil response)
+			if res == nil {
+				return nil // Resource successfully deleted
+			}
+
+			// Handle other errors
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+					return nil
+				}
+				return fmt.Errorf("error checking if hosted page exists: %w", err)
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("hosted page still exists after %d retries: %s", maxRetries, res.Data)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
 		}
+
 		return nil
 	}
 }

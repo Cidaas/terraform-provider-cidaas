@@ -1,10 +1,14 @@
 package resources_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	acctest "github.com/Cidaas/terraform-provider-cidaas/internal/test"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -247,7 +251,43 @@ func testAccCheckRoleResourceDestroyed(s *terraform.State) error {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No ID is set")
 		}
-		// TODO: check in cidaas by calling get role function if this is required
+
+		role := cidaas.Role{
+			ClientConfig: cidaas.ClientConfig{
+				BaseURL:     acctest.GetBaseURL(),
+				AccessToken: acctest.TestToken,
+			},
+		}
+
+		// Add retry logic for eventual consistency
+		maxRetries := 5
+		for i := 0; i < maxRetries; i++ {
+			res, err := role.GetRole(context.Background(), rs.Primary.ID)
+			if err != nil {
+				// If error is "not found", that's what we want
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
+
+					break // Role successfully deleted, continue to next resource
+				}
+				return fmt.Errorf("error checking if role exists: %w", err)
+			}
+
+			// Check if resource is successfully deleted (nil response)
+			if res == nil {
+				break // Role successfully deleted, continue to next resource
+			}
+
+			// If this is the last retry, return error
+			if i == maxRetries-1 {
+				return fmt.Errorf("role still exists after %d retries: %+v", maxRetries, res)
+			}
+
+			// Wait before retrying with exponential backoff
+			waitTime := time.Duration(i+1) * time.Second * 2
+			time.Sleep(waitTime)
+		}
 	}
 	return nil
 }
