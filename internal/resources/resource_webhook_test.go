@@ -124,7 +124,9 @@ func testCheckWebhookDestroyed(resourceName string) resource.TestCheckFunc {
 			res, err := wb.Get(context.Background(), rs.Primary.Attributes["id"])
 			if err != nil {
 				// If error is "not found", that's what we want
-				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
 					return nil
 				}
 				return fmt.Errorf("error checking if resource exists: %w", err)

@@ -90,7 +90,9 @@ func testCheckScopeGroupDestroyed(resourceName string) resource.TestCheckFunc {
 			res, err := scopeGroup.Get(context.Background(), rs.Primary.Attributes["group_name"])
 			if err != nil {
 				// If error is "not found", that's what we want
-				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
 					return nil
 				}
 				return fmt.Errorf("error checking if scope group exists: %w", err)

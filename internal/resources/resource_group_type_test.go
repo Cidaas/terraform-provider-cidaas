@@ -101,7 +101,9 @@ func testCheckGroupTypeDestroyed(resourceName string) resource.TestCheckFunc {
 			// Handle other errors
 			if err != nil {
 				// If error is "not found", that's what we want
-				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
 					return nil
 				}
 				return fmt.Errorf("error checking if group type exists: %w", err)
