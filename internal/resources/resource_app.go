@@ -171,13 +171,13 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	state.AllowedScopes = util.SetValueOrNull(data.AllowedScopes)
 
 	// RedirectURIS, AllowedLogoutUrls, GrantTypes are required to be set when import is done based on the client_type
-	if util.Contains([]string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}, data.ClientType) || !state.RedirectURIS.IsNull() {
+	if !state.RedirectURIS.IsNull() || isImport {
 		state.RedirectURIS = util.SetValueOrNull(data.RedirectURIS)
 	}
-	if util.Contains([]string{"SINGLE_PAGE", "REGULAR_WEB", "THIRD_PARTY"}, data.ClientType) || !state.AllowedLogoutUrls.IsNull() {
+	if !state.AllowedLogoutUrls.IsNull() || isImport {
 		state.AllowedLogoutUrls = util.SetValueOrNull(data.AllowedLogoutUrls)
 	}
-	if util.Contains([]string{"DEVICE"}, data.ClientType) || !state.GrantTypes.IsNull() {
+	if !state.GrantTypes.IsNull() || isImport {
 		state.GrantTypes = util.SetValueOrNull(data.GrantTypes)
 	}
 	// String attributes

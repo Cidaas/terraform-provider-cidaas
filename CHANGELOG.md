@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.1
+
+### Bug Fixes
+
+- Fixed issue where `redirect_uris`, `allowed_logout_urls`, and `grant_types` fields were not being properly set during resource import based on client type requirements.
+
 ### 3.5.0
 - Added context support for proper HTTP request cancellation and timeout handling
 - Enhanced resource `cidaas_app` import to include all schema fields
