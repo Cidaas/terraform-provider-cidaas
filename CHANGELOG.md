@@ -5,6 +5,8 @@
 ### Bug Fixes
 
 - Fixed issue where `redirect_uris`, `allowed_logout_urls`, and `grant_types` fields were not being properly set during resource import based on client type requirements.
+- Changed `order` attribute from optional to computed-only as it is now automatically managed by the backend service and cannot be set or updated from the client side.
+
 
 ### 3.5.0
 - Added context support for proper HTTP request cancellation and timeout handling

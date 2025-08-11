@@ -8,7 +8,6 @@ import (
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/Cidaas/terraform-provider-cidaas/internal/validators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -16,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
@@ -248,12 +247,10 @@ var regFieldSchema = schema.Schema{
 		},
 		// optional: Order of the Field in the UI
 		"order": schema.Int64Attribute{
-			Optional:            true,
 			Computed:            true,
-			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI. Defaults set to `1`",
-			Default:             int64default.StaticInt64(1),
-			Validators: []validator.Int64{
-				int64validator.AtLeast(1),
+			MarkdownDescription: "The attribute order is used to set the order of the Field in the UI.",
+			PlanModifiers: []planmodifier.Int64{
+				int64planmodifier.UseStateForUnknown(),
 			},
 		},
 		"scopes": schema.SetAttribute{
@@ -453,6 +450,7 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 	plan.ID = types.StringValue(res.Data.ID)
+	plan.Order = types.Int64Value(res.Data.Order)
 	plan.BaseDataType = types.StringValue(res.Data.BaseDataType)
 	if resp.Diagnostics.HasError() {
 		return
@@ -652,7 +650,6 @@ func prepareRegFieldModel(ctx context.Context, plan RegFieldConfig) (*cidaas.Reg
 	regConfig.FieldType = plan.FieldType.ValueString()
 	regConfig.FieldKey = plan.FieldKey.ValueString()
 	regConfig.DataType = plan.DataType.ValueString()
-	regConfig.Order = plan.Order.ValueInt64()
 
 	className := "FieldSetup"
 	if regConfig.FieldType == "SYSTEM" {
