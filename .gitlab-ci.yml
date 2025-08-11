@@ -1,6 +1,7 @@
 include:
   - project: "widas/software-quality/gitlab-template-projects/widas-customer-ci-templates"
     file: "golang/go-lib.yml"
+    ref: golang-version-update
 
 stages:
   - prepare
@@ -13,7 +14,7 @@ get_prereqiusites:
     - never
 
 acceptance_test:
-  image: golang:1.21.0
+  image: golang:1.24
   stage: test
   before_script:
     - echo "machine gitlab.widas.de login $GITLAB_LOGIN password $GITLAB_TOKEN" > ~/.netrc

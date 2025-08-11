@@ -105,7 +105,6 @@ func TestRegistrationField_TextBasic(t *testing.T) {
 					is_searchable                                  = true      // Default: true
 					enabled                                        = true      // Default: true
 					claimable                                      = true      // Default: true
-					order                                          = 1         // Default: 1
 					parent_group_id                                = "DEFAULT" // Default: DEFAULT
 					scopes                                         = ["profile"]
 					local_texts = [
@@ -162,7 +161,6 @@ func testRegFieldConfig(dataType, fieldKey string, internal, isGroup bool) strin
 			is_searchable                                  = true
 			enabled                                        = true
 			claimable                                      = true
-			order                                          = 1
 			parent_group_id                                = "DEFAULT"
 			scopes                                         = ["profile"]
 			local_texts = [
@@ -209,7 +207,6 @@ func TestRegistrationField_SelectBasic(t *testing.T) {
 					is_searchable                                  = true
 					enabled                                        = true
 					claimable                                      = true
-					order                                          = 1
 					parent_group_id                                = "DEFAULT"
 					scopes                                         = ["profile"]
 					local_texts = [
