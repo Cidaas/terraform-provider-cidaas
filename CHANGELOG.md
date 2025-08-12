@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.2
+
+### Enhancements
+
+- Added `oauth_standard` attribute to the `cidaas_app` resource, allowing selection of the OAuth standard version between `OAuth2.0` and `OAuth2.1`.
+
 ### 3.5.1
 
 ### Bug Fixes

@@ -319,6 +319,9 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	if !state.BotProvider.IsNull() || isImport {
 		state.BotProvider = util.StringValueOrNull(&data.BotProvider)
 	}
+	if !state.OauthStandard.IsNull() || isImport {
+		state.OauthStandard = util.StringValueOrNull(&data.OauthStandard)
+	}
 
 	// Boolean attributes
 	if !state.AllowGuestLogin.IsNull() || isImport {

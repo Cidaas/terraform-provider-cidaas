@@ -265,6 +265,7 @@ resource "cidaas_app" "sample" {
 - `mfa` (Attributes) Configuration settings for Multi-Factor Authentication (MFA). (see [below for nested schema](#nestedatt--mfa))
 - `mfa_configuration` (String)
 - `mobile_settings` (Attributes) (see [below for nested schema](#nestedatt--mobile_settings))
+- `oauth_standard` (String) Specifies the OAuth standard version to use. Allowed values: 'OAuth2.1', 'OAuth2.0'.
 - `operations_allowed_groups` (Attributes List) (see [below for nested schema](#nestedatt--operations_allowed_groups))
 - `password_policy_ref` (String)
 - `pending_scopes` (Set of String)
