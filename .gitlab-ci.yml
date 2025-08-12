@@ -14,7 +14,7 @@ get_prereqiusites:
     - never
 
 acceptance_test:
-  image: golang:1.24
+  image: golang:1.24.4
   stage: test
   before_script:
     - echo "machine gitlab.widas.de login $GITLAB_LOGIN password $GITLAB_TOKEN" > ~/.netrc
@@ -25,6 +25,9 @@ acceptance_test:
   artifacts:
     paths:
       - coverage.html
+
+dependency_scanning:
+  image: golang:1.24.4
 
 # get_version is not required as we don't create tag by CI anymore
 get_version:

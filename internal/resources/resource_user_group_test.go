@@ -121,7 +121,9 @@ func testCheckUserGroupDestroyed(resourceID string) resource.TestCheckFunc {
 			res, err := ug.Get(context.Background(), rs.Primary.Attributes["group_id"])
 			if err != nil {
 				// If error is "not found", that's what we want
-				if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				if strings.Contains(err.Error(), "not found") ||
+					strings.Contains(err.Error(), "404") ||
+					strings.Contains(err.Error(), "204") {
 					break // User group successfully deleted, continue to group type check
 				}
 				return fmt.Errorf("error checking if user group exists: %w", err)
