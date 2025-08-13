@@ -135,6 +135,7 @@ type AppModel struct {
 	BackchannelLogoutSessionRequired *bool                       `json:"backchannel_logout_session_required,omitempty"`
 	EnableLoginSpi                   *bool                       `json:"enable_login_spi,omitempty"`
 	AcceptRolesInTheRegistration     *bool                       `json:"accept_roles_in_the_registration,omitempty"`
+	OauthStandard                    string                      `json:"oauthStandard,omitempty"`
 
 	// attributes not available in resource app schema
 	TappID          string         `json:"tapp_id,omitempty"`

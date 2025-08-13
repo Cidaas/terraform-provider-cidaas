@@ -72,6 +72,7 @@ type AppConfig struct {
 	BackgroundURI                   types.String `tfsdk:"background_uri"`
 	VideoURL                        types.String `tfsdk:"video_url"`
 	BotCaptchaRef                   types.String `tfsdk:"bot_captcha_ref"`
+	OauthStandard                   types.String `tfsdk:"oauth_standard"`
 
 	EnableDeduplication              types.Bool `tfsdk:"enable_deduplication"`
 	AutoLoginAfterRegister           types.Bool `tfsdk:"auto_login_after_register"`
@@ -234,71 +235,6 @@ type RoleFilter struct {
 	Roles          types.Set    `tfsdk:"roles"`
 }
 
-type CommonConfigs struct {
-	CompanyName    types.String `tfsdk:"company_name"`
-	CompanyWebsite types.String `tfsdk:"company_website"`
-	ClientType     types.String `tfsdk:"client_type"`
-	CompanyAddress types.String `tfsdk:"company_address"`
-
-	AllowedScopes     types.Set `tfsdk:"allowed_scopes"`
-	RedirectUris      types.Set `tfsdk:"redirect_uris"`
-	AllowedLogoutUrls types.Set `tfsdk:"allowed_logout_urls"`
-	AllowedWebOrigins types.Set `tfsdk:"allowed_web_origins"`
-	AllowedOrigins    types.Set `tfsdk:"allowed_origins"`
-	LoginProviders    types.Set `tfsdk:"login_providers"`
-	DefaultScopes     types.Set `tfsdk:"default_scopes"`
-	PendingScopes     types.Set `tfsdk:"pending_scopes"`
-	AllowedMfa        types.Set `tfsdk:"allowed_mfa"`
-	AllowedRoles      types.Set `tfsdk:"allowed_roles"`
-	DefaultRoles      types.Set `tfsdk:"default_roles"`
-
-	SocialProviders         types.List `tfsdk:"social_providers"`
-	CustomProviders         types.List `tfsdk:"custom_providers"`
-	SamlProviders           types.List `tfsdk:"saml_providers"`
-	AdProviders             types.List `tfsdk:"ad_providers"`
-	AllowedGroups           types.List `tfsdk:"allowed_groups"`
-	OperationsAllowedGroups types.List `tfsdk:"operations_allowed_groups"`
-
-	// attributes with default value
-	AccentColor                   types.String `tfsdk:"accent_color"`
-	PrimaryColor                  types.String `tfsdk:"primary_color"`
-	MediaType                     types.String `tfsdk:"media_type"`
-	HostedPageGroup               types.String `tfsdk:"hosted_page_group"`
-	TemplateGroupID               types.String `tfsdk:"template_group_id"`
-	BotProvider                   types.String `tfsdk:"bot_provider"`
-	LogoAlign                     types.String `tfsdk:"logo_align"`
-	Webfinger                     types.String `tfsdk:"webfinger"`
-	DefaultMaxAge                 types.Int64  `tfsdk:"default_max_age"`
-	TokenLifetimeInSeconds        types.Int64  `tfsdk:"token_lifetime_in_seconds"`
-	IDTokenLifetimeInSeconds      types.Int64  `tfsdk:"id_token_lifetime_in_seconds"`
-	RefreshTokenLifetimeInSeconds types.Int64  `tfsdk:"refresh_token_lifetime_in_seconds"`
-	AllowGuestLogin               types.Bool   `tfsdk:"allow_guest_login"`
-	EnableDeduplication           types.Bool   `tfsdk:"enable_deduplication"`
-	AutoLoginAfterRegister        types.Bool   `tfsdk:"auto_login_after_register"`
-	EnablePasswordlessAuth        types.Bool   `tfsdk:"enable_passwordless_auth"`
-	RegisterWithLoginInformation  types.Bool   `tfsdk:"register_with_login_information"`
-	IsHybridApp                   types.Bool   `tfsdk:"is_hybrid_app"`
-	Enabled                       types.Bool   `tfsdk:"enabled"`
-	IsRememberMeSelected          types.Bool   `tfsdk:"is_remember_me_selected"`
-	ResponseTypes                 types.Set    `tfsdk:"response_types"`
-	GrantTypes                    types.Set    `tfsdk:"grant_types"`
-	AllowLoginWith                types.Set    `tfsdk:"allow_login_with"`
-	Mfa                           types.Object `tfsdk:"mfa"`
-}
-
-type BasicSettings struct {
-	ClientID          types.String `tfsdk:"client_id"`
-	RedirectURIs      types.Set    `tfsdk:"redirect_uris"`
-	AllowedLogoutUrls types.Set    `tfsdk:"allowed_logout_urls"`
-	AllowedScopes     types.Set    `tfsdk:"allowed_scopes"`
-	ClientSecrets     types.List   `tfsdk:"client_secrets"`
-}
-
-type ClientSecret struct {
-	ClientSecret          types.String `tfsdk:"client_secret"`
-	ClientSecretExpiresAt types.Int64  `tfsdk:"client_secret_expires_at"`
-}
-
 func (w *AppConfig) ExtractAppConfigs(ctx context.Context) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if !w.LoginSpi.IsNull() && !w.LoginSpi.IsUnknown() {
@@ -446,6 +382,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		BackchannelLogoutSessionRequired: plan.BackchannelLogoutSessionRequired.ValueBoolPointer(),
 		AcceptRolesInTheRegistration:     plan.AcceptRolesInTheRegistration.ValueBoolPointer(),
 		PasswordPolicyRef:                plan.PasswordPolicyRef.ValueString(),
+		OauthStandard:                    plan.OauthStandard.ValueString(),
 	}
 
 	var diags diag.Diagnostics

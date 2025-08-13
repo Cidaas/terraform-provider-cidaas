@@ -90,6 +90,13 @@ var resourceAppSchema = schema.Schema{
 			Optional:            true,
 			MarkdownDescription: "Redirect URIs for OAuth2 client.",
 		},
+		"oauth_standard": schema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Specifies the OAuth standard version to use. Allowed values: 'OAuth2.1', 'OAuth2.0'",
+			Validators: []validator.String{
+				stringvalidator.OneOf([]string{"OAuth2.1", "OAuth2.0"}...),
+			},
+		},
 		// optional for NON_INTERACTIVE/IOS/ANDROID/DESKTOP/MOBILE/WINDOWS_MOBILE/DEVICE
 		"allowed_logout_urls": schema.SetAttribute{
 			ElementType:         types.StringType,
