@@ -420,7 +420,7 @@ func parseRole(role cidaas.RoleModel) (result Role) {
 
 ### Registration
 
-Don't forget to register your new resources and data sources in the `provider.go:
+Don't forget to register your new resources and data sources in the `provider.go`:
 
 ```go
 func (p *cidaasProvider) DataSources(_ context.Context) []func() datasource.DataSource {
