@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // var allowedClaims = []string{
@@ -287,30 +288,71 @@ func (r *SocialProvider) Create(ctx context.Context, req resource.CreateRequest,
 	var plan SocialProviderConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	model, diag := prepareSocialProviderModel(ctx, plan)
 	if diag.HasError() {
+		tflog.Error(ctx, "failed to prepare social provider model", util.H{
+			"errors": diag.Errors(),
+		})
 		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
 		return
 	}
 	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
 	if err != nil {
+		tflog.Error(ctx, "failed to create social provider via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+	tflog.Info(ctx, "successfully created social provider via API", util.H{
+		"provider_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	resp.Diagnostics.Append(setClaimsInfo(&plan, res.Data.Claims)...)
 	resp.Diagnostics.Append(setUserInfoFields(&plan, res.Data.UserInfoFields)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set claims, user info fields, or state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource social provider created successfully", util.H{
+		"provider_id":   res.Data.ID,
+		"provider_name": plan.ProviderName.ValueString(),
+	})
 }
 
 func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state SocialProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
+	tflog.Info(ctx, "calling Cidaas API to read social provider", util.H{
+		"provider_name": state.ProviderName.ValueString(),
+		"provider_id":   state.ID.ValueString(),
+	})
 	res, err := r.cidaasClient.SocialProvider.Get(ctx, state.ProviderName.ValueString(), state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read social provider via API", util.H{
+			"provider_name": state.ProviderName.ValueString(),
+			"provider_id":   state.ID.ValueString(),
+			"error":         err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
@@ -325,21 +367,39 @@ func (r *SocialProvider) Read(ctx context.Context, req resource.ReadRequest, res
 	state.Scopes = util.SetValueOrNull(res.Data.Scopes)
 
 	resp.Diagnostics.Append(setClaimsInfo(&state, res.Data.Claims)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set claims info", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "successfully set claims info")
+
 	if len(res.Data.UserInfoFields) > 0 {
+		tflog.Debug(ctx, "processing user info fields")
 		userInfoFields, diags := types.ListValueFrom(ctx, userInfoFieldsType, res.Data.UserInfoFields)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to process user info fields", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
 			return
 		}
 		state.UserInfoFields = userInfoFields
-	} else {
-		state.UserInfoFields = types.ListValueMust(
-			userInfoFieldsType,
-			[]attr.Value{},
-		)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource social provider read successfully", util.H{
+		"provider_id":   res.Data.ID,
+		"provider_name": res.Data.ProviderName,
+	})
 }
 
 func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -347,36 +407,78 @@ func (r *SocialProvider) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
-	model, diag := prepareSocialProviderModel(ctx, plan)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
-		return
-	}
-	model.ID = state.ID.ValueString()
-	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
-	if err != nil {
-		resp.Diagnostics.AddError("failed to update social provider", fmt.Sprintf("Error: %s", err.Error()))
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
-	// Update plan with response data
+	model, diag := prepareSocialProviderModel(ctx, plan)
+	if diag.HasError() {
+		tflog.Error(ctx, "failed to prepare social provider model for update", util.H{
+			"errors": diag.Errors(),
+		})
+		resp.Diagnostics.AddError("error preparing social provider payload ", fmt.Sprintf("Error: %+v ", diag.Errors()))
+		return
+	}
+
+	model.ID = state.ID.ValueString()
+	res, err := r.cidaasClient.SocialProvider.Upsert(ctx, model)
+	if err != nil {
+		tflog.Error(ctx, "failed to update social provider via API", util.H{
+			"provider_id": state.ID.ValueString(),
+			"error":       err.Error(),
+		})
+		resp.Diagnostics.AddError("failed to update social provider", fmt.Sprintf("Error: %s", err.Error()))
+		return
+	}
+	tflog.Info(ctx, "successfully updated social provider via API", util.H{
+		"provider_id": state.ID.ValueString(),
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	resp.Diagnostics.Append(setClaimsInfo(&plan, res.Data.Claims)...)
 	resp.Diagnostics.Append(setUserInfoFields(&plan, res.Data.UserInfoFields)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set claims, user info fields, or state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "successfully completed social provider update", util.H{
+		"provider_id":   state.ID.ValueString(),
+		"provider_name": plan.ProviderName.ValueString(),
+	})
 }
 
 func (r *SocialProvider) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state SocialProviderConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.SocialProvider.Delete(ctx, state.ProviderName.ValueString(), state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete social provider via API", util.H{
+			"provider_name": state.ProviderName.ValueString(),
+			"provider_id":   state.ID.ValueString(),
+			"error":         err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete social provider", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+
+	tflog.Info(ctx, "resource social provider deleted successfully", util.H{
+		"provider_name": state.ProviderName.ValueString(),
+		"provider_id":   state.ID.ValueString(),
+	})
 }
 
 func (r *SocialProvider) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

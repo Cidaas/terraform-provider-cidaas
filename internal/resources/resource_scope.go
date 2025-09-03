@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type ScopeResource struct {
@@ -157,23 +158,56 @@ func (r *ScopeResource) Create(ctx context.Context, req resource.CreateRequest, 
 	scopePayload, d := generateScopeModel(ctx, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare scope model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	response, err := r.cidaasClient.Scopes.Upsert(ctx, *scopePayload)
 	if err != nil {
+		tflog.Error(ctx, "failed to create scope via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create scope", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created scope via API", util.H{
+		"scope_id": response.Data.ID,
+	})
+
 	plan.ScopeOwner = util.StringValueOrNull(&response.Data.ScopeOwner)
 	plan.ID = util.StringValueOrNull(&response.Data.ID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource scope created successfully", util.H{
+		"scope_id":  response.Data.ID,
+		"scope_key": plan.ScopeKey.ValueString(),
+	})
 }
 
 func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ScopeConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	res, err := r.cidaasClient.Scopes.Get(ctx, state.ScopeKey.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read scope via API", util.H{
+			"scope_key": state.ScopeKey.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read scope", util.FormatErrorMessage(err))
 		return
 	}
@@ -210,9 +244,24 @@ func (r *ScopeResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	state.LocalizedDescription, diag = types.ListValueFrom(ctx, localeDescription, objectValues)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to process localized descriptions", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	tflog.Debug(ctx, "successfully processed localized descriptions")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource scope read successfully", util.H{
+		"scope_id": res.Data.ID,
+	})
 }
 
 func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -221,32 +270,68 @@ func (r *ScopeResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(plan.extractLocalizedDescription(ctx)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract localized descriptions", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	scopePayload, d := generateScopeModel(ctx, plan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to generate scope model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	_, err := r.cidaasClient.Scopes.Upsert(ctx, *scopePayload)
 	if err != nil {
+		tflog.Error(ctx, "Failed to update scope via API", util.H{
+			"scope_key": plan.ScopeKey.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update scope", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated scope via API", util.H{
+		"scope_key": plan.ScopeKey.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource scope updated successfully", util.H{
+		"scope_key": plan.ScopeKey.ValueString(),
+	})
 }
 
 func (r *ScopeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state ScopeConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.Scopes.Delete(ctx, state.ScopeKey.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete scope via API", util.H{
+			"scope_key": state.ScopeKey.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete scope", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource scope deleted successfully", util.H{
+		"scope_key": state.ScopeKey.ValueString(),
+	})
 }
 
 func (r *ScopeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

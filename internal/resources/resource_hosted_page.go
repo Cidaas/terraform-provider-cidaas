@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var allowedHotedPageIDs = []string{
@@ -179,31 +180,60 @@ func (r *HostedPageResource) Create(ctx context.Context, req resource.CreateRequ
 	hpPayload, diags := prepareHostedPageModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare hosted page model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	res, err := r.cidaasClient.HostedPages.Upsert(ctx, *hpPayload)
 	if err != nil {
+		tflog.Error(ctx, "failed to create hosted page via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create hosted page", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created hosted page via API", util.H{
+		"hosted_page_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource hosted page created successfully", util.H{
+		"hosted_page_id": res.Data.ID,
+	})
 }
 
 func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state HostedPageConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	res, err := r.cidaasClient.HostedPages.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read hosted page via API", util.H{
+			"hosted_page_id": state.ID.ValueString(),
+			"error":          err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read hosted page", util.FormatErrorMessage(err))
 		return
 	}
 
+	// Update state with API response
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.HostedPageGroupName = util.StringValueOrNull(&res.Data.ID)
 	state.DefaultLocale = util.StringValueOrNull(&res.Data.DefaultLocale)
@@ -224,12 +254,12 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 		hostedPageID := sc.HostedPageID
 		local := sc.Locale
 		url := sc.URL
-		conent := sc.Content
+		content := sc.Content
 		objValue := types.ObjectValueMust(hostedPages.AttrTypes, map[string]attr.Value{
 			"hosted_page_id": util.StringValueOrNull(&hostedPageID),
 			"locale":         util.StringValueOrNull(&local),
 			"url":            util.StringValueOrNull(&url),
-			"content":        util.StringValueOrNull(&conent),
+			"content":        util.StringValueOrNull(&content),
 		})
 		objectValues = append(objectValues, objValue)
 	}
@@ -237,10 +267,25 @@ func (r *HostedPageResource) Read(ctx context.Context, req resource.ReadRequest,
 	hps, diags := types.SetValueFrom(ctx, hostedPages, objectValues)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to process hosted pages data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	state.HostedPages = hps
+	tflog.Debug(ctx, "successfully processed hosted pages data")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource hosted page read successfully", util.H{
+		"hosted_page_id": state.ID.ValueString(),
+	})
 }
 
 func (r *HostedPageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -268,13 +313,25 @@ func (r *HostedPageResource) Delete(ctx context.Context, req resource.DeleteRequ
 	var state HostedPageConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.HostedPages.Delete(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete hosted page via API", util.H{
+			"hosted_page_id": state.ID.ValueString(),
+			"error":          err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete hosted page", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource hosted page deleted successfully", util.H{
+		"hosted_page_id": state.ID.ValueString(),
+	})
 }
 
 func (r *HostedPageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

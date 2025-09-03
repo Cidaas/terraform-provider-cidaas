@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type TemplateGroupResource struct {
@@ -202,32 +203,79 @@ func (r *TemplateGroupResource) Create(ctx context.Context, req resource.CreateR
 	tgModel, diags := prepareTemplateGroupModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare template group model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	res, err := r.cidaasClient.TemplateGroup.Create(ctx, *tgModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to create template group via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create template group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created template group via API", util.H{
+		"group_id": res.Data.GroupID,
+	})
+
 	res, err = r.cidaasClient.TemplateGroup.Get(ctx, res.Data.GroupID)
 	if err != nil {
+		tflog.Error(ctx, "failed to get template group after creation", util.H{
+			"group_id": res.Data.GroupID,
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to get template group", util.FormatErrorMessage(err))
 		return
 	}
+
 	updatedPlan := updateState(&plan, *res)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updatedPlan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource template group created successfully", util.H{
+		"group_id": res.Data.GroupID,
+	})
 }
 
 func (r *TemplateGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TemplateGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	res, err := r.cidaasClient.TemplateGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read template group via API", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read template group", util.FormatErrorMessage(err))
 		return
 	}
+
 	updatedState := updateState(&state, *res)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &updatedState)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "resource template group read successfully", util.H{
+		"group_id": res.Data.GroupID,
+	})
 }
 
 func (r *TemplateGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -239,28 +287,61 @@ func (r *TemplateGroupResource) Update(ctx context.Context, req resource.UpdateR
 	templateGroupModel, diags := prepareTemplateGroupModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare template group model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	templateGroupModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.TemplateGroup.Update(ctx, *templateGroupModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to update template group via API", util.H{
+			"group_id": state.ID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update template group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated template group via API", util.H{
+		"group_id": state.ID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource template group updated successfully", util.H{
+		"group_id": state.ID.ValueString(),
+	})
 }
 
 func (r *TemplateGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TemplateGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.TemplateGroup.Delete(ctx, state.GroupID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete template group via API", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete template group", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource template group deleted successfully", util.H{
+		"group_id": state.GroupID.ValueString(),
+	})
 }
 
 func (r *TemplateGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type UserGroupResource struct {
@@ -160,31 +161,62 @@ func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateReque
 	userGroup, diags := prepareUserGroupPayload(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare user_group payload", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	res, err := r.cidaasClient.UserGroup.Create(ctx, *userGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to create user group", util.FormatErrorMessage(err))
+		tflog.Error(ctx, "failed to create user group via API", util.H{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError("failed to create user_group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created user group via API", util.H{
+		"group_id": res.Data.ID,
+	})
+
 	plan.ID = types.StringValue(res.Data.ID)
 	plan.GroupType = types.StringValue(res.Data.GroupType)
 	plan.CreatedAt = types.StringValue(res.Data.CreatedTime)
 	plan.UpdatedAt = types.StringValue(res.Data.UpdatedTime)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource user_group created successfully", util.H{
+		"group_id": res.Data.ID,
+	})
 }
 
 func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state UserGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	res, err := r.cidaasClient.UserGroup.Get(ctx, state.GroupID.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("failed to read user group", util.FormatErrorMessage(err))
+		tflog.Error(ctx, "failed to read user_group via API", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
+		resp.Diagnostics.AddError("failed to read user_group", util.FormatErrorMessage(err))
 		return
 	}
+
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.GroupType = util.StringValueOrNull(&res.Data.GroupType)
 	state.GroupID = util.StringValueOrNull(&res.Data.GroupID)
@@ -201,10 +233,25 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 	cf, diags := util.MapValueOrNull(&res.Data.CustomFields)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to process custom fields", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	state.CustomFields = cf
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource user_group read successfully", util.H{
+		"group_id":   res.Data.GroupID,
+		"group_name": res.Data.GroupName,
+	})
 }
 
 func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -212,42 +259,88 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan or state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	userGroup, diags := prepareUserGroupPayload(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare user_group payload for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	res, err := r.cidaasClient.UserGroup.Update(ctx, *userGroup)
 	if err != nil {
-		resp.Diagnostics.AddError("failed to update user group", util.FormatErrorMessage(err))
+		tflog.Error(ctx, "failed to update user_group via API", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
+		resp.Diagnostics.AddError("failed to update user_group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated user_group via API", util.H{
+		"group_id": state.GroupID.ValueString(),
+	})
+
 	plan.GroupType = types.StringValue(res.Data.GroupType)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "successfully completed user_group update", util.H{
+		"group_id": state.GroupID.ValueString(),
+	})
 }
 
 func (r *UserGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state UserGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	subGroups, err := r.cidaasClient.UserGroup.GetSubGroups(ctx, state.GroupID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "Failed to check sub user groups", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to check sub user groups", util.FormatErrorMessage(err))
 		return
 	}
+
 	if len(subGroups) > 0 {
+		tflog.Error(ctx, "Cannot delete user group with sub groups", util.H{
+			"group_id":         state.GroupID.ValueString(),
+			"sub_groups_count": len(subGroups),
+		})
 		resp.Diagnostics.AddError("Invalid Request", "The group contains sub user groups and cannot be deleted.")
 		return
 	}
 	err = r.cidaasClient.UserGroup.Delete(ctx, state.GroupID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "Failed to delete user group via API", util.H{
+			"group_id": state.GroupID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete user group", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource user_group deleted successfully", util.H{
+		"group_id": state.GroupID.ValueString(),
+	})
 }
 
 func (r *UserGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

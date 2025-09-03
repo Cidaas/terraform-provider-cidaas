@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type WebhookResource struct {
@@ -221,37 +222,69 @@ var webhookSchema = schema.Schema{
 
 func (r *WebhookResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) { //nolint:dupl
 	var plan WebhookConfig
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extractAuthConfigs(ctx)...)
 	wbModel, diags := prepareWebhookModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare webhook model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	res, err := r.cidaasClient.Webhook.Upsert(ctx, *wbModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to create webhook via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create webhook", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created webhook via API", util.H{
+		"webhook_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "successfully created the resource", util.H{
+		"webhook_id": res.Data.ID,
+	})
 }
 
 func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state WebhookConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	res, err := r.cidaasClient.Webhook.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read webhook via API", util.H{
+			"webhook_id": state.ID.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read webhook", util.FormatErrorMessage(err))
 		return
 	}
+
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.AuthType = util.StringValueOrNull(&res.Data.AuthType)
 	state.URL = util.StringValueOrNull(&res.Data.URL)
 	state.Disable = util.BoolValueOrNull(&res.Data.Disable)
-	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
 	state.Events = util.SetValueOrNull(res.Data.Events)
@@ -272,10 +305,14 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to create API key config object", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
 			return
 		}
 		state.APIKeyConfig = apiKeyConfig
 	}
+
 	if res.Data.TotpDetails.TotpKey != "" {
 		totpConfig, diags := types.ObjectValue(authConfig.AttrTypes, map[string]attr.Value{
 			"placeholder": util.StringValueOrNull(&res.Data.TotpDetails.TotpPlaceholder),
@@ -284,6 +321,9 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to create TOTP config object", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
 			return
 		}
 		state.TOTPConfig = totpConfig
@@ -297,14 +337,30 @@ func (r *WebhookResource) Read(ctx context.Context, req resource.ReadRequest, re
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to create OAuth config object", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
 			return
 		}
 		state.CidaasAuthConfig = oauthConfig
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource webhook read successfully", util.H{
+		"webhook_id": res.Data.ID,
+	})
 }
 
 func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	tflog.Debug(ctx, "Starting webhook update")
+
 	var plan, state WebhookConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -312,27 +368,73 @@ func (r *WebhookResource) Update(ctx context.Context, req resource.UpdateRequest
 	wbModel, diags := prepareWebhookModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to prepare webhook model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	tflog.Debug(ctx, "Successfully prepared webhook model for update", util.H{
+		"webhook_id":  state.ID.ValueString(),
+		"webhook_url": wbModel.URL,
+	})
+
+	tflog.Info(ctx, "Calling Cidaas API to update webhook", util.H{
+		"webhook_id": state.ID.ValueString(),
+	})
 	_, err := r.cidaasClient.Webhook.Upsert(ctx, *wbModel)
 	if err != nil {
+		tflog.Error(ctx, "Failed to update webhook via API", util.H{
+			"webhook_id": state.ID.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update webhook", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "Successfully updated webhook via API", util.H{
+		"webhook_id": state.ID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "Successfully completed webhook update", util.H{
+		"webhook_id": state.ID.ValueString(),
+	})
 }
 
 func (r *WebhookResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	tflog.Debug(ctx, "Starting webhook deletion")
+
 	var state WebhookConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
+	tflog.Info(ctx, "Calling Cidaas API to delete webhook", util.H{
+		"webhook_id": state.ID.ValueString(),
+	})
 	err := r.cidaasClient.Webhook.Delete(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "Failed to delete webhook via API", util.H{
+			"webhook_id": state.ID.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete webhook", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "Successfully deleted webhook", util.H{
+		"webhook_id": state.ID.ValueString(),
+	})
 }
 
 func (r *WebhookResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
