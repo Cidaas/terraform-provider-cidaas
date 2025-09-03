@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // nolint:revive
@@ -47,7 +49,7 @@ func NewBaseDataSource(cfg BaseDataSourceConfig) BaseDataSource {
 }
 
 func (r *BaseDataSource) Configure(
-	_ context.Context,
+	ctx context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
 ) {
@@ -56,25 +58,32 @@ func (r *BaseDataSource) Configure(
 		return
 	}
 
-	r.Client = GetDataSourceMeta(req, resp)
+	r.Client = GetDataSourceMeta(ctx, req, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 }
 
 func GetDataSourceMeta(
+	ctx context.Context,
 	req datasource.ConfigureRequest,
 	resp *datasource.ConfigureResponse,
 ) *cidaas.Client {
+	tflog.Debug(ctx, "starting data source configuration")
 	client, ok := req.ProviderData.(*cidaas.Client)
 
 	if !ok {
+		tflog.Error(ctx, "Failed to configure data source - unexpected provider data type", util.H{
+			"expected_type": "*cidaas.Client",
+			"actual_type":   fmt.Sprintf("%T", req.ProviderData),
+		})
 		resp.Diagnostics.AddError(
 			"Unexpected DataSource Configure Type",
 			fmt.Sprintf("Expected cidaas.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 		return nil
 	}
+	tflog.Info(ctx, "data source configured successfully")
 	return client
 }
 

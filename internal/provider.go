@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	cidaasDataSources "github.com/Cidaas/terraform-provider-cidaas/internal/datasources"
 	cidaasResource "github.com/Cidaas/terraform-provider-cidaas/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -85,20 +86,39 @@ func (p *cidaasProvider) Resources(_ context.Context) []func() resource.Resource
 }
 
 func (p *cidaasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Debug(ctx, "Starting provider configuration")
+
 	var data Model
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to get provider config data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "Successfully retrieved provider configuration", util.H{
+		"base_url": data.BaseURL.ValueString(),
+	})
 
 	clientID := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID")
 	clientSecret := os.Getenv("TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET")
 
 	if clientID == "" || clientSecret == "" {
+		tflog.Error(ctx, "Missing required environment variables", util.H{
+			"client_id_set":     clientID != "",
+			"client_secret_set": clientSecret != "",
+		})
 		resp.Diagnostics.AddError(
 			"missing environment variables",
 			"env variable TERRAFORM_PROVIDER_CIDAAS_CLIENT_ID or TERRAFORM_PROVIDER_CIDAAS_CLIENT_SECRET missing "+
 				"please check the document https://registry.terraform.io/providers/Cidaas/cidaas/latest/docs")
 		return
 	}
+	tflog.Debug(ctx, "Successfully retrieved environment variables", util.H{
+		"client_id_length": len(clientID),
+		"base_url":         data.BaseURL.ValueString(),
+	})
 
 	clientConfig := cidaas.ClientConfig{
 		ClientID:     clientID,
@@ -106,12 +126,22 @@ func (p *cidaasProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		BaseURL:      data.BaseURL.ValueString(),
 	}
 
+	tflog.Info(ctx, "Creating cidaas client", util.H{
+		"base_url": data.BaseURL.ValueString(),
+	})
 	client, err := cidaas.NewClient(ctx, clientConfig)
 	if err != nil {
+		tflog.Error(ctx, "Failed to create cidaas client", util.H{
+			"base_url": data.BaseURL.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("provide configuration failed", fmt.Sprintf("failed to create cidaas client %s", err.Error()))
 		return
 	}
+
 	resp.ResourceData = client
 	resp.DataSourceData = client
-	tflog.Info(ctx, "provider configured successfully")
+	tflog.Info(ctx, "Provider configured successfully", util.H{
+		"base_url": data.BaseURL.ValueString(),
+	})
 }

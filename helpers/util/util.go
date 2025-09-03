@@ -155,3 +155,9 @@ func SetValueOrEmpty(values []string) types.Set {
 	}
 	return types.SetValueMust(types.StringType, elements)
 }
+
+// LogFields is a convenience type for structured logging, similar to gin.H
+type LogFields map[string]interface{}
+
+// H is a shorthand alias for LogFields (like gin.H)
+type H map[string]interface{}

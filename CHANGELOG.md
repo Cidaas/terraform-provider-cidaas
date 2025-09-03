@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.3
+
+### Enhancements
+
+- Enhanced logging and error handling across all resources and data sources
+
 ### 3.5.2
 
 ### Enhancements

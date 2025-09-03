@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -198,6 +199,13 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 	var plan ConsentVersionConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	consent := cidaas.ConsentVersionModel{
 		Version:     plan.Version.ValueFloat64(),
 		ConsentID:   plan.ConsentID.ValueString(),
@@ -210,6 +218,12 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 		}
 		if len(plan.RequiredFields.Elements()) > 0 {
 			resp.Diagnostics.Append(plan.RequiredFields.ElementsAs(ctx, &consent.RequiredFields, false)...)
+		}
+		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to extract scopes or required fields", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
+			return
 		}
 	}
 
@@ -227,12 +241,18 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 		}
 		restLocals = plan.consentLocale[1:]
 	}
-
 	res, err := r.cidaasClient.ConsentVersion.Upsert(ctx, consent)
 	if err != nil {
+		tflog.Error(ctx, "failed to create consent version via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create consent version", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+	tflog.Info(ctx, "successfully created consent version via API", util.H{
+		"consent_version_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	for _, pcl := range restLocals {
 		consentLocal := cidaas.ConsentLocalModel{
@@ -246,26 +266,57 @@ func (r *ConsentVersionResource) Create(ctx context.Context, req resource.Create
 		}
 		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(ctx, consentLocal)
 		if err != nil {
+			tflog.Error(ctx, "failed to create consent locale via API", util.H{
+				"locale": pcl.Locale.ValueString(),
+				"error":  err.Error(),
+			})
 			resp.Diagnostics.AddError("failed to create consent locale", fmt.Sprintf("Error: %s", err.Error()))
 			return
 		}
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource consent version created successfully")
 }
 
 func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state ConsentVersionConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(state.extract(ctx)...)
-	res, err := r.cidaasClient.ConsentVersion.Get(ctx, state.ConsentID.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to read consent version", fmt.Sprintf("Error: %s ", err.Error()))
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	res, err := r.cidaasClient.ConsentVersion.Get(ctx, state.ConsentID.ValueString())
+	if err != nil {
+		tflog.Error(ctx, "failed to read consent version via API", util.H{
+			"consent_id": state.ConsentID.ValueString(),
+			"error":      err.Error(),
+		})
+		resp.Diagnostics.AddError("failed to read consent version", fmt.Sprintf("Error: %s ", err.Error()))
+		return
+	}
+
 	if res.Success && res.Status == http.StatusOK && len(res.Data) == 0 {
+		tflog.Error(ctx, "no consent versions found for consent ID", util.H{
+			"consent_id": state.ConsentID.ValueString(),
+			"status":     res.Status,
+		})
 		resp.Diagnostics.AddError("Invalid consent_id", fmt.Sprintf("No consent version found for the provided consent_id %+v", state.ConsentID.String()))
 		return
 	}
+
+	tflog.Debug(ctx, "processing consent versions")
+
 	isAvailable := false
 	if len(res.Data) > 0 {
 		for _, version := range res.Data {
@@ -274,9 +325,11 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 				consentType := version.ConsentType
 				state.Version = types.Float64Value(version.Version)
 				state.ConsentType = util.StringValueOrNull(&consentType)
+				break
 			}
 		}
 	}
+
 	var diag diag.Diagnostics
 	var objectValues []attr.Value
 	consentLocalObjectType := types.ObjectType{
@@ -287,19 +340,34 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 		},
 	}
 
-	for _, cl := range state.consentLocale {
+	tflog.Debug(ctx, "processing consent locales")
+
+	for i, cl := range state.consentLocale {
 		res, err := r.cidaasClient.ConsentVersion.GetLocal(ctx, state.ID.ValueString(), cl.Locale.ValueString())
 		if err != nil {
+			tflog.Error(ctx, "failed to read consent version locale via API", util.H{
+				"locale_index":       i,
+				"locale":             cl.Locale.ValueString(),
+				"consent_version_id": state.ID.ValueString(),
+				"error":              err.Error(),
+			})
 			resp.Diagnostics.AddError("Failed to read consent version locale", fmt.Sprintf("Error: %s ", err.Error()))
 			return
 		}
 		if !res.Success && res.Status == http.StatusNoContent {
+			tflog.Error(ctx, "consent version locale not found", util.H{
+				"locale_index":       i,
+				"locale":             cl.Locale.ValueString(),
+				"consent_version_id": state.ID.ValueString(),
+				"status":             res.Status,
+			})
 			resp.Diagnostics.AddError(
 				"Consent Version Local not found",
 				fmt.Sprintf("No consent version locale found for the combination of consent_version_id %s and locale %s.", state.ID.String(), cl.Locale.String()),
 			)
 			return
 		}
+
 		state.ConsentID = util.StringValueOrNull(&res.Data.ConsentID)
 		if state.ConsentType.ValueString() == SCOPES {
 			state.Scopes = util.SetValueOrNull(res.Data.Scopes)
@@ -314,21 +382,40 @@ func (r *ConsentVersionResource) Read(ctx context.Context, req resource.ReadRequ
 				"url":     util.StringValueOrNull(&res.Data.URL),
 			})
 		objectValues = append(objectValues, objValue)
-
+		tflog.Debug(ctx, "successfully processed consent locale")
 	}
+
 	state.ConsentLocales, diag = types.SetValueFrom(ctx, consentLocalObjectType, objectValues)
 	resp.Diagnostics.Append(diag...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to process consent locales data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	tflog.Debug(ctx, "successfully processed all consent locales data")
+
 	if !isAvailable {
+		tflog.Error(ctx, "consent version not found", util.H{
+			"consent_version_id": state.ID.ValueString(),
+			"consent_id":         state.ConsentID.ValueString(),
+		})
 		resp.Diagnostics.AddError(
 			"Consent Version not found",
 			fmt.Sprintf("Consent Version with ID %s not found for the provided consent_id %s", state.ID.String(), state.ConsentID.String()),
 		)
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "successfully completed consent version read")
 }
 
 func (r *ConsentVersionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -337,6 +424,12 @@ func (r *ConsentVersionResource) Update(ctx context.Context, req resource.Update
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
 
 	for _, pcl := range plan.consentLocale {
 		consentLocal := cidaas.ConsentLocalModel{
@@ -350,11 +443,25 @@ func (r *ConsentVersionResource) Update(ctx context.Context, req resource.Update
 		}
 		_, err := r.cidaasClient.ConsentVersion.UpsertLocal(ctx, consentLocal)
 		if err != nil {
+			tflog.Error(ctx, "failed to update consent locale via API", util.H{
+				"locale":             pcl.Locale.ValueString(),
+				"consent_version_id": state.ID.ValueString(),
+				"error":              err.Error(),
+			})
 			resp.Diagnostics.AddError("Failed to update consent locale", fmt.Sprintf("Error: %s", err.Error()))
 			return
 		}
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "successfully completed consent version update")
 }
 
 func (r *ConsentVersionResource) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {

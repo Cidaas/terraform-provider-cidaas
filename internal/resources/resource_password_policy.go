@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type PasswordPolicy struct {
@@ -150,6 +151,9 @@ func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest,
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -164,6 +168,9 @@ func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest,
 	diags := plan.passwordPolicy.StrengthRegexes.ElementsAs(ctx, &payload.PasswordPolicy.StrengthRegexes, false)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to extract strength regexes", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -176,18 +183,47 @@ func (r *PasswordPolicy) Create(ctx context.Context, req resource.CreateRequest,
 
 	res, err := r.cidaasClient.PasswordPolicy.Create(ctx, payload)
 	if err != nil {
+		tflog.Error(ctx, "failed to create password policy via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+	tflog.Info(ctx, "successfully created password policy via API", util.H{
+		"policy_id": res.Data.ID,
+	})
+
 	plan.ID = types.StringValue(res.Data.ID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource password policy created successfully", util.H{
+		"policy_id":   res.Data.ID,
+		"policy_name": plan.PolicyName.ValueString(),
+	})
 }
 
 func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state PasswordPolicyConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
 	res, err := r.cidaasClient.PasswordPolicy.Get(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read password policy via API", util.H{
+			"policy_id": state.ID.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
@@ -206,6 +242,11 @@ func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	if res.Data.PasswordPolicy != nil {
+		tflog.Debug(ctx, "processing password policy configuration", util.H{
+			"block_compromised": res.Data.PasswordPolicy.BlockCompromised,
+			"deny_usage_count":  res.Data.PasswordPolicy.DenyUsageCount,
+		})
+
 		passwordPolicy, diags := types.ObjectValue(passwordPolicyType, map[string]attr.Value{
 			"block_compromised": util.BoolValueOrNull(&res.Data.PasswordPolicy.BlockCompromised),
 			"deny_usage_count":  util.Int64ValueOrNull(&res.Data.PasswordPolicy.DenyUsageCount),
@@ -217,12 +258,29 @@ func (r *PasswordPolicy) Read(ctx context.Context, req resource.ReadRequest, res
 		})
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
+			tflog.Error(ctx, "failed to process password policy configuration", util.H{
+				"errors": resp.Diagnostics.Errors(),
+			})
 			return
 		}
 		state.PasswordPolicy = passwordPolicy
+		tflog.Debug(ctx, "successfully processed password policy configuration")
+	} else {
+		tflog.Debug(ctx, "no password policy configuration found in response")
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "successfully completed password policy read", util.H{
+		"policy_id":   state.ID.ValueString(),
+		"policy_name": res.Data.PolicyName,
+	})
 }
 
 func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -231,6 +289,9 @@ func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(plan.extract(ctx)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -246,6 +307,9 @@ func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest,
 	diags := plan.passwordPolicy.StrengthRegexes.ElementsAs(ctx, &payload.PasswordPolicy.StrengthRegexes, false)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to extract strength regexes for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -258,28 +322,61 @@ func (r *PasswordPolicy) Update(ctx context.Context, req resource.UpdateRequest,
 
 	res, err := r.cidaasClient.PasswordPolicy.Update(ctx, payload)
 	if err != nil {
+		tflog.Error(ctx, "Failed to update password policy via API", util.H{
+			"policy_id": state.ID.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+
 	if !res.Data {
+		tflog.Error(ctx, "Password policy update returned unsuccessful response", util.H{
+			"policy_id": state.ID.ValueString(),
+			"response":  fmt.Sprintf("%+v", res),
+		})
 		resp.Diagnostics.AddError("failed to update password policy", fmt.Sprintf("Response: %+v", res))
 		return
 	}
+	tflog.Info(ctx, "Successfully updated password policy via API", util.H{
+		"policy_id": state.ID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "resource password policy updated successfully", util.H{
+		"policy_id":   state.ID.ValueString(),
+		"policy_name": plan.PolicyName.ValueString(),
+	})
 }
 
 func (r *PasswordPolicy) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state PasswordPolicyConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-
 	err := r.cidaasClient.PasswordPolicy.Delete(ctx, state.ID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete password policy via API", util.H{
+			"policy_id": state.ID.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete password policy", fmt.Sprintf("Error: %s", err.Error()))
 		return
 	}
+
+	tflog.Info(ctx, "password policy deleted successfully", util.H{
+		"policy_id": state.ID.ValueString(),
+	})
 }
 
 func (r *PasswordPolicy) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

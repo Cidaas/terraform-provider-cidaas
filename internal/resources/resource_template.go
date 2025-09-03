@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 var (
@@ -212,14 +213,24 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
 	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, config)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare template or validate configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	template := prepareTemplateModel(plan)
 	res, err := r.cidaasClient.Templates.Upsert(ctx, *template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to create template via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create template", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created template via API", util.H{
+		"template_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	plan.Language = util.StringValueOrNull(&res.Data.Language)
@@ -227,6 +238,16 @@ func (r *TemplateResource) Create(ctx context.Context, req resource.CreateReques
 	plan.GroupID = util.StringValueOrNull(&res.Data.GroupID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource template created successfully", util.H{
+		"template_id": res.Data.ID,
+	})
 }
 
 func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -235,6 +256,9 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
 	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data or validate template configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -253,9 +277,14 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	res, err := r.cidaasClient.Templates.Get(ctx, template, state.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to read template via API", util.H{
+			"template_key": state.TemplateKey.ValueString(),
+			"error":        err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read template", util.FormatErrorMessage(err))
 		return
 	}
+
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	state.UsageType = util.StringValueOrNull(&res.Data.UsageType)
@@ -263,15 +292,29 @@ func (r *TemplateResource) Read(ctx context.Context, req resource.ReadRequest, r
 	state.GroupID = util.StringValueOrNull(&res.Data.GroupID)
 	state.Content = util.StringValueOrNull(&res.Data.Content)
 	state.Enabled = util.BoolValueOrNull(&res.Data.Enabled)
+
 	if state.TemplateOwner.ValueString() == "DEVELOPER" {
 		state.IsSystemTemplate = types.BoolValue(false)
 	}
+
 	if state.IsSystemTemplate.ValueBool() {
 		template.ProcessingType = state.ProcessingType.ValueString()
 		template.VerificationType = state.VerificationType.ValueString()
 	}
+
 	state.Subject = util.StringValueOrNull(&res.Data.Subject)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource template read successfully", util.H{
+		"template_id": res.Data.ID,
+	})
 }
 
 func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) { //nolint:dupl
@@ -281,28 +324,55 @@ func (r *TemplateResource) Update(ctx context.Context, req resource.UpdateReques
 	cidaasClient = r.cidaasClient // global variable cidaasClient is assigned here
 	resp.Diagnostics.Append(validateSystemTemplateConfig(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or validate template configuration", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	template := prepareTemplateModel(plan)
 	template.ID = state.ID.ValueString()
 	res, err := r.cidaasClient.Templates.Upsert(ctx, *template, plan.IsSystemTemplate.ValueBool())
 	if err != nil {
+		tflog.Error(ctx, "failed to update template via API", util.H{
+			"template_id": state.ID.ValueString(),
+			"error":       err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update template", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated template via API", util.H{
+		"template_id": state.ID.ValueString(),
+	})
+
 	plan.TemplateOwner = util.StringValueOrNull(&res.Data.TemplateOwner)
 	plan.UsageType = util.StringValueOrNull(&res.Data.UsageType)
 	plan.Language = util.StringValueOrNull(&res.Data.Language)
 	plan.GroupID = util.StringValueOrNull(&res.Data.GroupID)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource template updated successfully", util.H{
+		"template_id": state.ID.ValueString(),
+	})
 }
 
 func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state TemplateConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	if state.IsSystemTemplate.ValueBool() {
 		resp.Diagnostics.AddWarning(
 			"The cidaas_template state has been destroyed. However, deleting system template for a specific template_key is not supported in cidaas system.",
@@ -311,8 +381,18 @@ func (r *TemplateResource) Delete(ctx context.Context, req resource.DeleteReques
 	} else {
 		err := r.cidaasClient.Templates.Delete(ctx, state.TemplateKey.ValueString(), state.TemplateType.ValueString())
 		if err != nil {
+			tflog.Error(ctx, "Failed to delete template via API", util.H{
+				"template_key":  state.TemplateKey.ValueString(),
+				"template_type": state.TemplateType.ValueString(),
+				"error":         err.Error(),
+			})
 			resp.Diagnostics.AddError("failed to delete template", util.FormatErrorMessage(err))
+			return
 		}
+		tflog.Info(ctx, "resource template deleted successfully", util.H{
+			"template_key":  state.TemplateKey.ValueString(),
+			"template_type": state.TemplateType.ValueString(),
+		})
 	}
 }
 

@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const layout = "2006-01-02T15:04:05Z"
@@ -442,20 +443,40 @@ func (r *RegFieldResource) Create(ctx context.Context, req resource.CreateReques
 	rfModel, diags := prepareRegFieldModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to prepare registration field model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	res, err := r.cidaasClient.RegFields.Upsert(ctx, *rfModel)
 	if err != nil {
+		tflog.Error(ctx, "Failed to create registration field via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create registration field", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "Successfully created registration field via API", util.H{
+		"field_id": res.Data.ID,
+	})
+
 	plan.ID = types.StringValue(res.Data.ID)
 	plan.Order = types.Int64Value(res.Data.Order)
 	plan.BaseDataType = types.StringValue(res.Data.BaseDataType)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
+	tflog.Info(ctx, "Resource registration field created successfully", util.H{
+		"field_id":  res.Data.ID,
+		"field_key": plan.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -602,32 +623,73 @@ func (r *RegFieldResource) Update(ctx context.Context, req resource.UpdateReques
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.ExtractConfigs(ctx)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state data or extract configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
 
 	fieldModel, diags := prepareRegFieldModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare registration field model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	fieldModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.RegFields.Upsert(ctx, *fieldModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to update registration field via API", util.H{
+			"field_id": state.ID.ValueString(),
+			"error":    err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update registration field", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated registration field via API", util.H{
+		"field_id": state.ID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource registration field updated successfully", util.H{
+		"field_id":  state.ID.ValueString(),
+		"field_key": plan.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state RegFieldConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.RegFields.Delete(ctx, state.FieldKey.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete registration field via API", util.H{
+			"field_key": state.FieldKey.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete registration field", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource registration field deleted successfully", util.H{
+		"field_key": state.FieldKey.ValueString(),
+	})
 }
 
 func (r *RegFieldResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

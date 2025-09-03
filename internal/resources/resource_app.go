@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type AppResource struct {
@@ -73,20 +74,33 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(plan.ExtractAppConfigs(ctx)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan data or extract app configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	tflog.Debug(ctx, "successfully extracted app configurations")
 
 	appModel, diags := prepareAppModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare app model", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-
+	tflog.Debug(ctx, "successfully prepared app model")
 	res, err := r.cidaasClient.Apps.Create(ctx, *appModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to create app via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create app", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created app via API", util.H{
+		"client_id": res.Data.ClientID,
+	})
 
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.ClientID = util.StringValueOrNull(&res.Data.ClientID)
@@ -94,6 +108,17 @@ func (r *AppResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource app created successfully", util.H{
+		"app_id":    res.Data.ID,
+		"client_id": res.Data.ClientID,
+	})
 }
 
 func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -101,18 +126,37 @@ func (r *AppResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(state.ExtractAppConfigs(ctx)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data or extract app configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
-
+	tflog.Debug(ctx, "successfully extracted app configurations")
 	data, err := r.cidaasClient.Apps.Get(ctx, state.ClientID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read app via API", util.H{
+			"client_id": state.ClientID.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read app", util.FormatErrorMessage(err))
 		return
 	}
 
 	isImport := !state.ClientID.IsNull() && state.ClientName.IsNull()
 	updateAppState(&state, *data, isImport)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "resource app read successfully", util.H{
+		"app_id":    state.ID.ValueString(),
+		"client_id": state.ClientID.ValueString(),
+		"is_import": isImport,
+	})
 }
 
 func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -123,32 +167,73 @@ func (r *AppResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	resp.Diagnostics.Append(config.ExtractAppConfigs(ctx)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan/state/config data or extract app configurations", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "successfully extracted app configurations", util.H{
+		"app_id":    state.ID.ValueString(),
+		"client_id": state.ClientID.ValueString(),
+	})
 
 	appModel, diags := prepareAppModel(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to prepare app model for update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+	tflog.Debug(ctx, "successfully prepared app model for update")
 	appModel.ID = state.ID.ValueString()
 	_, err := r.cidaasClient.Apps.Update(ctx, *appModel)
 	if err != nil {
+		tflog.Error(ctx, "failed to update app via API", util.H{
+			"app_id": state.ID.ValueString(),
+			"error":  err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update app", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated app via API", util.H{
+		"client_id": state.ClientID.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Debug(ctx, "resource app updated successfully")
 }
 
 func (r *AppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state AppConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	err := r.cidaasClient.Apps.Delete(ctx, state.ClientID.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete app via API", util.H{
+			"client_id": state.ClientID.ValueString(),
+			"error":     err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete app", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource app deleted successfully", util.H{
+		"client_id": state.ClientID.ValueString(),
+	})
 }
 
 func (r *AppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

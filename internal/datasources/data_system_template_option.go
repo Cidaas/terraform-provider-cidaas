@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -153,6 +154,9 @@ func (d *SystemTemplateOptionsDataSource) Read(
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get config data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
@@ -164,15 +168,28 @@ func (d *SystemTemplateOptionsDataSource) Read(
 		listSystemTemplateOptions,
 	)
 	if diag != nil {
+		tflog.Error(ctx, "failed to filter system template options data", util.H{
+			"error":  diag.Summary(),
+			"detail": diag.Detail(),
+		})
 		resp.Diagnostics.Append(diag)
 		return
 	}
-
+	tflog.Debug(ctx, "successfully filtered system template options data")
 	data.SystemTemplateOption = parseModel(
 		AnySliceToTyped[cidaas.MasterList](result),
 		parseSystemTemplate,
 	)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "successfully read system_template_options data source")
 }
 
 func listSystemTemplateOptions(ctx context.Context, client *cidaas.Client) ([]any, error) {

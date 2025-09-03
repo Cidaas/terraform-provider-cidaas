@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type ScopeGroupResource struct {
@@ -88,29 +89,67 @@ var scopeGroupSchema = schema.Schema{
 func (r *ScopeGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan ScopeGroupConfig
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	scopeGroup := cidaas.ScopeGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
 	res, err := r.cidaasClient.ScopeGroup.Upsert(ctx, scopeGroup)
 	if err != nil {
+		tflog.Error(ctx, "failed to create scope group via API", util.H{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to create scope group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully created scope group via API", util.H{
+		"group_id": res.Data.ID,
+	})
+
 	plan.ID = util.StringValueOrNull(&res.Data.ID)
 	plan.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	plan.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Info(ctx, "resource scope group created successfully", util.H{
+		"group_id":   res.Data.ID,
+		"group_name": plan.GroupName.ValueString(),
+	})
 }
 
 func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) { //nolint:dupl
 	var state ScopeGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
 	res, err := r.cidaasClient.ScopeGroup.Get(ctx, state.GroupName.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to read scope group via API", util.H{
+			"group_name": state.GroupName.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to read scope group", util.FormatErrorMessage(err))
 		return
 	}
+
 	state.ID = util.StringValueOrNull(&res.Data.ID)
 	state.CreatedAt = util.StringValueOrNull(&res.Data.CreatedTime)
 	state.UpdatedAt = util.StringValueOrNull(&res.Data.UpdatedTime)
@@ -118,6 +157,17 @@ func (r *ScopeGroupResource) Read(ctx context.Context, req resource.ReadRequest,
 	state.Description = util.StringValueOrNull(&res.Data.Description)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource scope group read successfully", util.H{
+		"group_id":   res.Data.ID,
+		"group_name": res.Data.GroupName,
+	})
 }
 
 func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -125,31 +175,64 @@ func (r *ScopeGroupResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get plan or state data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
+
 	scopeGroup := cidaas.ScopeGroupConfig{
 		GroupName:   plan.GroupName.ValueString(),
 		Description: plan.Description.ValueString(),
 	}
 	_, err := r.cidaasClient.ScopeGroup.Upsert(ctx, scopeGroup)
 	if err != nil {
+		tflog.Error(ctx, "failed to update scope group via API", util.H{
+			"group_name": plan.GroupName.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to update scope group", util.FormatErrorMessage(err))
 		return
 	}
+	tflog.Info(ctx, "successfully updated scope group via API", util.H{
+		"group_name": plan.GroupName.ValueString(),
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state after update", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+
+	tflog.Debug(ctx, "resource scope group updated successfully", util.H{
+		"group_name": plan.GroupName.ValueString(),
+	})
 }
 
 func (r *ScopeGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state ScopeGroupConfig
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get state data for deletion", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 	err := r.cidaasClient.ScopeGroup.Delete(ctx, state.GroupName.ValueString())
 	if err != nil {
+		tflog.Error(ctx, "failed to delete scope group via API", util.H{
+			"group_name": state.GroupName.ValueString(),
+			"error":      err.Error(),
+		})
 		resp.Diagnostics.AddError("failed to delete scope group", util.FormatErrorMessage(err))
 		return
 	}
+
+	tflog.Info(ctx, "resource scope group deleted successfully", util.H{
+		"group_name": state.GroupName.ValueString(),
+	})
 }
 
 func (r *ScopeGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

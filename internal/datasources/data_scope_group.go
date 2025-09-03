@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	"github.com/Cidaas/terraform-provider-cidaas/helpers/cidaas"
+	"github.com/Cidaas/terraform-provider-cidaas/helpers/util"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type ScopeGroupDataSource struct {
@@ -85,18 +87,33 @@ func (d *ScopeGroupDataSource) Read(
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to get config data", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
 		return
 	}
 
 	data.ID = types.StringValue(uuid.New().String())
 	result, diag := scopeGroupFilter.GetAndFilter(ctx, d.Client, data.Filters, listScopeGroups)
 	if diag != nil {
+		tflog.Error(ctx, "failed to filter scope_group data", util.H{
+			"error":  diag.Summary(),
+			"detail": diag.Detail(),
+		})
 		resp.Diagnostics.Append(diag)
 		return
 	}
+	tflog.Debug(ctx, "successfully filtered scope_group data")
 
 	data.ScopeGroup = parseModel(AnySliceToTyped[cidaas.ScopeGroupConfig](result), parseScopeGroup)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "failed to set state", util.H{
+			"errors": resp.Diagnostics.Errors(),
+		})
+		return
+	}
+	tflog.Info(ctx, "successfully read scope_group data source")
 }
 
 func listScopeGroups(ctx context.Context, client *cidaas.Client) ([]any, error) {
