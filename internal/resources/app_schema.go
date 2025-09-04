@@ -649,6 +649,10 @@ var resourceAppSchema = schema.Schema{
 								Optional:            true,
 								MarkdownDescription: "The unique ID of the user group.",
 							},
+							"group_type": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "The unique ID of the user group.",
+							},
 							"role_filter": schema.SingleNestedAttribute{
 								Optional:            true,
 								MarkdownDescription: "A filter for roles within the group.",
@@ -706,6 +710,9 @@ var providerMetadDataSchema = schema.NestedAttributeObject{
 var allowedGroupsSchema = schema.NestedAttributeObject{
 	Attributes: map[string]schema.Attribute{
 		"group_id": schema.StringAttribute{
+			Optional: true,
+		},
+		"group_type": schema.StringAttribute{
 			Optional: true,
 		},
 		"roles": schema.SetAttribute{

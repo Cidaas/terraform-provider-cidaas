@@ -163,6 +163,7 @@ type AppConfig struct {
 }
 
 type AllowedGroups struct {
+	GroupType    types.String `tfsdk:"group_type"`
 	GroupID      types.String `tfsdk:"group_id"`
 	Roles        types.Set    `tfsdk:"roles"`
 	DefaultRoles types.Set    `tfsdk:"default_roles"`
@@ -227,6 +228,7 @@ type GroupRoleRestriction struct {
 }
 type GroupRoleFilters struct {
 	GroupID    types.String `tfsdk:"group_id"`
+	GroupType  types.String `tfsdk:"group_type"`
 	RoleFilter types.Object `tfsdk:"role_filter"`
 }
 
@@ -556,7 +558,8 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 		} else {
 			for _, ag := range plan.allowedGroups {
 				temp := cidaas.IAllowedGroups{
-					GroupID: ag.GroupID.ValueString(),
+					GroupID:   ag.GroupID.ValueString(),
+					GroupType: ag.GroupType.ValueString(),
 				}
 				diags := ag.Roles.ElementsAs(ctx, &temp.Roles, false)
 				if diags.HasError() {
@@ -719,6 +722,7 @@ func prepareAppModel(ctx context.Context, plan AppConfig) (*cidaas.AppModel, dia
 				}
 				target = append(target, cidaas.GroupRoleFilters{
 					GroupID:    f.GroupID.ValueString(),
+					GroupType:  f.GroupType.ValueString(),
 					RoleFilter: *rf,
 				})
 				grr.Filters = target

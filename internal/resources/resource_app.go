@@ -640,6 +640,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 	allowedGroupsObjectType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"group_id":      types.StringType,
+			"group_type":    types.StringType,
 			"roles":         types.SetType{ElemType: types.StringType},
 			"default_roles": types.SetType{ElemType: types.StringType},
 		},
@@ -650,10 +651,12 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		if len(groups) > 0 {
 			for _, group := range groups {
 				groupID := group.GroupID
+				groupType := group.GroupType
 				objValue := types.ObjectValueMust(
 					allowedGroupsObjectType.AttrTypes,
 					map[string]attr.Value{
 						"group_id":      util.StringValueOrNull(&groupID),
+						"group_type":    util.StringValueOrNull(&groupType),
 						"roles":         util.SetValueOrNull(group.Roles),
 						"default_roles": util.SetValueOrNull(group.DefaultRoles),
 					})
@@ -811,6 +814,7 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		}
 		filterType := map[string]attr.Type{
 			"group_id":    types.StringType,
+			"group_type":  types.StringType,
 			"role_filter": types.ObjectType{AttrTypes: roleFilterType},
 		}
 
@@ -823,12 +827,14 @@ func updateAppState(state *AppConfig, resp cidaas.AppResponse, isImport bool) {
 		parentMatchCondition := util.StringValueOrNull(&data.GroupRoleRestriction.MatchCondition)
 		for _, grr := range data.GroupRoleRestriction.Filters {
 			groupID := grr.GroupID
+			groupType := grr.GroupType
 			matchCondition := grr.RoleFilter.MatchCondition
 			roles := grr.RoleFilter.Roles
 			objValue := types.ObjectValueMust(
 				filterType,
 				map[string]attr.Value{
-					"group_id": util.StringValueOrNull(&groupID),
+					"group_id":   util.StringValueOrNull(&groupID),
+					"group_type": util.StringValueOrNull(&groupType),
 					"role_filter": types.ObjectValueMust(
 						roleFilterType,
 						map[string]attr.Value{

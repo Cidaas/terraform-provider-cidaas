@@ -155,6 +155,7 @@ type AppModel struct {
 type IAllowedGroups struct {
 	ID           string   `json:"id,omitempty"`
 	SecondaryID  string   `json:"_id,omitempty"`
+	GroupType    string   `json:"groupType,omitempty"`
 	GroupID      string   `json:"groupId,omitempty"`
 	Roles        []string `json:"roles,omitempty"`
 	DefaultRoles []string `json:"default_roles,omitempty"`
@@ -233,6 +234,7 @@ type GroupRoleRestriction struct {
 
 type GroupRoleFilters struct {
 	GroupID    string     `json:"groupId,omitempty"`
+	GroupType  string     `json:"groupType,omitempty"`
 	RoleFilter RoleFilter `json:"roleFilter,omitempty"`
 }
 
