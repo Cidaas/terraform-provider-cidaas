@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.5.4
+
+### Enhancements
+
+- Added `group_type` attribute to the `group_role_restriction` in cidaas app resource.
+
 ### 3.5.3
 
 ### Enhancements

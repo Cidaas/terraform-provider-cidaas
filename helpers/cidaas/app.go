@@ -234,6 +234,7 @@ type GroupRoleRestriction struct {
 
 type GroupRoleFilters struct {
 	GroupID    string     `json:"groupId,omitempty"`
+	GroupType  string     `json:"groupType,omitempty"`
 	RoleFilter RoleFilter `json:"roleFilter,omitempty"`
 }
 
