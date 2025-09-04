@@ -708,6 +708,9 @@ var allowedGroupsSchema = schema.NestedAttributeObject{
 		"group_id": schema.StringAttribute{
 			Optional: true,
 		},
+		"group_type": schema.StringAttribute{
+			Optional: true,
+		},
 		"roles": schema.SetAttribute{
 			ElementType: types.StringType,
 			Optional:    true,
